@@ -1,4 +1,4 @@
 wizards_castle
 ==============
 
-Common Lisp implementation of Joseph Powers classic game.
+Common Lisp implementation of Joseph Powers' classic game.
