@@ -1,0 +1,253 @@
+# -*- mode:org;coding:utf-8 -*- 
+#+TITLE:     The Wizard's Castle for Common Lisp README
+#+AUTHOR:    William Clifford
+#+EMAIL:     wobh@yahoo.com
+#+DATE:      2012-12-13 Thu
+#+DESCRIPTION: Common Lisp implementation of Joseph Power's classic game.
+#+KEYWORDS:
+#+LANGUAGE:  en
+#+OPTIONS:   H:6 num:nil toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+OPTIONS:   author:nil email:nil creator:nil timestamp:nil
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:   
+#+LINK_HOME: 
+#+XSLT:
+
+* Introduction
+
+From the "Final instructions" section of the article introducing
+_Wizard's Castle_ (Power 1980):
+
+#+BEGIN_QUOTE
+These instructions are meant to be a guide only. Feel free to
+experiment with the various responses when running the game (this is
+have the fun of the game). For the best results use equal parts
+imagination and common sense.
+#+END_QUOTE
+
+I first took these words as license to tinker with the source code and
+make the game say and do different things. But, now that I type them
+out, it seems more like Power was actually encouraging players to
+experiment in order to figure out how to play the game.
+
+_Wizard's Castle_ is a little primitive to over the kind of
+combinatorial possibilities of play that a game like _Nethack_ offers,
+but there is potential. This implementation is done to fulfill the
+following goals:
+
+- Faithfully play it as originally coded.
+- Provide the options to play the Commodore PET and MSDOS versions of
+  the game.
+- Make it easy to expand the game's scope of play and to offer some
+  minor fixes and improvements.
+
+I have consulted the original article, as well as source code for the
+other editions of the game.
+
+* How to play
+
+Currently, this game runs in a Common Lisp REPL. Run the REPL, load
+the package and run the =MAIN= function.
+
+#+BEGIN_EXAMPLE
+CL-USER> (load "wizard.lisp")
+WIZARD
+CL-USER> (WIZARD:MAIN)
+#+END_EXAMPLE
+
+If you wish to experiment, or for play-testing:
+
+#+BEGIN_EXAMPLE
+CL-USER> (load "wizard.lisp")
+WIZARD
+CL-USER> (in-package #:wizard)
+WIZARD>
+#+END_EXAMPLE
+
+NOTE: =ZOT= is one of the nicknames of the package, and you may see
+that instead of =WIZARD= in these examples.
+
+* Exported symbols, functions and their options
+
+** =MAIN=
+
+=MAIN= plays the game. With no arguments it defaults to the game as
+originally coded. The following keyword options to MAIN are available:
+
+*** =:ADVENTURER (or adventurer-object Nil)=
+
+Provide an adventurer object to the play functions. This bypasses the
+adventurer setup phase. Use the =MAKE-ADVENTURER= function to create a
+custom adventurer. The =MAKE-TEST-ADV= function will create a few
+pre-made adventurer characters.
+
+*** =:CASTLE (or castle-object Nil)=
+
+Provide a castle object for the main adventure. This bypasses the
+castle setup phase. If the castle object already has a
+=CAS-ADVENTURER= object defined, the game will use that, if not, the
+game will proceed with the adventurer setup.
+
+*** =:INTRO (or string Nil)=
+
+Provide some text to print at the introduction of the game, as in the
+MSDOS version. The MSDOS intro text is provided in =+INTRO-TEXT-DOS+=.
+
+*** =:HELP (or string Nil)=
+
+Provide some text for the =HELP= option as in the MSDOS version. The
+MSDOS intro text is provided in =+HELP-TEXT-DOS+=.
+
+*** =:LAST-CASTLE (or T Nil)=
+
+If =T=, =MAIN= returns the whole castle object. If =Nil=, =MAIN=
+returns only =CAS-EVENTS=.
+
+** =PLAY-OHARE=
+
+Play the Commodore PET game as adapted by John O'Hare. Right now it
+just turns on =*CURSE-NOTIFY*= as below:
+
+#+BEGIN_SRC lisp
+(let ((*curse-notify* T))
+  (main))
+#+END_SRC
+
+The curse notice text is bound to =+CURSE-NOTICE-OHARE+=.
+
+I have not yet figured out how to format the output for the shorter
+line length in this edition.
+
+** =PLAY-STETSON=
+
+Play the MSDOS game as adapted by J.T. Stetson. Basically this:
+
+#+BEGIN_EXAMPLE
+(main :intro +intro-text-dos+ :help +help-text-dos+)
+#+END_EXAMPLE
+
+** New features
+   
+*** =*FORGETFULNESS* (or symbol Nil)=
+
+By default, to conform to original code, =*FORGETFULNESS*= is set to
+=FORGET-RANDOM= which unmaps a random room in the castle, regardless of
+whether it was mapped or not. Set =*FORGETFULNESS*= to =FORGET-MAPPED=
+and it will forget a room that has already been mapped.
+
+*** =*GAZE-MAPPER* (or symbol Nil)=
+
+Gazing into orbs can give information about other rooms in the castle,
+but this information isn't reflected in the map, because what the orbs
+say isn't always true. 
+
+Setting =*GAZE-MAPPER*= to =GAZE-MAP-NAIVE= will cause let the
+adventurer to map the rooms that the orbs inform about.
+
+Setting =*GAZE-MAPPER*= to =GAZE-MAP-ASK= will cause the game to ask the
+player if it should map the creature at the coordinates specified.
+
+*** =*WIZ-FORMAT*=
+
+The format string used by =WIZ-FORMAT=. By default, this is set to
+=+ALL-CAPS+=. You can set it to =+MIXED-CASE+= when you want less
+obnoxious output strings.
+
+*** =*WIZ-COORDS*=
+
+Common Lisp's array subscripts have to be translated into the system
+used for the orginal game. By default this is set to =+WIZARD+= and so
+coordinate will be translated. When set to =+ARRAY+= the game uses
+array coordinates.
+
+** Testing symbols and functions
+
+*** =*R*=
+
+A special variable holding a reusable random-state. Used by the
+testing environment to recreate castle objects and replay
+games. Default value is a new random state from =(make-random-state
+T)=.
+
+*** =*A*=
+
+An adventurer object for testing. Default value, =Nil=. Use
+=MAKE-TEST-ADV= to create a test adventurer.
+
+*** =*Z*=
+
+A castle object for testing. Default value, =Nil=. Instead of making
+deep copies of the testing environment's castle object, the testing
+environment reuses the random state =*R*= to regenerate it.
+
+
+*** =MAKE-TEST-ADV=
+
+Make a test adventurer object from a predefined set. Accepts one
+optional symbol arguement.
+
+**** =ADV-NAME=
+
+The set of predefined adventurers is roughly as follows:
+
+- =BLIND-ADEPT= :: A female human fighter: highly capable and skilled,
+                   well armed and armored, but poor, blind.
+- =BOOKWORM=    :: A male hobbit: smart and fast (skilled in
+                   running-away), but weak; poor, unarmed and
+                   unarmored; has a book stuck to his hands.
+- =VALKYRIE=    :: A female dwarf: strong, somewhat graceful and more
+                   brave than smart; well armored but less well armed,
+                   poor and poorly well-equipped.
+- =BARBARIAN=   :: A male human: strong, agile, but dumb and
+                   forgetful; well-armed, but poorly armored; poor and
+                   poorly equipped.
+- =SORCERESS=   :: A female elf: highly intelligent, somewhat graceful
+                   but weak; no money, poorly armed and armored; has
+                   many flares, and the runestaff but lazy and
+                   lethargic.
+- =TOURIST=     :: A human male: moderate iq, but weak and clumsy;
+                   unarmed, unarmored, no equipment; extremely rich,
+                   but has hole in his wallet (leech).
+- default       :: A human with randomly selected sex: average
+                   abilities and equipment; poor but at least owns a
+                   lamp. This is the character I would always make in
+                   the character setup phase.
+
+See the source code for their exact specifications.
+*** =SETUP-TEST=
+
+Sets up =*A*= and =*Z*= using a copy of =*R*= for the random state in
+making =*Z*= and =MAKE-TEST-ADV= for =*A*=. After this is run, =*A*=
+and =*Z*= may be passed or =MAIN= or used in =TEST= for playing.
+
+*** =MAP-ALL-ROOMS=
+
+Maps all the rooms in a given castle. Of course, =CAS-ADVENTURER= must
+be defined.
+
+*** =TEST=
+
+Play a testing game with a resuable random-state. The equivalent of
+the following:
+
+#+BEGIN_EXAMPLE
+(let ((*random-state* (make-random-state *r*)))
+  (main :adventurer *a* :castle *z* :last-castle T))
+#+END_EXAMPLE
+
+* References
+
+- Power, Joseph R.; Wizard's Castle; Recreational Computing; 1980, July-August pgs 10-17
+
+- O'Hare, John; Wizard's Castle; Baf's guide to the Interactive Fiction Archive; http://www.wurb.com/if/index; page: http://www.wurb.com/if/game/678
+
+- Stetson, J.F.; Wizard's Castle; Baf's guide to the Interactive Fiction Archive; http://www.wurb.com/if/index; page: http://www.wurb.com/if/game/678
+
+- Licht, Derell; Wizard's Castle; http://home.comcast.net/~derelict/winwiz.html
+
+- Interview with Joseph Power: http://www.armchairarcade.com/neo/node/1381 
+
+  
