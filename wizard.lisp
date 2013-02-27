@@ -453,7 +453,7 @@ returns INPUT-ERROR."
     adv-dozed adv-forgot
     adv-gained adv-lost
     adv-donned adv-doffed
-    adv-wield
+    adv-wielded
     adv-armor-damaged adv-weapon-broke adv-armor-destroyed
     adv-changed-race adv-changed-sex
     chest-expoded
@@ -1508,7 +1508,7 @@ limits."
       (symbol
        (cond ((find item (rest *weapons*) :key 'first)
 	      (wield-weapon adv item)
-	      (make-history (make-event 'adv-weilded item)))
+	      (make-history (make-event 'adv-wielded item)))
 	     ((find item (rest *armor*) :key 'first)
 	      (wear-armor adv item)
 	      (make-history (make-event 'adv-donned item)))
