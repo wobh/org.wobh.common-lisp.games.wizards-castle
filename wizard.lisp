@@ -3033,7 +3033,7 @@ castle."
 		    (format Nil "~2&Want to buy a potion of ~A for ~D GP's "
 			    name price))
 	       (record-event events (make-event 'adv-bought 'potion name price))
-	       (join-history events (make-adv-poorer price))
+	       (join-history events (make-adv-poorer adv price))
 	       (funcall (fdefinition (list 'setf attr))
 			(incf-adv-rank delta (funcall attr adv)) adv)
 	       (wiz-write-line
