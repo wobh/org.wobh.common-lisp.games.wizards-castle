@@ -2094,7 +2094,7 @@ castle."
          (height (castle-height (cas-rooms castle)))
          (lvl-mt (loop for level from 0 below height
                     collect (shuffle (list-empty-room-indices castle level)))))
-    (unless silent (wiz-write-string "Please be patient -"))
+    (unless silent (wiz-write-string "Please be patient - "))
     ;; Place entrance (2)
     (with-accessors ((rooms cas-rooms)
                      (orb cas-loc-orb)

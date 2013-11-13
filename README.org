@@ -111,7 +111,7 @@ MSDOS version. The MSDOS intro text is provided in =+INTRO-TEXT-DOS+=.
 *** =:HELP (or string Nil)=
 
 Provide some text for the =HELP= option as in the MSDOS version. The
-MSDOS intro text is provided in =+HELP-TEXT-DOS+=.
+MSDOS help text is provided in =+HELP-TEXT-DOS+=.
 
 *** =:LAST-CASTLE (or T Nil)=
 
