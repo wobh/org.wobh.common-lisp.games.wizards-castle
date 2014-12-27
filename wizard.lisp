@@ -753,7 +753,6 @@ returns INPUT-ERROR."
 
 (defun creature-p (creature)
   "Is the given symbol a creature?"
-  (assert (typep creature 'symbol))
   (find creature (subseq *creature-data* 1 34) :key 'first))
 
 (defun get-creature-data (creature-ref &optional data-type)
@@ -861,7 +860,6 @@ returns INPUT-ERROR."
 
 (defun room-p (creature)
   "Is this creature a room?"
-  (assert (typep creature 'symbol))
   (find creature *rooms*))
 
 (defparameter *monsters*
@@ -871,7 +869,6 @@ returns INPUT-ERROR."
 
 (defun monster-p (creature)
   "Is this creature a monster?"
-  (assert (typep creature 'symbol))
   (find creature *monsters*))
 
 (defun random-monster ()
@@ -920,7 +917,6 @@ returns INPUT-ERROR."
 
 (defun treasure-p (creature)
   "Is the creature a treasure."
-  (assert (typep creature 'symbol))
   (member creature *treasures*))
 
 (defun random-treasure ()
@@ -3448,7 +3444,6 @@ there. This info could mapped.")
 
 (defun gaze-mapper (adv coords creature)
   "The adventurer could map what he sees in the crystal orbs."
-  (assert (typep *gaze-mapper* 'symbol))
   (labels ((gaze-map-naive ()
              (adv-map-room adv coords creature))
            (gaze-map-ask ()
