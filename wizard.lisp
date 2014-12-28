@@ -2982,11 +2982,11 @@ castle."
                       (setf armor (wiz-error "You can't afford plate"))))
              (#\C (if (find 'chainmail catalog :key 'first)
                       (buy-equipment
-                       'chainmail (get-catalog-price 'plate catalog) adv)
+                       'chainmail (get-catalog-price 'chainmail catalog) adv)
                       (setf armor
                             (wiz-error "You haven't got that much cash"))))
              (#\L (buy-equipment
-                   'leather (get-catalog-price 'plate catalog) adv))
+                   'leather (get-catalog-price 'leather catalog) adv))
              (#\N (make-history (make-event 'adv-bought 'no-armor)))
              (T   (setf armor
                         (wiz-error
@@ -3017,11 +3017,11 @@ castle."
                                                you left home without it!"))))
              (#\M (if (find 'mace catalog :key 'first)
                       (buy-equipment 'mace
-                                     (get-catalog-price 'sword catalog) adv)
+                                     (get-catalog-price 'mace catalog) adv)
                       (setf weapon
                             (wiz-error "Sorry sir, I don't give credit"))))
              (#\D (buy-equipment 'dagger
-                                 (get-catalog-price 'sword catalog) adv))
+                                 (get-catalog-price 'dagger catalog) adv))
              (#\N (make-history (make-event 'adv-bought 'no-weapon)))
              (T (setf weapon (wiz-error "Try choosing a selection"))))))))))
 
