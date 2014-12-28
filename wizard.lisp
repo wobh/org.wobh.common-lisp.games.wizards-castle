@@ -1604,23 +1604,19 @@ limits."
                      ot)))
       (loop
          for (ranking ranking-text) in *rankings*
+	 for prompt = (wiz-format Nil
+				  "How many points do you add to ~A " ranking-text)
          while (< 0 ot)
          do
-           (loop
-              with choice = Nil
-              do
-                (wiz-prompt
-                 (wiz-format Nil
-                             "How many points do you add to ~A " ranking-text))
-                (let ((expr (wiz-read-n)))
-                  (if (typep expr (list 'integer 0 ot))
-                      (setf choice expr)
-                      (wiz-error "")))
-              until (not (null choice))
-              finally
-                (decf-adv-inv ot choice)
-                (funcall (fdefinition (list 'setf ranking))
-                         (incf-adv-rank choice (funcall ranking adv)) adv)))
+	   (with-player-input (choice prompt :readf #'wiz-read-n)
+	     (if (typep choice (list 'integer 0 ot))
+		 (progn
+		   (decf-adv-inv ot choice)
+		   (funcall (fdefinition (list 'setf ranking))
+			    (incf-adv-rank choice
+					   (funcall ranking adv))
+			    adv))
+		 (setf choice (wiz-error "")))))
       (values st iq dx ot))))
 
 (defparameter *catalog-fmt* "~{~A<~A>~^ ~}"
