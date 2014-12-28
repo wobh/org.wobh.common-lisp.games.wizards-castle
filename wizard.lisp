@@ -845,7 +845,7 @@ returns INPUT-ERROR."
 
 (defun add-castle-vectors (castle-rooms &rest vectors)
   "Vectors in Zot's castle must add with modulus of array-dimensions."
-  (map-manifold-vectors #'+ castle-rooms vectors))
+  (apply #'map-manifold-vectors #'+ castle-rooms vectors))
 
 (defun subtract-castle-vectors (castle-rooms &rest vectors)
   "Vectors in Zot's castle must subtract with modulus of array-dimensions."
