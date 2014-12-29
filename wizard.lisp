@@ -440,6 +440,7 @@ returns INPUT-ERROR."
 
 (defparameter *events*
   '(adv-ate
+    adv-drank-potion
     adv-entered-castle
     adv-entered-room adv-found
     adv-mapped adv-viewed-map
