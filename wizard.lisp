@@ -2243,9 +2243,11 @@ castle."
   (make-adv-nimbler adv +adv-rank-max+))
 
 (defun adv-drinks-potion (adv potion)
+  (when (stringp potion)
+    (setf potion (intern (string-upcase potion))))
   (let ((events (make-history))
 	(delta (random-range 6)))
-    (record-event events (make-event 'adv-drinks-potion potion))
+    (record-event events (make-event 'adv-drank-potion potion))
     (join-history events
 		  (ecase potion
 		    (strength (make-adv-stronger adv delta))
@@ -3070,7 +3072,7 @@ castle."
                             name price))
                (record-event events (make-event 'adv-bought 'potion name price))
                (join-history events (make-adv-poorer adv price))
-	       (join-history events (make-history (adv-drinks-potion adv attr)))
+	       (join-history events (adv-drinks-potion adv name))
                (wiz-write-line
                 (format Nil "~2&Your ~A is now ~D"
                         name (funcall attr adv))))
