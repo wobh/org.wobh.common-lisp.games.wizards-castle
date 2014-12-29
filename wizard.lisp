@@ -1,4 +1,4 @@
-;;;; -*- Mode:lisp;coding:utf-8 -*-
+;;;; -*- mode:lisp;coding:utf-8 -*-
 ;;;; FILE: wizard.lisp
 
 ;;;; DESCRIPTION:
@@ -2241,6 +2241,16 @@ castle."
 (defun adv-reads-dexterity-manual (adv)
   (make-adv-nimbler adv +adv-rank-max+))
 
+(defun adv-drinks-potion (adv potion)
+  (let ((events (make-history))
+	(delta (random-range 6)))
+    (record-event events (make-event 'adv-drinks-potion potion))
+    (join-history events
+		  (ecase potion
+		    (strength (make-adv-stronger adv delta))
+		    (dexterity (make-adv-nimbler adv delta))
+		    (intelligence (make-adv-smarter adv delta))))))
+
 
 ;;;; Outcomes
 
@@ -2603,20 +2613,40 @@ castle."
                                  (text-of-foe foe)))
       (clear-castle-room castle here)
       (join-history events (cas-adv-map-here castle))
-      (when (adv-hungry-p castle)
+      (when (and (adv-hungry-p castle) (monster-p (foe-creature foe)))
         (record-event events
                       (make-event 'adv-ate (foe-creature foe)))
         (format Nil "~2&You spend an hour eating ~A~A"
                 (text-of-foe foe) (random-elt *eats*)))
       (when (runestaff-here-p castle)
         (record-event events
-                      (make-event 'adv-found 'runestuaff))
+                      (make-event 'adv-found 'runestuff))
         (outfit-with 'runestaff adv)
         (push-text message "~2&Great Zot! You've found the Runestaff"))
-      (let ((hoard (random-range 1 1000)))
-        (join-history events (make-adv-richer adv hoard))
-        (push-text message
-                   (format Nil "~2%You now get his hoard of ~D GP's" hoard)))
+      (if (monster-p (foe-creature foe))
+	  (let ((hoard (random-range 1 1000)))
+	    (join-history events (make-adv-richer adv hoard))
+	    (push-text message
+		       (format Nil "~2%You now get his hoard of ~D GP's" hoard)))
+	  (progn
+	    (join-history events
+			  (make-history
+			   (outfit-with 'plate adv)
+			   (outfit-with 'sword adv)
+			   (adv-drinks-potion adv 'strength)
+			   (adv-drinks-potion adv 'intelligence)
+			   (adv-drinks-potion adv 'dexterity)))
+	    (push-text message
+		       (format Nil "~2%You get all his wares:~{~%A~}"
+			       '("plate armor"
+				 "a sword"
+				 "a strength potion"
+				 "an intelligence potion"
+				 "a dexterity potion")))
+	    (when (adv-without-item-p adv 'lamp)
+	      (record-event events (outfit-with 'lamp adv))
+	      (push-text message
+			 (format Nil "~%A lamp")))))
       (values events message))))
 
 (defun adv-broke-weapon-on-foe-p (events)
@@ -3029,20 +3059,17 @@ castle."
   "The adventurer may buy potions from a castle vendor."
   (let ((price 1000)
         (events (make-history))) 
-    (with-accessors ((gp adv-gp) (st adv-st) (iq adv-iq) (dx adv-dx)) adv
+    (with-accessors ((gp adv-gp)) adv
       (when (<= price gp)
         (loop
            for (attr name) in *rankings*
-           with delta = 0
            do
-             (setf delta (random-range 1 6))
              (when (wiz-y-p
                     (format Nil "~2&Want to buy a potion of ~A for ~D GP's "
                             name price))
                (record-event events (make-event 'adv-bought 'potion name price))
                (join-history events (make-adv-poorer adv price))
-               (funcall (fdefinition (list 'setf attr))
-                        (incf-adv-rank delta (funcall attr adv)) adv)
+	       (join-history events (make-history (adv-drinks-potion adv attr)))
                (wiz-write-line
                 (format Nil "~2&Your ~A is now ~D"
                         name (funcall attr adv))))
@@ -3887,9 +3914,9 @@ into the orb."
       (loop
          for curse in cr
          do (apply-curse castle curse))
-      (when (zerop (random 5))
-        (with-output-to-string (message)
-          (format message "~&You ~A"
+      (with-output-to-string (message)
+	(when (zerop (random 5))
+	  (format message "~&You ~A"
                   (text-of-outcome
                    (random-elt 
                     (if (blind-p adv)
@@ -3898,19 +3925,19 @@ into the orb."
                          (get-outcome 'adv-stepped-on *minor-event-outcomes*)
                          (get-outcome 'adv-sees *minor-event-outcomes*)
                          *minor-event-outcomes*)
-                        *minor-event-outcomes*))))))
-      (when (and bl (has-treasure-p adv 'opal-eye))
-	(setf bl Nil)
-	(record-events history
-		       (make-event 'adv-cured 'sight-restored 'opal-eye))
-	(format message "~A cures your blindness"
-		(text-of-creature 'opal-eye)))
-      (when (and bf (has-treasure-p adv 'blue-flame))
-	(setf bf Nil)
-	(record-events history
-		       (make-event 'adv-unbound 'book-burnt 'blue-flame))
-	(format message "~A dissolves the book"
-		(text-of-creature 'blue-flame))))))
+                        *minor-event-outcomes*)))))
+	(when (and bl (has-treasure-p adv 'opal-eye))
+	  (setf bl Nil)
+	  (record-events history
+			 (make-event 'adv-cured 'sight-restored 'opal-eye))
+	  (format message "~A cures your blindness"
+		  (text-of-creature 'opal-eye)))
+	(when (and bf (has-treasure-p adv 'blue-flame))
+	  (setf bf Nil)
+	  (record-events history
+			 (make-event 'adv-unbound 'book-burnt 'blue-flame))
+	  (format message "~A dissolves the book"
+		  (text-of-creature 'blue-flame)))))))
 
 (defun quit-game (&optional castle)
   "The player quits."
