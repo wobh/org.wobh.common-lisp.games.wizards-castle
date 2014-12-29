@@ -3933,13 +3933,13 @@ into the orb."
 	  (setf bl Nil)
 	  (record-events history
 			 (make-event 'adv-cured 'sight-restored 'opal-eye))
-	  (format message "~A cures your blindness"
+	  (format message "~%~A cures your blindness"
 		  (text-of-creature 'opal-eye)))
 	(when (and bf (has-treasure-p adv 'blue-flame))
 	  (setf bf Nil)
 	  (record-events history
 			 (make-event 'adv-unbound 'book-burnt 'blue-flame))
-	  (format message "~A dissolves the book"
+	  (format message "~%~A dissolves the book"
 		  (text-of-creature 'blue-flame)))))))
 
 (defun quit-game (&optional castle)
