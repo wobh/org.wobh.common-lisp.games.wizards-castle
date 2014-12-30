@@ -115,9 +115,7 @@
 ;;; Knuth shuffle
 ;;; https://groups.google.com/d/topic/comp.lang.lisp/1ZtO84hrAuM/discussion
 
-
-
-
+
 ;;;; Castle accessors
 
 ;;; Powers, 1980, pg 13
@@ -154,7 +152,6 @@
   )
 
 (defsetf mref set-mref)
-
 
 (defun row-major-mref (array index)
   "Access an array from an index modulated to the array's size."
@@ -200,7 +197,7 @@
      when (funcall predicate (row-major-aref an-array index))
      collect index))
 
-
+
 ;;;; Directions and vectors in Castle Zot
 
 (defconstant +directions+
@@ -257,8 +254,7 @@ order and values."
                     (first wizd-coords)
                     (second wizd-coords))))))
 
-
-
+
 ;;;; TODO mimic display output?
 
 ;;;  - http://oldcomputers.net/ 
@@ -290,7 +286,7 @@ order and values."
 
 ;; (defparameter *platform* (get-console 'exidy-sorcerer))
 
-
+
 ;;;; Input and output
 
 (defconstant +all-caps+
@@ -423,7 +419,6 @@ returns INPUT-ERROR."
              (setf direction (wiz-error input-error-message))
              'input-error)))))
 
-
 ;;; ASCII controls used in code:
 
 ;;; | DEC | CHR | Description     | character | Format  |
@@ -433,7 +428,7 @@ returns INPUT-ERROR."
 ;;; | 012 | FF  | Formfeed        | #\Page    | ~|      |
 ;;; | 013 | CR  | Carriage Return | #\Return  | ~%      |
 
-
+
 ;;;; Events, Turns, and History
 
 ;;; Events
@@ -606,7 +601,7 @@ returns INPUT-ERROR."
   "Count the number of turns in history." 
   (count-if #'turn-p history :key 'first))
 
-
+
 ;;;; Messages
 
 (defun make-text (&rest strings)
@@ -617,7 +612,7 @@ returns INPUT-ERROR."
     (setf message (make-text message text)))
   "Push a text onto a message.")
 
-
+
 ;;;; Show title screen
 
 (defconstant +intro-text-dos+
@@ -640,7 +635,6 @@ returns INPUT-ERROR."
   (when intro
     (wiz-write-line intro)))
 
-
 (defun make-message-title (&optional (width *wiz-width*))
   "Print title screen"
   (let ((stars (make-string width :initial-element #\*))
@@ -660,8 +654,7 @@ returns INPUT-ERROR."
 
 ;;; TODO: filter list by contents of another list
 
-
-
+
 ;;;; Zot's creatures
 
 ;;; the documentation strings are from (Power 1980), pg 13 
@@ -672,7 +665,6 @@ returns INPUT-ERROR."
 ;;; basic source code used natural number indexes. To maintain
 ;;; consistency with the code, and prevent confusion when checking
 ;;; against it, the zeroth element has been set to Nil.
-
 
 ;; |  n | symbol      | icon| text                | type     |
 ;; |----|-------------+-----+---------------------|----------|
@@ -797,7 +789,7 @@ returns INPUT-ERROR."
   "Get the icon for a unmapped room."
   (string (third (first *creature-data*))))
 
-
+
 ;;;; Locations and creatures in castle Zot.
 
 (defconstant +zot-castle-dimensions+ '(8 8 8)
@@ -852,8 +844,8 @@ returns INPUT-ERROR."
   "Vectors in Zot's castle must subtract with modulus of array-dimensions."
   (map-manifold-vectors #'- castle-rooms vectors))
 
+
 ;;;; Room and creature types
-
 
 (defparameter *rooms*
   '(pool chest gold-pieces flares warp sinkhole crystal-orb book)
@@ -909,7 +901,6 @@ returns INPUT-ERROR."
   (1+ (floor (calc-adversary-value adversary) 2)))
 
 ;;; TODO: vendors can have hp and dmg too
-
 
 (defparameter *treasures*
   '(ruby-red norn-stone pale-pearl opal-eye
@@ -971,7 +962,7 @@ treasure arguments."
 (defconstant +entrance+ '(0 0 3)
   "Coordinates of the entrance")
 
-
+
 ;;;; Adventurer attributes
 
 (defun get-attr-data (attr-ref attr-data &optional data-type)
@@ -1018,7 +1009,8 @@ treasure arguments."
 (defun random-sex (&optional (random-state *random-state*))
   (random-elt *sexes* random-state))
 
-;;;; Adventurer equipment data
+
+;;;; Adventurer equipment
 
 (defun get-equip-data (equip-ref equip-data &optional data-type)
   (let ((equip
@@ -1115,7 +1107,6 @@ treasure arguments."
   (tn ())
   (mp (make-castle-map)) ; FIXME: move definition of this function above
   )
-
 
 ;; - adv-rc: race
 ;; - adv-sx: sex
@@ -1336,10 +1327,8 @@ limits."
   "Tags a room as unmapped."
   (setf (get-adv-map-icon adv room-ref) (icon-of-unmapped)))
 
-
-
-
-;;; Curses
+
+;;;; Curses
 
 (defun adv-cursed-p (adv &optional curse-name)
   "Return Nil or a list of curses."
@@ -1386,6 +1375,7 @@ limits."
         ((armor-p item)     'armor)
         ((equipment-p item) item)))
 
+
 ;;; Adventurer event generators
 
 (defun make-adv-stronger (adv delta)
@@ -1537,9 +1527,7 @@ limits."
       (join-history events (make-adv-poorer adv price))
       (join-history events (outfit-with equipment adv)))))
 
-
-
-
+
 ;;; Create character
 
 (defun choose-race (adv)
@@ -1715,16 +1703,10 @@ limits."
     (buy-lamp        adv)
     (buy-flares      adv) adv))
 
-
-
-
-
-
-
 ;;; In Sorcerer BASIC TRUE = -1, FALSE = 0.
 
+
 ;;;; Zot's castle - array functions
-
 
 ;;; FIXME: I don't know yet why this doesn't work.
 
@@ -1768,9 +1750,7 @@ limits."
 ;;              (setf obj-position remainder)
 ;;              (identity quotient))))))
 
-
-
-
+
 ;;;; Zot's castle
 
 (defparameter *curses-init*
@@ -1983,9 +1963,7 @@ may be an index or list of coordinates."
            collect
              (make-event 'adv-gained 'curse curse))))))
 
-
-
-
+
 ;;;; Fill castle
 
 ;;; "GOSUB3200" finds a random room on a given floor, returns if the
@@ -2185,6 +2163,7 @@ castle."
       (unless silent (wiz-format *wiz-out* "~%~%"))
       castle)))
 
+
 ;;; Adventurer events
 
 (defun send-adv (coords)
@@ -2299,7 +2278,7 @@ castle."
 (defun type-p-outcome (outcome type-ref)
   (eq type-ref (type-of-outcome outcome)))
 
-
+
 ;;;; Enter room
 
 (defun make-message-report-inv (castle inv)
@@ -2583,7 +2562,6 @@ castle."
                   (setf (cas-vendor-fury castle) Nil)))))
              (values events message))))
 
-
 ;; (defun make-message-adv-attacks (castle event)
 ;;   (assert (event-kind-p event 'adv-attacks))
 ;;   (let ((creature-text
@@ -2803,7 +2781,6 @@ castle."
         (join-history events (move-adv castle direction))
         (values events message)))))
 
-
 (defun make-message-end-game (adv end turns)
   "What does the game report when the game ends."
   (with-accessors ((race adv-race)
@@ -2934,7 +2911,7 @@ castle."
           (push-text message victory-message)))
       (values events message))))
 
-
+
 ;;;; vendor
 
 ;; (begin-game
@@ -3124,6 +3101,9 @@ castle."
              (adv-meets-adversary castle))
             (T   (setf choice (wiz-error "Nice shot, ~A" (adv-race adv)))))))))
 
+
+;;;; Entering, exiting
+
 (defun adv-finds-room (castle)
   "What happens when the adventurer enters any other kind of room"
   (assert (typep castle 'castle))
@@ -3142,6 +3122,8 @@ the castle."
           ;; (event-kind-p event '(adv-leaves-castle orb-of-zot))
           ))
 
+
+;;;; Help message
 
 (defconstant +help-text-dos+
   (format Nil
@@ -3171,6 +3153,9 @@ the castle."
   (values
    (make-history (make-event 'player-views 'help))
    *wiz-help*))
+
+
+;;;; Outcomes
 
 (defparameter *without-item-outcomes*
   (list
@@ -3253,6 +3238,8 @@ the castle."
    (format Nil "You can't see anything, dumb ~A"
            (adv-race (cas-adventurer castle)))))
 
+
+;;;; Map
 
 (defun you-are-at (coords &optional (stream Nil))
   "Make message 'You are at ...'"
@@ -3312,6 +3299,9 @@ the castle."
             (add-castle-vectors
              (cas-rooms castle) coords (list 0 vy vx)))))
 
+
+;;;; Flare
+
 (defun adv-uses-flare (castle)
   "What happens when the adventurer uses a flare."
   (with-accessors ((adv cas-adventurer)
@@ -3351,9 +3341,11 @@ the castle."
       (values events message))))
 
 
+
+;;;; Lamp
+
 ;; TODO: Unlike most actions, input errors when using the lamp cycle
 ;; back to the main loop. This could be fixed.
-
 
 (defun adv-uses-lamp (castle &optional direction)
   "What happens when the adventurer tries to use the lamp."
@@ -3397,6 +3389,9 @@ the castle."
                                  (format text  "~2&There you will find ~A"
                                          (text-of-creature creature))))))))))
       (values events message))))
+
+
+;;;; Pool
 
 (defparameter *drink-pool-outcomes*
   (list
@@ -3459,6 +3454,9 @@ the castle."
                                   outcome-text)))))))
         (values events message))))
 
+
+;;;; Crystal Orb
+
 (defparameter *gaze-mapper* 'naive
   "Crystal Orbs can tell you where stuff is or lie to you about what's
 there. This info could mapped.")
@@ -3509,7 +3507,6 @@ there. This info could mapped.")
     (make-outcome 'soap Nil "a soap opera rerun")
     )
   "The visions in the crystal orb.")
-
 
 (defun adv-uses-crystal-orb (castle)
   "Return events and message of what happens when the adventurer gazes
@@ -3566,6 +3563,8 @@ into the orb."
                (push-text message outcome-text))))))
       (values events message))))
 
+
+;;;; Book
 
 (defparameter *open-book-outcomes*
   (list
@@ -3625,6 +3624,9 @@ into the orb."
                  (push-text message outcome-text)))))
       (values events message))))
 
+
+;;;; Chest
+
 (defparameter *open-chest-outcomes*
     (list
      (make-outcome 'bomb-trap
@@ -3678,6 +3680,9 @@ into the orb."
              (push-text message outcome-text)))))
       (values events message))))
 
+
+;;;; Open something
+
 (defun adv-opens (castle)
   "What happens when an adventurer opens a book or chest."
   (with-accessors ((here cas-adv-here)
@@ -3694,7 +3699,8 @@ into the orb."
          (join-history events open-events)
          (push-text message open-message))))))
 
-;;; Adventurer moves or is moved
+
+;;;; Adventurer moves or is moved
 
 (defun adv-walks (castle direction)
   "What happens when the adventure walks in a direction."
@@ -3785,7 +3791,7 @@ into the orb."
                    (push-text message outcome-text)))))
         (values events message))))
 
-
+
 ;;; Lines 1670 - 1780 print status, room eval
 
 (defun make-message-adv-enters-room (adv here creature)
@@ -3844,9 +3850,10 @@ into the orb."
         (push-text message find-creature-message))
       (values events message))))
 
-
-
 ;; is the "your choice" prompt ever used with numerical input?
+
+
+;;;; Entering castle
 
 (defun adv-enters-castle (castle adv)
   "An adventurer enters the castle."
@@ -3867,6 +3874,8 @@ into the orb."
                        (adv-race (cas-adventurer castle))))
     (values events message)))
 
+
+;;;; Atmospherics
 ;;; Turn lines 620 - 800
 
 (defparameter *minor-event-outcomes*
@@ -3909,6 +3918,9 @@ into the orb."
       (when (event-p outcome)
         (record-events (cas-history castle) outcome)))))
 
+
+;;;; Turn
+
 (defun begin-turn (castle)
   "Every turn."
   (with-accessors ((adv cas-adventurer)
@@ -3941,6 +3953,9 @@ into the orb."
 			 (make-event 'adv-unbound 'book-burnt 'blue-flame))
 	  (format message "~%~A dissolves the book"
 		  (text-of-creature 'blue-flame)))))))
+
+
+;;;; Game
 
 (defun quit-game (&optional castle)
   "The player quits."
@@ -4106,10 +4121,9 @@ passed in must not also have an adventurer already in it."
 (defun play-stetson (&rest args &key &allow-other-keys)
   (apply #'main :intro +intro-text-dos+ :help +help-text-dos+ args))
           
-
-
 ;;; TODO: figure out lisp getopts.
 
+
 ;;;; Test Environment
 
 (defparameter *r* (make-random-state T)
