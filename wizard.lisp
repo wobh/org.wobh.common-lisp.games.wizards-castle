@@ -1259,6 +1259,17 @@ limits."
   "Is the adventurer smart enough to cast spells?"
   (< (adv-iq adv) 15))
 
+(defun adv-without-item-p (adv item-ref)
+  "Is the adventurer missing the item?"
+  (ecase item-ref
+    (gold-pieces (zerop (adv-gp adv)))
+    (flares      (zerop (adv-fl adv)))
+    (weapon      (zerop (adv-wv adv)))
+    (armor       (zerop (adv-av adv)))
+    (lamp        (null (adv-lf adv)))
+    (runestaff   (null (adv-rf adv)))
+    (orb-of-zot  (null (adv-of adv)))))
+
 ;;; Again because basic numbered started 1 here is the indexes we're using.
 
 ;; | n | treasure text    | treasure effect     |
@@ -3168,17 +3179,6 @@ the castle."
 
 ;; (defun get-message (message-key messages)
 ;;   (getf messages (intern (string message-key) 'keyword)))
-
-(defun adv-without-item-p (adv item-ref)
-  "Is the adventurer missing the item?"
-  (ecase item-ref
-    (gold-pieces (zerop (adv-gp adv)))
-    (flares      (zerop (adv-fl adv)))
-    (weapon      (zerop (adv-wv adv)))
-    (armor       (zerop (adv-av adv)))
-    (lamp        (null (adv-lf adv)))
-    (runestaff   (null (adv-rf adv)))
-    (orb-of-zot  (null (adv-of adv)))))
 
 (defun adv-tried-without-item (item &rest args)
   "What happens when the adventurer tries to use something they don't have?"
