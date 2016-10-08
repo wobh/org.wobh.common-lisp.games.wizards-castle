@@ -200,7 +200,7 @@
 
 ;;;; Directions and vectors in Castle Zot
 
-(defconstant +directions+
+(defparameter *directions*
   '((down  (1 0 0))
     (up    (-1 0 0))
     (south (0 1 0))
@@ -209,14 +209,14 @@
     (west  (0 0 -1))))
 
 (defun direction-p (symbol)
-  (find symbol +directions+ :key #'first))
+  (find symbol *directions* :key #'first))
 
 (defun name-of-vector (vector)
-  (first (find vector +directions+ :key #'second)))
+  (first (find vector *directions* :key #'second)))
 
 (defun vector-of-direction (direction)
   (assert (direction-p direction))
-  (second (find direction +directions+ :key #'first)))
+  (second (find direction *directions* :key #'first)))
 
 (defun map-manifold-vectors (function manifold &rest vectors)
   "Map function over manifold vectors, modulus dimensions of the manifold."
@@ -289,16 +289,16 @@ order and values."
 
 ;;;; Input and output
 
-(defconstant +all-caps+
+(defparameter *all-caps*
   "~:@(~@?~)"
   "Format string for WIZ-FORMAT when ZOT SPEAKS IN ALL CAPS")
 
-(defconstant +mixed-case+
+(defparameter *mixed-case*
   "~@?"
   "Format string for WIZ-FORMAT when Zot speaks normally")
 
 (defparameter *wiz-format-string*
-  +all-caps+
+  *all-caps*
   ;; +mixed-case+    ; for a less obnoxious Zot
   "Format string for WIZ-FORMAT.")
 
@@ -615,7 +615,7 @@ returns INPUT-ERROR."
 
 ;;;; Show title screen
 
-(defconstant +intro-text-dos+
+(defparameter +intro-text-dos+
   (format Nil
           "~2&Many cycles ago, in the kingdom of N'DIC, the gnomic~%~
               wizard ZOT forged his great ORB of power. He soon vanished~%~
@@ -792,12 +792,12 @@ returns INPUT-ERROR."
 
 ;;;; Locations and creatures in castle Zot.
 
-(defconstant +zot-castle-dimensions+ '(8 8 8)
+(defparameter *zot-castle-dimensions* '(8 8 8)
   "Dimensions of castle.")
 
 (defun make-castle-rooms ()
   "Make an array for storing castle room data."
-  (make-array +zot-castle-dimensions+
+  (make-array *zot-castle-dimensions*
               :element-type 'symbol :initial-element 'empty-room))
 
 (defun castle-height (castle-rooms)
@@ -832,7 +832,7 @@ returns INPUT-ERROR."
 
 (defun make-castle-map ()
   "Make an array for storing castle map data."
-  (make-array +zot-castle-dimensions+
+  (make-array *zot-castle-dimensions*
               :element-type 'string
               :initial-element (icon-of-unmapped)))
 
@@ -959,7 +959,7 @@ treasure arguments."
   "Return a random eat."
   (random-elt *eats*))
 
-(defconstant +entrance+ '(0 0 3)
+(defparameter *entrance* '(0 0 3)
   "Coordinates of the entrance")
 
 
@@ -1777,7 +1777,7 @@ limits."
                           (&aux
                            (rooms (make-castle-rooms))
                            (levels (make-castle-levels rooms))
-                           ;; (loc-adventurer  +entrance+)
+                           ;; (loc-adventurer  *entrance*)
                            (curses *curses-init*))))
   "The castle of Zot"
   (rooms           ())
@@ -1956,7 +1956,7 @@ may be an index or list of coordinates."
 (defparameter *curse-notify* Nil
   "Later versions printed message when a curse took effect")
 
-(defconstant +curse-notice-ohare+ "A curse!"
+(defparameter *curse-notice-ohare* "A curse!"
   "Curse notice used in O'Hare version for Commodore PET.")
 
 (defun gain-curse (castle)
@@ -2082,9 +2082,9 @@ castle."
                      (orb cas-loc-orb)
                      (runestaff cas-loc-runestaff)
                      (curses cas-curses)) castle
-      (setf (get-castle-creature castle +entrance+) 'entrance)
+      (setf (get-castle-creature castle *entrance*) 'entrance)
       (setf (elt lvl-mt 0)
-            (remove (castle-coords-index castle +entrance+) (elt lvl-mt 0)))
+            (remove (castle-coords-index castle *entrance*) (elt lvl-mt 0)))
     (unless silent (wiz-write-string "in"))
 
       (flet ((random-lvl-room (level)
@@ -3136,7 +3136,7 @@ the castle."
 
 ;;;; Help message
 
-(defconstant +help-text-dos+
+(defparameter *help-text-dos*
   (format Nil
           "~&*** WIZARD'S CASTLE COMMAND AND INFORMATION SUMMARY ***~2%~
              The following commands are available :~2%~
@@ -3868,7 +3868,7 @@ into the orb."
                    (make-event 'adv-ate 'last-meal)
                    (make-event 'adv-entered-castle))
     (join-history events
-                    (send-adv +entrance+))
+                    (send-adv *entrance*))
     (push-text message
                (format Nil "~|~&Ok ~A, you enter the castle and begin.~%"
                        (adv-race (cas-adventurer castle))))
@@ -4119,7 +4119,7 @@ passed in must not also have an adventurer already in it."
     (apply #'main args)))
 
 (defun play-stetson (&rest args &key &allow-other-keys)
-  (apply #'main :intro +intro-text-dos+ :help +help-text-dos+ args))
+  (apply #'main :intro +intro-text-dos+ :help *help-text-dos* args))
           
 ;;; TODO: figure out lisp getopts.
 
