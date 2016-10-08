@@ -2234,7 +2234,7 @@ castle."
 
 (defun adv-drinks-potion (adv potion)
   (when (stringp potion)
-    (setf potion (intern (string-upcase potion))))
+    (setf potion (intern (string-upcase potion) "WIZARDS-CASTLE")))
   (let ((events (make-history))
 	(delta (random-range 6)))
     (record-event events (make-event 'adv-drank-potion potion))
