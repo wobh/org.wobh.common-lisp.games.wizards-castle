@@ -128,7 +128,7 @@ just turns on =*CURSE-NOTIFY*= as below:
   (main))
 #+END_SRC
 
-The curse notice text is bound to =+CURSE-NOTICE-OHARE+=.
+The curse notice text is bound to =*CURSE-NOTICE-OHARE*=.
 
 I have not yet figured out how to format the output for the shorter
 line length in this edition.
@@ -138,7 +138,7 @@ line length in this edition.
 Play the MSDOS game as adapted by J.T. Stetson. Basically this:
 
 #+BEGIN_EXAMPLE
-(main :intro +intro-text-dos+ :help +help-text-dos+)
+(main :intro *intro-text-dos* :help *help-text-dos*)
 #+END_EXAMPLE
 
 ** New features
@@ -146,8 +146,8 @@ Play the MSDOS game as adapted by J.T. Stetson. Basically this:
 *** =*FORGETFULNESS* (or symbol Nil)=
 
 By default, to conform to original code, =*FORGETFULNESS*= is set to
-=FORGET-RANDOM= which unmaps a random room in the castle, regardless of
-whether it was mapped or not. Set =*FORGETFULNESS*= to =FORGET-MAPPED=
+=:RANDOM= which unmaps a random room in the castle, regardless of
+whether it was mapped or not. Set =*FORGETFULNESS*= to =:MAPPED=
 and it will forget a room that has already been mapped.
 
 *** =*GAZE-MAPPER* (or symbol Nil)=
@@ -156,23 +156,24 @@ Gazing into orbs can give information about other rooms in the castle,
 but this information isn't reflected in the map, because what the orbs
 say isn't always true. 
 
-Setting =*GAZE-MAPPER*= to =GAZE-MAP-NAIVE= will cause let the
-adventurer to map the rooms that the orbs inform about.
+Setting =*GAZE-MAPPER*= to =:NAIVE= will cause let the
+adventurer to map the rooms that the orbs inform about, even if the
+information is untrue, even if .
 
-Setting =*GAZE-MAPPER*= to =GAZE-MAP-ASK= will cause the game to ask the
+Setting =*GAZE-MAPPER*= to =:ASK= will cause the game to ask the
 player if it should map the creature at the coordinates specified.
 
 *** =*WIZ-FORMAT*=
 
 The format string used by =WIZ-FORMAT=. By default, this is set to
-=+ALL-CAPS+=. You can set it to =+MIXED-CASE+= when you want less
+=*ALL-CAPS*=. You can set it to =*MIXED-CASE*= when you want less
 obnoxious output strings.
 
 *** =*WIZ-COORDS*=
 
 Common Lisp's array subscripts have to be translated into the system
-used for the orginal game. By default this is set to =+WIZARD+= and so
-coordinate will be translated. When set to =+ARRAY+= the game uses
+used for the orginal game. By default this is set to =:WIZARD= and so
+coordinate will be translated. When set to =:ARRAY= the game uses
 array coordinates.
 
 ** Testing symbols and functions

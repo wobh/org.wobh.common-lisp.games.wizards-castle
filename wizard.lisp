@@ -235,25 +235,25 @@
 ;;; (aref array-3d x y z)
 ;;; (array-row-major-index array-3d z y x)
 
-(defparameter *cas-coords* 'zot
+(defparameter *cas-coords* :zot
   "What style to display castle coordinates in.")
 
 (defun wiz-coords (coords)
   "Arrange coordinates in the order and value expected."
   (ecase *cas-coords*
-    (array (reverse coords))
-    (zot (map 'list #'1+
-              (list (second coords) (third coords) (first coords))))))
+    (:array (reverse coords))
+    (:zot (map 'list #'1+
+               (list (second coords) (third coords) (first coords))))))
 
 (defun unwiz-coords (wizd-coords)
   "Arrange coordinates from original game order and values to internal
 order and values."
   (ecase *cas-coords*
-    (array (reverse wizd-coords))
-    (zot (map 'list #'1-
-              (list (third wizd-coords)
-                    (first wizd-coords)
-                    (second wizd-coords))))))
+    (:array (reverse wizd-coords))
+    (:zot (map 'list #'1-
+               (list (third wizd-coords)
+                     (first wizd-coords)
+                     (second wizd-coords))))))
 
 
 ;;;; TODO mimic display output?
@@ -1360,7 +1360,7 @@ limits."
   (unless (has-treasure-p adv 'pale-pearl)
     (decf-adv-inv (adv-gp adv) (random-range 1 5))))
 
-(defparameter *forgetfulness* 'random
+(defparameter *forgetfulness* :random
   "What kind of forgetfulness curse ")
 
 (defun curse-forget (adv &optional (forget-type *forgetfulness*))
@@ -1369,13 +1369,13 @@ limits."
   (unless (has-treasure-p adv 'green-gem)
     (adv-unmap-room
      adv (ecase forget-type
-           (mapped
+           (:mapped
             (let ((mappedx (shuffle
                             (filter-array-indices
                              (lambda (s) (eq s (icon-of-unmapped)))
                              (adv-mp adv)))))
               (array-index-row-major (adv-mp adv) (pop mappedx))))
-           (random
+           (:random
             (random-array-subscripts (adv-mp adv)))))))
 
 (defun equipment-p (item)
@@ -3458,9 +3458,9 @@ the castle."
 
 ;;;; Crystal Orb
 
-(defparameter *gaze-mapper* 'naive
+(defparameter *gaze-mapper* nil
   "Crystal Orbs can tell you where stuff is or lie to you about what's
-there. This info could mapped.")
+there. This info could be mapped.")
 
 (defun make-message-creature-at (creature coords)
   (format Nil "~A at ~{(~D,~D) Level ~D~}"
@@ -3485,10 +3485,10 @@ there. This info could mapped.")
     (let ((events (make-history)))
       (join-history events
                       (ecase *gaze-mapper*
-                        (naive (gaze-map-naive))
-                        (ask (gaze-map-ask))
-                        (smart (gaze-map-smart))
-                        (skeptic (gaze-map-skeptic)))))))
+                        (:naive (gaze-map-naive))
+                        (:ask (gaze-map-ask))
+                        (:smart (gaze-map-smart))
+                        (:skeptic (gaze-map-skeptic)))))))
 
 (defparameter *gaze-crystal-orb-outcomes*
   (list
