@@ -1085,7 +1085,7 @@ treasure arguments."
   (get-ranking-data ranking-ref *rankings* 'string))
 
 (defstruct (adventurer (:conc-name adv-))
-  "A bold youth"
+  "A bold youth."
   (rc Nil)
   (sx Nil)
   (bf Nil)

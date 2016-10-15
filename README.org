@@ -33,7 +33,7 @@ make the game say and do different things. But, now that I type them
 out, it seems more like Power was actually encouraging players to
 experiment in order to figure out how to play the game.
 
-_Wizard's Castle_ is a little primitive to over the kind of
+_Wizard's Castle_ is a little primitive to offer the kind of
 combinatorial possibilities of play that a game like _Nethack_ offers,
 but there is potential. This implementation is done to fulfill the
 following goals:
