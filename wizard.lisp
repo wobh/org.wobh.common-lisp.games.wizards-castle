@@ -704,7 +704,7 @@ returns INPUT-ERROR."
 ;; | 33 | silmaril    | #\t | "the silmaril"      | treasure |
 ;; | 34 | x           | #\? | "x"                 | ?        |
 
-(defvar *creature-data*
+(defparameter *creature-data*
   '((x           "x"                 #\?)
     (empty-room  "an empty room"     #\.)
     (entrance    "the entrance"      #\e)
@@ -4126,13 +4126,13 @@ passed in must not also have an adventurer already in it."
 
 ;;;; Test Environment
 
-(defparameter *r* (make-random-state T)
+(defvar *r* (make-random-state T)
   "Reusable random state for test environment.")
 
-(defparameter *a* Nil
+(defvar *a* Nil
   "Test adventurer.")
 
-(defparameter *z* Nil
+(defvar *z* Nil
   "Test castle (may or may not contain adventurer).")
 
 (defun make-test-adv (&optional adv-name)
