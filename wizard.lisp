@@ -92,7 +92,8 @@
 
 (defun random-aref (array &optional (random-state *random-state*))
   "Get random element of array."
-  (apply #'aref array (random-array-subscripts array random-state)))
+  (row-major-aref array (random (array-total-size array)
+                                random-state)))
 
 (defun random-elt (seq &optional (random-state *random-state*))
   "Get random element from sequence."
