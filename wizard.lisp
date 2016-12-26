@@ -616,7 +616,7 @@ returns INPUT-ERROR."
 
 ;;;; Show title screen
 
-(defparameter +intro-text-dos+
+(defparameter *intro-text-dos*
   (format Nil
           "~2&Many cycles ago, in the kingdom of N'DIC, the gnomic~%~
               wizard ZOT forged his great ORB of power. He soon vanished~%~
@@ -4120,7 +4120,7 @@ passed in must not also have an adventurer already in it."
     (apply #'main args)))
 
 (defun play-stetson (&rest args &key &allow-other-keys)
-  (apply #'main :intro +intro-text-dos+ :help *help-text-dos* args))
+  (apply #'main :intro *intro-text-dos* :help *help-text-dos* args))
           
 ;;; TODO: figure out lisp getopts.
 
