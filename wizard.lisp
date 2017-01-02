@@ -2494,12 +2494,12 @@ castle."
 (defun make-foe-dead (foe)
   (damage-foe foe (foe-hit-points foe)))
   
-(defun make-message-cast-death (castle event)
-  (assert (event-kind-p event '(adv-cast-spell death)))
-  (format Nil  "Death - - - ~A"
-          (if (adv-alive-p (cas-adventurer castle))
-              "his"
-              "yours")))
+;; (defun make-message-cast-death (castle event)
+;;   (assert (event-kind-p event '(adv-cast-spell death)))
+;;   (format Nil  "Death - - - ~A"
+;;           (if (adv-alive-p (cas-adventurer castle))
+;;               "his"
+;;               "yours")))
 
 (defun adv-casts-spell-death (castle)
   "The adventurer casts a death spell."
