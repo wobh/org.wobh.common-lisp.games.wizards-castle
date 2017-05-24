@@ -69,15 +69,15 @@
 ;;;; Interview with Joseph Power:
 ;;;; http://www.armchairarcade.com/neo/node/1381 
 
-(defpackage "WIZARDS-CASTLE"
-  (:nicknames "WIZARD" "ZOT")
-  (:use "CL")
-  (:export "MAIN" "SETUP-ADVENTURER" "SETUP-CASTLE")
-  (:export "TEST" "MAKE-TEST-ADV" "SETUP-TEST")
-  (:export "*R*" "*A*" "*Z*" )
+(defpackage #:wizards-castle
+  (:nicknames #:wizard #:zot)
+  (:use #:cl)
+  (:export #:main #:setup-adventurer #:setup-castle)
+  (:export #:test #:make-test-adv #:setup-test)
+  (:export #:*r* #:*a* #:*z* )
   (:documentation "Joseph Power's _Wizard's Castle_"))
 
-(in-package "WIZARDS-CASTLE")
+(in-package #:wizards-castle)
 
 
 ;;;; Randomess functions
