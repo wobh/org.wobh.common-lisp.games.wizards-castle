@@ -4274,3 +4274,13 @@ passed in must not also have an adventurer already in it."
   (outfit-with 'orb-of-zot *a*)
   (assert (and (adv-of *a*)
                (null (adv-rf *a*)))))
+
+(let ((*a* (make-test-adv)))
+  (assert (zerop (adv-fl *a*)))
+  (outfit-with '(flares 4) *a*)
+  (assert (= 4 (adv-fl *a*))))
+
+(let ((*a* (make-test-adv)))
+  (assert (zerop (adv-gp *a*)))
+  (incf (adv-gp *a*) 4)
+  (assert (= 4 (adv-gp *a*))))
