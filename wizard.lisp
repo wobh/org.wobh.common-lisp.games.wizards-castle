@@ -951,14 +951,14 @@ treasure arguments."
     (T
      creature)))
 
-(defparameter *eats*
+(defparameter *meals*
   '("wich" " stew" " soup" " burger"
     " roast" " munchy" " taco" " pie")
   "Names of the eight recipes (orc tacos, etc)")
 
-(defun random-eats ()
+(defun random-meal ()
   "Return a random eat."
-  (random-elt *eats*))
+  (random-elt *meals*))
 
 (defparameter *entrance* '(0 0 3)
   "Coordinates of the entrance")
@@ -2610,7 +2610,7 @@ castle."
         (record-event events
                       (make-event 'adv-ate (foe-creature foe)))
         (format Nil "~2&You spend an hour eating ~A~A"
-                (text-of-foe foe) (random-elt *eats*)))
+                (text-of-foe foe) (random-meal)))
       (when (runestaff-here-p castle)
         (record-event events
                       (make-event 'adv-found 'runestuff))
