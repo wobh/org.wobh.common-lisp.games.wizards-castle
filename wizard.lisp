@@ -4249,3 +4249,28 @@ passed in must not also have an adventurer already in it."
                  (values
                   (begin-turn castle)
                   (events-since (oldest-event turn) history))))))
+
+
+;;; Tests
+
+(let ((*a* (make-test-adv)))
+  (assert (adv-alive-p *a*))
+  (setf (adv-st *a*) 0)
+  (assert (null (adv-alive-p *a*))))
+
+(let ((*a* (make-test-adv)))
+  (assert (adv-alive-p *a*))
+  (setf (adv-dx *a*) 0)
+  (assert (null (adv-alive-p *a*))))
+
+(let ((*a* (make-test-adv)))
+  (assert (adv-alive-p *a*))
+  (setf (adv-iq *a*) 0)
+  (assert (null (adv-alive-p *a*))))
+
+(let ((*a* (make-test-adv 'sorceress)))
+  (assert (and (null (adv-of *a*))
+               (adv-rf *a*)))
+  (outfit-with 'orb-of-zot *a*)
+  (assert (and (adv-of *a*)
+               (null (adv-rf *a*)))))
