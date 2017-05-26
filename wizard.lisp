@@ -1201,7 +1201,7 @@ limits."
 
 (defun adv-alive-p (adv)
   "Is the adventurer alive?"
-  (every #'(lambda (n) (< 0 n))
+  (every #'plusp
         (list (adv-st adv) (adv-iq adv) (adv-dx adv))))
 
 ;; 410 av=-3*(o$="p")-2*(o$="c")-(o$="l"):ifav>0440
