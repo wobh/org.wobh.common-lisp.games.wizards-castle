@@ -910,7 +910,7 @@ returns INPUT-ERROR."
 
 (defun treasure-p (creature)
   "Is the creature a treasure."
-  (member creature *treasures*))
+  (find creature *treasures*))
 
 (defun random-treasure ()
   "Return a random treasure."
