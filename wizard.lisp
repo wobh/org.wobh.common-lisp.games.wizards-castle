@@ -1148,17 +1148,17 @@ treasure arguments."
 
 (defconstant +adv-rank-min+ 0)
 (defconstant +adv-rank-max+ 18)
-(defconstant +adv-rank-limiter+
+(defparameter *adv-rank-limiter*
   (make-limiter #'< +adv-rank-min+ +adv-rank-max+))
 
 (define-modify-macro incf-adv-rank (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall +adv-rank-limiter+ (+ place delta))))
+    (setf place (funcall *adv-rank-limiter* (+ place delta))))
   "Adventurer rankings must stay within 0 and 18")
 
 (define-modify-macro decf-adv-rank (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall +adv-rank-limiter+ (- place delta))))
+    (setf place (funcall *adv-rank-limiter* (- place delta))))
   "Adventurer rankings must stay within 0 and 18")
 
 (defun set-adv-rank (adv ranking rank)
@@ -1166,7 +1166,7 @@ treasure arguments."
 limits."
   ;; (assert (find ranking *rankings* :key 'first))
   (funcall (fdefinition (list 'setf ranking))
-           (funcall +adv-rank-limiter+ rank) adv))
+           (funcall *adv-rank-limiter* rank) adv))
 
 (defun set-adv-rank-max (adv ranking)
   "Set an adventurer's ranking to ranking maximum."
@@ -1178,17 +1178,17 @@ limits."
 
 ;;; Adventurer inventories like adv-gp, adv-fl (also adv-ah, adv-fd).
 
-(defconstant +adv-inv-limiter+
+(defparameter *adv-inv-limiter*
   (make-limiter #'> 0))
 
 (define-modify-macro incf-adv-inv (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall +adv-inv-limiter+ (+ place delta))))
+    (setf place (funcall *adv-inv-limiter* (+ place delta))))
   "Adventurer inventories cannot fall below zero")
 
 (define-modify-macro decf-adv-inv (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall +adv-inv-limiter+ (- place delta))))
+    (setf place (funcall *adv-inv-limiter* (- place delta))))
   "Adventurer inventories cannot fall below zero")
 
 ;;; Adventurer attributes like race and sex.
