@@ -3244,8 +3244,9 @@ the castle."
 
 (defun you-are-at (coords &optional (stream nil))
   "Make message 'You are at ...'"
-  (apply #'format stream "~&You are at (~D,~D) Level ~D~%"
-         (wiz-coords coords)))
+  (format stream
+          "~&You are at ~{(~D,~D) Level ~D~}~%"
+          (wiz-coords coords)))
 
 (defun make-level-map (castle level)
   "Make a level map."
@@ -3387,7 +3388,7 @@ the castle."
                                  (format text "~2&The lamp shines into ~
                                                ~{(~D,~D) Level ~D~}~%"
                                          (wiz-coords there))
-                                 (format text  "~2&There you will find ~A"
+                                 (format text "~2&There you will find ~A"
                                          (text-of-creature creature))))))))))
       (values events message))))
 
