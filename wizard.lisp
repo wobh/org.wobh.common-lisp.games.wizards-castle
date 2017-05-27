@@ -100,7 +100,7 @@
   (elt seq (random (length seq) random-state)))
 
 (defun random-range (limit
-                     &optional (limit-max Nil) (random-state *random-state*))
+                     &optional (limit-max nil) (random-state *random-state*))
   "Get a random number in range inclusive."
   (if limit-max
       (+ limit (random (- (1+ limit-max) limit) random-state))
@@ -316,25 +316,25 @@ order and values."
 
 (defun wiz-write-line (string &key (stream *wiz-out*) (start 0) end)
   "Write a line in Wizard's Castle."
-  (write-line (wiz-format Nil string) stream :start start :end end))
+  (write-line (wiz-format nil string) stream :start start :end end))
 
 (defun wiz-write-string (string &key (stream *wiz-out*) (start 0) end)
   "Write a string in Wizard's Castle." 
-  (write-string (wiz-format Nil string) stream :start start :end end))
+  (write-string (wiz-format nil string) stream :start start :end end))
 
 (defun wiz-format-error (stream string &rest args)
   "Write a formatted error message to STREAM."
   (wiz-format stream "~%** ~?" string args))
 
 (defun wiz-error (string &rest args)
-  "Writes wiz-formatted error message to *WIZ-ERR*, returns Nil."
+  "Writes wiz-formatted error message to *WIZ-ERR*, returns nil."
   (apply #'wiz-format-error *wiz-err* string args)
   (finish-output *wiz-err*))
 
 (defun wiz-prompt (string &rest args)
   "Write a prompt."
   (terpri *wiz-qio*)
-  (wiz-write-string (apply #'wiz-format Nil string args)))
+  (wiz-write-string (apply #'wiz-format nil string args)))
 
 (defun wiz-read-line (&optional (stream *wiz-qio*))
   "Read a line of player input."
@@ -361,20 +361,20 @@ order and values."
   "Make a prompt with 'Your choice' at the end."
   (let ((prompt "Your choice "))
     (if string
-        (wiz-format Nil "~A~%~&~A" string prompt)
-        (wiz-format Nil "~&~A" prompt))))
+        (wiz-format nil "~A~%~&~A" string prompt)
+        (wiz-format nil "~&~A" prompt))))
 
 (defmacro with-player-input
     ((var prompt &key
           (readf #'wiz-read-char) (istream *wiz-qio*)
           (writef #'wiz-prompt)   (ostream *wiz-qio*))
      &body body)
-  "Read input to var and do something with it or set var to Nil if a
+  "Read input to var and do something with it or set var to nil if a
 different input is needed."
   (let ((out (gensym "OUTCOME")))
     `(loop
-        with ,var = Nil
-        with ,out = Nil
+        with ,var = nil
+        with ,out = nil
         do
           (funcall ,writef ,prompt ,ostream)
           (finish-output ,ostream)
@@ -386,15 +386,15 @@ different input is needed."
 
 
 (defun wiz-y-or-n-p (prompt &optional message)
-  "Return T, Nil or requery if answer is Y, N, or something else."
+  "Return T, nil or requery if answer is Y, N, or something else."
   (when message
     (wiz-write-line message))
   (with-player-input
       (input prompt :readf #'wiz-read-char)
     (case input
       (#\Y T)
-      (#\N Nil)
-      (T (setf input (wiz-error "Answer yes or no "))))))
+      (#\N nil)
+      (t (setf input (wiz-error "Answer yes or no "))))))
 
 (defun wiz-y-p (prompt &optional message)
     (when message
@@ -403,7 +403,7 @@ different input is needed."
       (input prompt :readf #'wiz-read-char)
     (case input
       (#\Y T)
-      (T Nil))))
+      (t nil))))
 
 (defun wiz-read-direction (prompt &optional input-error-message)
   "Read a direction from the player.
@@ -416,7 +416,7 @@ returns INPUT-ERROR."
       (#\E 'east)
       (#\W 'west)
       (#\S 'south)
-      (T (if input-error-message
+      (t (if input-error-message
              (setf direction (wiz-error input-error-message))
              'input-error)))))
 
@@ -467,7 +467,7 @@ returns INPUT-ERROR."
   (find 
    (typecase obj
      (list   (first obj))
-     (T obj))
+     (t obj))
    *events*))
 
 (defun make-event (&rest args)
@@ -515,7 +515,7 @@ returns INPUT-ERROR."
 
 (defun history-p (events-list)
   "Is every element of EVENTS-LIST an event?"
-  (or Nil (every #'event-p events-list)))
+  (or nil (every #'event-p events-list)))
 
 (defun make-history (&rest events)
   "A history is push-down stack of events (returns reversed list of events)."
@@ -566,7 +566,7 @@ returns INPUT-ERROR."
 (defun latest-event-p (history event-check)
   "Is the latest event in history the kind of event expected?"
   (if (null history)
-      Nil
+      nil
       (event-kind-p (latest-event history) event-check)))
 
 (defun oldest-event (history)
@@ -617,7 +617,7 @@ returns INPUT-ERROR."
 ;;;; Show title screen
 
 (defparameter *intro-text-dos*
-  (format Nil
+  (format nil
           "~2&Many cycles ago, in the kingdom of N'DIC, the gnomic~%~
               wizard ZOT forged his great ORB of power. He soon vanished~%~
               utterly, leaving behind his vast subterranean castle~%~
@@ -627,7 +627,7 @@ returns INPUT-ERROR."
               of yet, NONE has ever emerged victoriously! BEWARE!!~2%")
   "This intro is a slightly modified version of the article's introduction.")
 
-(defparameter *wiz-intro* Nil
+(defparameter *wiz-intro* nil
   "Original game does not print an into like some later ones.")
 
 (defun launch (&optional intro)
@@ -662,14 +662,14 @@ returns INPUT-ERROR."
 
 ;;; FIXME: perhaps some of the parameters should be constants?
 
-;;; FIXME: the first item on these lists is Nil because the original
+;;; FIXME: the first item on these lists is nil because the original
 ;;; basic source code used natural number indexes. To maintain
 ;;; consistency with the code, and prevent confusion when checking
-;;; against it, the zeroth element has been set to Nil.
+;;; against it, the zeroth element has been set to nil.
 
 ;; |  n | symbol      | icon| text                | type     |
 ;; |----|-------------+-----+---------------------|----------|
-;; |  0 | Nil         | Nil | Nil                 | Nil      |
+;; |  0 | nil         | nil | nil                 | nil      |
 ;; |  1 | empty-room  | #\. | "an empty room"     | empty    |
 ;; |  2 | entrance    | #\e | "the entrance"      | entrance |
 ;; |  3 | stairs-up   | #\u | "stairs going up"   | stairs   |
@@ -740,8 +740,8 @@ returns INPUT-ERROR."
     (blue-flame  "the Blue Flame"    #\t)
     (palantir    "the Palantir"      #\t)
     (silmaril    "the Silmaril"      #\t)
-    (runestaff   "the Runestaff"     Nil)
-    (orb-of-zot  "the Orb of Zot"    Nil)
+    (runestaff   "the Runestaff"     nil)
+    (orb-of-zot  "the Orb of Zot"    nil)
     )
   "All the possible castle contents")
 
@@ -934,12 +934,12 @@ treasure arguments."
   (sort treasure-list #'treasure-lessp))
 
 (defun creature-type-p (creature type)
-  "Return T if the type of creature is valid"
+  "Return t if the type of creature is valid"
   (cond ((eq type creature) T)
         ((eq type 'monster) (monster-p creature))
         ((eq type 'treasure) (treasure-p creature))
         ((eq type 'room) (room-p creature))
-        (T Nil)))
+        (t nil)))
 
 (defun type-of-creature (creature)
   "Return the type of creature given."
@@ -1086,12 +1086,12 @@ treasure arguments."
 
 (defstruct (adventurer (:conc-name adv-))
   "A bold youth."
-  (rc Nil)
-  (sx Nil)
-  (bf Nil)
-  (rf Nil)
-  (of Nil)
-  (bl Nil)
+  (rc nil)
+  (sx nil)
+  (bf nil)
+  (rf nil)
+  (of nil)
+  (bl nil)
   (st 2)
   (iq 8)
   (dx 14)
@@ -1101,7 +1101,7 @@ treasure arguments."
   (wv 0) ; FIXME: symbol
   (gp 60)
   (fl 0)
-  (lf Nil)
+  (lf nil)
   (fd 60)
   (tr ()) ; FIXME: list, vector?
   (cr ())
@@ -1343,7 +1343,7 @@ limits."
 ;;;; Curses
 
 (defun adv-cursed-p (adv &optional curse-name)
-  "Return Nil or a list of curses."
+  "Return nil or a list of curses."
   (if curse-name 
       (find curse-name (adv-cr adv))
       (adv-cr adv)))
@@ -1521,15 +1521,15 @@ limits."
               (make-history (make-event 'adv-gained item)))
              ((eq item 'orb-of-zot)
               (setf (adv-of adv) T)
-              (setf (adv-rf adv) Nil)
+              (setf (adv-rf adv) nil)
               (make-history (make-event 'adv-gained item)
                             (make-event 'adv-lost 'runestaff)))
-             (T (error error-fmt item))))
+             (t (error error-fmt item))))
       (list
        (cond ((eq (first item) 'flares)
               (incf-adv-inv (adv-fl adv) (second item))
               (make-history (make-event 'adv-gained item (second item))))
-             (T (error error-fmt item)))))))
+             (t (error error-fmt item)))))))
 
 (defun buy-equipment (equipment price adv)
   (with-accessors ((gp adv-gp)) adv
@@ -1561,7 +1561,7 @@ limits."
            (#\D (setf st 10 ; (incf st (* 2 4))
                       dx  6 ; (decf dx (* 2 4))
                       rc 'dwarf))
-           (T   (setf race
+           (t   (setf race
                       (wiz-error
                        "That was incorrect. Please type E, D, M, or H.")))))))
 
@@ -1576,7 +1576,7 @@ limits."
 
 ;; | q | race   | st | dx | iq | ot |
 ;; |---+--------+----+----+----+----|
-;; | 0 | Nil    |  2 | 14 |  8 |  8 |
+;; | 0 | nil    |  2 | 14 |  8 |  8 |
 ;; | 1 | hobbit |  4 | 12 |  8 | 12 |
 ;; | 2 | elf    |  6 | 10 |  8 |  8 |
 ;; | 3 | "man"  |  8 |  8 |  8 |  8 |
@@ -1589,7 +1589,7 @@ limits."
       (case sex
         (#\M (setf sx 'male))
         (#\F (setf sx 'female))
-        (T   (setf sex (wiz-error "Cute ~A, real cute. Try M or F" race)))))))
+        (t   (setf sex (wiz-error "Cute ~A, real cute. Try M or F" race)))))))
       
 (defun allocate-points (adv)
   "Distribute other points to attributes."
@@ -1605,7 +1605,7 @@ limits."
                      ot)))
       (loop
          for (ranking ranking-text) in *rankings*
-	 for prompt = (wiz-format Nil
+	 for prompt = (wiz-format nil
 				  "How many points do you add to ~A " ranking-text)
          while (< 0 ot)
          do
@@ -1654,7 +1654,7 @@ limits."
           (#\L (buy-equipment 'leather
                               (get-catalog-price 'leather catalog) adv))
           (#\N 'no-armor)
-          (T   (setf choice
+          (t   (setf choice
                      (wiz-error "Are you ~A or a ~A ? Type P,C,L, or N"
                                 (text-of-creature
                                  ;; NOTE: Dragons are excluded from the list
@@ -1676,7 +1676,7 @@ limits."
           (#\M (buy-equipment 'mace  (get-catalog-price 'mace catalog) adv))
           (#\D (buy-equipment 'dagger (get-catalog-price 'dagger catalog) adv))
           (#\N 'no-weapon)
-          (T   (setf choice
+          (t   (setf choice
                      (wiz-error  "Is your IQ really ~D? Type S, M, D, or N"
                                  (adv-iq adv)))))))))
 
@@ -1705,7 +1705,7 @@ limits."
 
 (defun setup-adventurer ()
   "Make pc avatar"
-  (wiz-format T "~&All right, bold one~%")
+  (wiz-format t "~&All right, bold one~%")
   (let ((adv (make-adventurer)))
     (choose-race     adv)
     (choose-sex      adv)
@@ -1722,10 +1722,10 @@ limits."
 
 ;;; FIXME: I don't know yet why this doesn't work.
 
-;; (defun position-array (item array &key (test #'eq) (start 0) (stop Nil))
+;; (defun position-array (item array &key (test #'eq) (start 0) (stop nil))
 ;;        "Return the first index that matches test of item."
 ;;        (loop
-;;        with res = Nil
+;;        with res = nil
 ;;        with beg = start
 ;;        with end = (or stop (array-total-size array)))
 ;;        for idx from beg below end
@@ -1741,7 +1741,7 @@ limits."
 
 ;; (defun get-all-objects-indices (object in-array &key (test #'eql))
 ;;   "Search an array for a given object returning a list of indices for
-;; every instance of the object in the array. A list of lists, or Nil, is
+;; every instance of the object in the array. A list of lists, or nil, is
 ;; returned."
 ;;   (declare (optimize (speed 3) (safety 0) (debug 0)))
 ;;   (let ((adjusted-dimensions-partial-products-list
@@ -1786,8 +1786,8 @@ limits."
   (curses          ())  ; curses data (curse-name curse-function curse-loc)
   (loc-orb         ())  ; "location of the orb of zot"
   (loc-runestaff   ())  ; "location of the runestaff"
-  (vendor-fury    Nil)  ; "vendors angry"
-  (adventurer     Nil)
+  (vendor-fury    nil)  ; "vendors angry"
+  (adventurer     nil)
   (adversaries     ())
   ;; (loc-adventurer  ())  ; "player coordinates"
   (history         ())
@@ -1893,12 +1893,12 @@ may be an index or list of coordinates."
 (defun make-map-icon-room (castle coords)
   "Make a map icon of a room in castle."
   (with-accessors ((adv cas-adventurer)) castle
-    (format Nil " ~A " (get-adv-map-icon adv coords))))
+    (format nil " ~A " (get-adv-map-icon adv coords))))
 
 (defun make-map-icon-adv (castle coords)
   "Make a map icon of a castle room with an adventurer in it."
   (with-accessors ((adv cas-adventurer)) castle
-    (format Nil "<~A>" (get-adv-map-icon adv coords))))
+    (format nil "<~A>" (get-adv-map-icon adv coords))))
 
 (defun cas-adv-map-room (castle room-ref &optional creature-ref)
   "Tags a room as mapped."
@@ -1951,10 +1951,10 @@ may be an index or list of coordinates."
                 (coord    (third  curse))))))))
 
 (defun cas-room-cursed-p (castle coords &optional aspect)
-  "Return Nil or a list of cursed room data for room coordinates."
+  "Return nil or a list of cursed room data for room coordinates."
   (get-castle-curse castle coords aspect))
 
-(defparameter *curse-notify* Nil
+(defparameter *curse-notify* nil
   "Later versions printed message when a curse took effect")
 
 (defparameter *curse-notice-ohare* "A curse!"
@@ -2071,7 +2071,7 @@ castle."
 ;;                                         (pop random-empty-rooms))
 ;;                  creatures)))))
 
-(defun setup-castle (&optional (silent Nil))
+(defun setup-castle (&optional (silent nil))
   "Place stuff in castle"
   (let* ((castle (make-castle))
          (height (castle-height (cas-rooms castle)))
@@ -2263,14 +2263,14 @@ castle."
 (defun effect-of-outcome (outcome &rest args)
   (let ((effect-ref (second outcome)))
     (etypecase effect-ref
-      (null     Nil)
+      (null     nil)
       (symbol   (apply (symbol-function effect-ref) args))
       (function (apply effect-ref args)))))
 
 (defun text-of-outcome (outcome &rest args)
   (let ((text-ref (third outcome)))
     (etypecase text-ref
-      (null     Nil)
+      (null     nil)
       (string   text-ref)
       (symbol   (apply (symbol-function text-ref) args))
       (function (apply text-ref args)))))
@@ -2296,7 +2296,7 @@ castle."
 (defun make-message-report-inv (castle inv)
   "Make message for letting to "
   (with-accessors ((adv cas-adventurer)) castle
-    (format Nil "~2&You have ~D"
+    (format nil "~2&You have ~D"
             (ecase inv
               (gold-pieces (adv-gp adv))
               (flares      (adv-fl adv))))))
@@ -2359,12 +2359,12 @@ castle."
                  (make-event 'adv-used 'runestaff)
                  (make-event 'adv-entered-room here)))
          (outfit-with 'orb-of-zot adv)
-         (setf (cas-loc-orb castle) Nil)
+         (setf (cas-loc-orb castle) nil)
          (clear-castle-room castle here)
          (record-event events (make-event 'adv-found 'orb-of-zot))
          (join-history events (cas-adv-map-here castle))
          (push-text message
-                    (format Nil "Great unmitigated Zot!~
+                    (format nil "Great unmitigated Zot!~
                                  ~&You just found the Orb of Zot~
                                  ~&The Runestaff is gone")))
         (T
@@ -2391,13 +2391,13 @@ castle."
                      (text (text-of-creature creature))
                      (strike-damage (calc-adversary-strike-damage creature))
                      (hit-points (calc-adversary-hit-points creature)))))
-  (creature Nil)    ; creature
+  (creature nil)    ; creature
   (text "")
   (strike-damage 0) ; q1
   (hit-points 0)    ; q2
   (first-turn T)    ; q3
   (enwebbed 0)     ; enemy enwebbed
-  (end Nil)
+  (end nil)
   (hit-point-limiter (make-limiter #'< 0 hit-points))
   )
 
@@ -2475,7 +2475,7 @@ castle."
         (unless (adv-alive-p adv)
           (join-history events (damage-foe foe damage))
           (push-text message
-                     (format Nil
+                     (format nil
                              "~%  It does ~D points of damage." damage)))))))
 
 ;; 2540 if o$<>"f" then ...
@@ -2496,7 +2496,7 @@ castle."
   
 ;; (defun make-message-cast-death (castle event)
 ;;   (assert (event-kind-p event '(adv-cast-spell death)))
-;;   (format Nil  "Death - - - ~A"
+;;   (format nil  "Death - - - ~A"
 ;;           (if (adv-alive-p (cas-adventurer castle))
 ;;               "his"
 ;;               "yours")))
@@ -2520,7 +2520,7 @@ castle."
           (foe-death
            (join-history events (funcall outcome-effect foe))))
         (push-text message
-                   (format Nil "Death - - - ~A" outcome-text)))
+                   (format nil "Death - - - ~A" outcome-text)))
       (values events message))))
 
 (defun choose-spell ()
@@ -2530,7 +2530,7 @@ castle."
       (#\W 'adv-casts-spell-web)
       (#\F 'adv-casts-spell-fireball)
       (#\D 'adv-casts-spell-death)
-      (T   (setf spell (wiz-error "Choose one of the listed options"))))))
+      (t   (setf spell (wiz-error "Choose one of the listed options"))))))
 
 (defun adv-casts-spell (castle)
   "The adventurer casts a spell."
@@ -2548,7 +2548,7 @@ castle."
 
 (defparameter *bribe-outcomes*
   (list
-   (list 'bribe-refused Nil "'All I want is your life!'")
+   (list 'bribe-refused nil "'All I want is your life!'")
    (list 'bribe-accepted 'foe-accepts-bribe "Okay, just don't tell anyone."))
   "Outcomes of bribing adversaries.")
 
@@ -2565,13 +2565,13 @@ castle."
               (push-text message "'All I want is your life!'"))
              (T
               (when (wiz-y-or-n-p
-                     (wiz-format Nil "I want ~A will you give it too me "
+                     (wiz-format nil "I want ~A will you give it too me "
                                  (text-of-creature treasure)))
                 (lose-treasure adv treasure)
                 (record-event events (make-event 'adv-bribed foe-name treasure))
                 (push-text message "OK, just don't tell anyone")
                 (when (eq 'vendor foe-name)
-                  (setf (cas-vendor-fury castle) Nil)))))
+                  (setf (cas-vendor-fury castle) nil)))))
              (values events message))))
 
 ;; (defun make-message-adv-attacks (castle event)
@@ -2579,15 +2579,15 @@ castle."
 ;;   (let ((creature-text
 ;;       (text-of-creature (foe-creature (latest-foe castle)))))
 ;;     (ecase (value-of-event event)
-;;       (unarmed (format Nil "Pounding on ~A won't hurt it" creature-text))
+;;       (unarmed (format nil "Pounding on ~A won't hurt it" creature-text))
 ;;       (book-stuck-on-hand "You can't beat it to death with a book!")
 ;;       (missed  "  Drat! Missed")
-;;       (strike (format Nil "  You hit the lousy ~A"
+;;       (strike (format nil "  You hit the lousy ~A"
 ;;                    (subseq creature-text 2))))))
 
 ;; (defun make-message-weapon-broke (castle event)
 ;;   (assert (event-kind-p event 'adv-weapon-broke))
-;;   (format Nil "Oh no! Your ~A broke"
+;;   (format nil "Oh no! Your ~A broke"
 ;;        (text-of-weapon (adv-wv (cas-adventurer castle)))))
 
 (defun adv-hungry-p (castle)
@@ -2602,14 +2602,14 @@ castle."
     (assert (not (foe-alive-p foe)))
     (let ((events (make-history))
           (message (make-text)))
-      (push-text message (format Nil "~2&~A lies dead at your feet"
+      (push-text message (format nil "~2&~A lies dead at your feet"
                                  (text-of-foe foe)))
       (clear-castle-room castle here)
       (join-history events (cas-adv-map-here castle))
       (when (and (adv-hungry-p castle) (monster-p (foe-creature foe)))
         (record-event events
                       (make-event 'adv-ate (foe-creature foe)))
-        (format Nil "~2&You spend an hour eating ~A~A"
+        (format nil "~2&You spend an hour eating ~A~A"
                 (text-of-foe foe) (random-meal)))
       (when (runestaff-here-p castle)
         (record-event events
@@ -2620,7 +2620,7 @@ castle."
 	  (let ((hoard (random-range 1 1000)))
 	    (join-history events (make-adv-richer adv hoard))
 	    (push-text message
-		       (format Nil "~2%You now get his hoard of ~D GP's" hoard)))
+		       (format nil "~2%You now get his hoard of ~D GP's" hoard)))
 	  (progn
 	    (join-history events
 			  (make-history
@@ -2630,7 +2630,7 @@ castle."
 			   (adv-drinks-potion adv 'intelligence)
 			   (adv-drinks-potion adv 'dexterity)))
 	    (push-text message
-		       (format Nil "~2%You get all his wares:~{~%A~}"
+		       (format nil "~2%You get all his wares:~{~%A~}"
 			       '("plate armor"
 				 "a sword"
 				 "a strength potion"
@@ -2639,7 +2639,7 @@ castle."
 	    (when (adv-without-item-p adv 'lamp)
 	      (record-event events (outfit-with 'lamp adv))
 	      (push-text message
-			 (format Nil "~%A lamp")))))
+			 (format nil "~%A lamp")))))
       (values events message))))
 
 (defun adv-broke-weapon-on-foe-p (events)
@@ -2658,7 +2658,7 @@ castle."
     (when (and (find (foe-creature foe) '(gargoyle dragon))
                (zerop (random 8)))
       (push-text message
-                 (format Nil "~%Oh no! Your ~A broke"
+                 (format nil "~%Oh no! Your ~A broke"
                          (text-of-weapon (adv-weapon adv))))
       (join-history events (break-adv-weapon adv)))
     (when foe-alive
@@ -2668,10 +2668,10 @@ castle."
 
 (defparameter *adv-attacks-outcomes*
   (list
-   (list 'adv-strike-missed  Nil (format Nil "~%  Drat! Missed"))
+   (list 'adv-strike-missed  nil (format nil "~%  Drat! Missed"))
    (list 'adv-strike-hit 'adv-strikes-foe
          (lambda (creature-ref)
-           (format Nil "~%  You hit the lousy ~A"
+           (format nil "~%  You hit the lousy ~A"
                    (subseq (text-of-creature creature-ref) 2)))))
   "Possibilities when the adventurer strikes at a foe.")
 
@@ -2693,7 +2693,7 @@ castle."
          (record-event events (make-event 'adv-tried 'unarmed-attack))
          (push-text message
                     (wiz-error
-                     (format Nil "Pounding on ~A won't hurt it~%"
+                     (format nil "Pounding on ~A won't hurt it~%"
                              (text-of-creature (foe-creature foe))))))
         ((bound-p adv)
          (record-event events (make-event 'adv-tried 'attack-with-hands-bound))
@@ -2722,7 +2722,7 @@ castle."
       (cond ((< 0 bound)
              (record-event events (make-event 'foe-unbound))
              (push-text message 
-                        (format Nil "The ~A is stuck and can't attack"
+                        (format nil "The ~A is stuck and can't attack"
                                 (subseq (foe-text foe) 2))))
             (T
              (record-event events (make-event 'foe-unbound))
@@ -2733,7 +2733,7 @@ castle."
 
 (defparameter *foe-attack-outcomes*
   (list
-   (list 'foe-strike-missed Nil "  Hah! He missed you")
+   (list 'foe-strike-missed nil "  Hah! He missed you")
    (list 'foe-strike-hit 'damage-adv "  Ouch! He hit you"))
   "Outcomes when an adversary attacks.")
 
@@ -2760,7 +2760,7 @@ castle."
           (destructuring-bind (outcome-name outcome-effect outcome-text)
               (make-foe-strike adv)
             (push-text message
-                       (format Nil "~2&The ~A attacks"
+                       (format nil "~2&The ~A attacks"
                                (subseq (foe-text foe) 2)))
             (cond ((eq outcome-name 'foe-strike-hit)
                    (join-history events
@@ -2770,7 +2770,7 @@ castle."
                    (when (latest-event-p events 'adv-armor-destroyed)
                      (push-text message
                                 "~&Your armor is destroyed - good luck")))
-                  (T (push-text message outcome-text)))))
+                  (t (push-text message outcome-text)))))
       ;; FIXME [wc 2013-01-29]: maybe use TAGBODY instead of (WHEN
       ;; ...) (UNLESS ...)
       (values events message))))
@@ -2787,7 +2787,7 @@ castle."
       (wiz-write-line "You have escaped")
       (let ((direction (wiz-read-direction
                         "Do you go north, south, east, or west "
-                        (format Nil "Don't press your luck ~A"
+                        (format nil "Don't press your luck ~A"
                                 (adv-race adv)))))
         (record-event events (make-event 'adv-retreated direction))
         (join-history events (move-adv castle direction))
@@ -2812,7 +2812,7 @@ castle."
                      (cond ((< st 1) "strength")
                            ((< iq 1) "intelligence")
                            ((< dx 1) "dexterity")
-                           (T "life")))
+                           (t "life")))
              (format message "~&When you died you had:~%"))
             ((eq end 'exit)`
              (format message
@@ -2866,13 +2866,13 @@ castle."
         (#\R 'adv-retreats)
         (#\B 'adv-bribes)
         (#\C 'adv-casts-spell)
-        (T   (setf choice
+        (t   (setf choice
                    (wiz-error "Choose one of the listed options")))))))
 
 (defun fight-end-p (events)
   "Return true if fight is over"
   (if (null events)
-      Nil
+      nil
       (find (name-of-event (latest-event events))
             '(adv-slain foe-slain adv-entered-room adv-bribed))))
 
@@ -2895,7 +2895,7 @@ castle."
           (fight-form (if (adv-initiative-p adv)
                           (get-adv-fight-action adv foe)
                           'foe-attacks)))
-      (setf (foe-first-turn foe) Nil)
+      (setf (foe-first-turn foe) nil)
       (loop
          do
            (multiple-value-bind (action-events action-message)
@@ -2911,7 +2911,7 @@ castle."
               (unless (latest-event-p events 'adv-bribes)
                 (setf fight-form 'foe-attacks)))
              (adv-retreats
-              (setf fight-form 'Nil))
+              (setf fight-form 'nil))
              (foe-attacks
               (when (adv-alive-p adv)
                 (setf fight-form (get-adv-fight-action adv foe)))))
@@ -2974,7 +2974,7 @@ castle."
          (let ((tr-t (text-of-creature tr))
                (tr-v (random (* (1+ (value-of-treasure tr)) 1500))))
            (when (wiz-y-or-n-p
-                  (wiz-format Nil "Do you want to sell ~A for ~D " tr-t tr-v))
+                  (wiz-format nil "Do you want to sell ~A for ~D " tr-t tr-v))
              (join-history events (sell-treasure adv tr tr-v)))))))
 
 (defun adv-budget (gp catalog)
@@ -2992,7 +2992,7 @@ castle."
       (let ((catalog (adv-budget gp *vendor-armor-catalog*))
             (events (make-history)))
         (wiz-write-line
-         (format Nil "Ok ~A, you have ~D and ~A." race gp (text-of-armor av)))
+         (format nil "Ok ~A, you have ~D and ~A." race gp (text-of-armor av)))
         (join-history
          events
          (with-player-input
@@ -3010,7 +3010,7 @@ castle."
              (#\L (buy-equipment
                    'leather (get-catalog-price 'leather catalog) adv))
              (#\N (make-history (make-event 'adv-bought 'no-armor)))
-             (T   (setf armor
+             (t   (setf armor
                         (wiz-error
                          "Don't be silly. Choose a selection"))))))))))
 
@@ -3025,7 +3025,7 @@ castle."
       (let ((catalog (adv-budget gp *vendor-weapons-catalog*))
             (events (make-history)))
         (wiz-write-line
-         (format Nil "You have ~D GP's left and ~A in hand."
+         (format nil "You have ~D GP's left and ~A in hand."
                  gp (text-of-weapon wv)))
         (join-history
          events
@@ -3045,7 +3045,7 @@ castle."
              (#\D (buy-equipment 'dagger
                                  (get-catalog-price 'dagger catalog) adv))
              (#\N (make-history (make-event 'adv-bought 'no-weapon)))
-             (T (setf weapon (wiz-error "Try choosing a selection"))))))))))
+             (t (setf weapon (wiz-error "Try choosing a selection"))))))))))
 
 (defun buy-potions-from-vendor (adv)
   "The adventurer may buy potions from a castle vendor."
@@ -3057,13 +3057,13 @@ castle."
            for (attr name) in *rankings*
            do
              (when (wiz-y-p
-                    (format Nil "~2&Want to buy a potion of ~A for ~D GP's "
+                    (format nil "~2&Want to buy a potion of ~A for ~D GP's "
                             name price))
                (record-event events (make-event 'adv-bought 'potion name price))
                (join-history events (make-adv-poorer adv price))
 	       (join-history events (adv-drinks-potion adv name))
                (wiz-write-line
-                (format Nil "~2&Your ~A is now ~D"
+                (format nil "~2&Your ~A is now ~D"
                         name (funcall attr adv))))
            until (< gp price))))
     events))
@@ -3073,7 +3073,7 @@ castle."
     (with-accessors ((lf adv-lf) (gp adv-gp)) adv
       (when (<= price gp)
         (when (wiz-y-or-n-p
-               (format Nil "Want a lamp for have ~D GP's " price))
+               (format nil "Want a lamp for have ~D GP's " price))
           (wiz-write-line "Its guaranteed to outlive you!")
           (buy-equipment 'lamp price adv))))))
 
@@ -3084,7 +3084,7 @@ castle."
       (cond ((< gp 1000)
              (values events
                      (wiz-write-line
-                      (format Nil "~2&You're too poor to trade, ~A" race))))
+                      (format nil "~2&You're too poor to trade, ~A" race))))
             (T
              (join-history events (buy-armor-from-vendor   adv))
              (join-history events (buy-weapon-from-vendor  adv))
@@ -3111,7 +3111,7 @@ castle."
              (wiz-write-line "You'll be sorry you did that")
              (setf (cas-vendor-fury castle) T)
              (adv-meets-adversary castle))
-            (T   (setf choice (wiz-error "Nice shot, ~A" (adv-race adv)))))))))
+            (t   (setf choice (wiz-error "Nice shot, ~A" (adv-race adv)))))))))
 
 
 ;;;; Entering, exiting
@@ -3119,7 +3119,7 @@ castle."
 (defun adv-finds-room (castle)
   "What happens when the adventurer enters any other kind of room"
   (assert (typep castle 'castle))
-  Nil
+  nil
   ;; (make-history
   ;;  (make-event 'adv-found (cas-creature-here castle))))
   )
@@ -3128,7 +3128,7 @@ castle."
   "What does the game report to the player when the adventurer leaves
 the castle."
   (assert (event-kind-p event 'adv-leaves-castle))
-  (format Nil
+  (format nil
           "~&You left the castle with~:[out~;~] the Orb of Zot"
           (adv-of (cas-adventurer castle))
           ;; (event-kind-p event '(adv-leaves-castle orb-of-zot))
@@ -3138,7 +3138,7 @@ the castle."
 ;;;; Help message
 
 (defparameter *help-text-dos*
-  (format Nil
+  (format nil
           "~&*** WIZARD'S CASTLE COMMAND AND INFORMATION SUMMARY ***~2%~
              The following commands are available :~2%~
              Help     North    South    East     West     Up~%~
@@ -3157,7 +3157,7 @@ the castle."
              PALANTIR   - No Benefit         SILMARIL   - No Benefit")
   "Some help documentation")
 
-(defparameter *wiz-help* Nil)
+(defparameter *wiz-help* nil)
 
 (defun player-help ()
   "Report help for game."
@@ -3171,11 +3171,11 @@ the castle."
 
 (defparameter *without-item-outcomes*
   (list
-   (make-outcome 'flares Nil "Hey bright one, you're out of flares")
-   (make-outcome 'lamp   Nil (lambda (race-ref)
-                                       (format Nil "You don't have a lamp ~A"
+   (make-outcome 'flares nil "Hey bright one, you're out of flares")
+   (make-outcome 'lamp   nil (lambda (race-ref)
+                                       (format nil "You don't have a lamp ~A"
                                                (text-of-race race-ref))))
-   (make-outcome 'runestaff Nil "You can't teleport without the runestaff"))
+   (make-outcome 'runestaff nil "You can't teleport without the runestaff"))
   "Messages when the adventurer tries something without the necessary item.")
 
 ;; (defun get-message (message-key messages)
@@ -3200,11 +3200,11 @@ the castle."
 
 (defparameter *wrong-room-outcomes*
   (list
-   (make-outcome 'gaze  Nil "No orb - no gaze")
-   (make-outcome 'open  Nil "The only thing you opened was your big mouth")
-   (make-outcome 'drink Nil "If you want a drink find a pool")
-   (make-outcome 'use-stairs Nil (lambda (race-ref creature-ref)
-                                   (format Nil "Oh ~A, no ~A in here"
+   (make-outcome 'gaze  nil "No orb - no gaze")
+   (make-outcome 'open  nil "The only thing you opened was your big mouth")
+   (make-outcome 'drink nil "If you want a drink find a pool")
+   (make-outcome 'use-stairs nil (lambda (race-ref creature-ref)
+                                   (format nil "Oh ~A, no ~A in here"
                                            (text-of-race race-ref)
                                            (text-of-creature creature-ref)))))
   "Messages when the adventure tries something in the wrong room.")
@@ -3236,13 +3236,13 @@ the castle."
   (assert (find action '(use-crystal-orb use-lamp use-flare view-map)))
   (values
    (make-history (make-event 'adv-tried action 'blind))
-   (format Nil "You can't see anything, dumb ~A"
+   (format nil "You can't see anything, dumb ~A"
            (adv-race (cas-adventurer castle)))))
 
 
 ;;;; Map
 
-(defun you-are-at (coords &optional (stream Nil))
+(defun you-are-at (coords &optional (stream nil))
   "Make message 'You are at ...'"
   (apply #'format stream "~&You are at (~D,~D) Level ~D~%"
          (wiz-coords coords)))
@@ -3404,10 +3404,10 @@ the castle."
    (make-outcome 'clumsier    'make-adv-clumsier "clumsier")
    (make-outcome 'change-race 'change-adv-race
          (lambda (race-ref)
-           (format Nil "become a ~A" (text-of-race race-ref))))
+           (format nil "become a ~A" (text-of-race race-ref))))
    (make-outcome 'change-sex   'change-adv-sex
          (lambda (sex-ref)
-           (format Nil "turn into a ~A" (text-of-sex sex-ref)))))
+           (format nil "turn into a ~A" (text-of-sex sex-ref)))))
   "All of the drink outcomes.")
 
 (defun adv-drinks-pool (castle)
@@ -3437,7 +3437,7 @@ the castle."
                       (funcall outcome-effect
                                adv (random-elt
                                     (remove (adv-rc adv) *sexes*))))
-                     (T (funcall outcome-effect adv (random-range 1 3)))))
+                     (t (funcall outcome-effect adv (random-range 1 3)))))
              (join-history events outcome-effect))
            (when outcome-text
              (let ((effect (latest-event events)))
@@ -3448,10 +3448,10 @@ the castle."
                            ((eq outcome-name 'change-sex)
                             (funcall outcome-text
                                      (value-of-event effect)))
-                           (T (format Nil "feel ~A"
+                           (t (format nil "feel ~A"
                                       outcome-text))))
                (push-text message
-                          (format Nil "You take a drink and ~A"
+                          (format nil "You take a drink and ~A"
                                   outcome-text)))))))
         (values events message))))
 
@@ -3463,7 +3463,7 @@ the castle."
 there. This info could be mapped.")
 
 (defun make-message-creature-at (creature coords)
-  (format Nil "~A at ~{(~D,~D) Level ~D~}"
+  (format nil "~A at ~{(~D,~D) Level ~D~}"
           (text-of-creature creature)
           (wiz-coords coords)))
 
@@ -3473,7 +3473,7 @@ there. This info could be mapped.")
              (adv-map-room adv coords creature))
            (gaze-map-ask ()
              (when (wiz-y-or-n-p
-                    (format Nil "Do you wish to map ~A "
+                    (format nil "Do you wish to map ~A "
                             (make-message-creature-at creature coords)))
                (adv-map-room adv coords creature)))
            (gaze-map-smart ()
@@ -3494,18 +3494,18 @@ there. This info could be mapped.")
   (list
    (make-outcome 'heap 'make-adv-weaker "You see yourself in a bloody heap.")
    (make-outcome 'room 'gaze-mapper (lambda (creature-ref room-coords)
-                              (format Nil "You see ~A"
+                              (format nil "You see ~A"
                                       (make-message-creature-at
                                        creature-ref room-coords))))
-    (make-outcome 'orb-of-zot Nil (lambda (room-coords)
-                            (format Nil "You see ~A"
+    (make-outcome 'orb-of-zot nil (lambda (room-coords)
+                            (format nil "You see ~A"
                                     (make-message-creature-at
                                      'orb-of-zot room-coords))))
-    (make-outcome 'drink Nil (lambda (monster-ref)
-                       (format Nil
+    (make-outcome 'drink nil (lambda (monster-ref)
+                       (format nil
                                "yourself drinking from a pool and becoming ~A"
                                (text-of-creature monster-ref))))
-    (make-outcome 'soap Nil "a soap opera rerun")
+    (make-outcome 'soap nil "a soap opera rerun")
     )
   "The visions in the crystal orb.")
 
@@ -3546,7 +3546,7 @@ into the orb."
            (when outcome-text
              (let ((effect (latest-event events)))
                (setf outcome-text
-                     (format Nil "You see ~A"
+                     (format nil "You see ~A"
                              (case outcome-name
                                (drink
                                 (funcall outcome-text (random-monster)))
@@ -3560,7 +3560,7 @@ into the orb."
                                              (cas-loc-orb castle)
                                              (random-array-subscripts
                                               (cas-rooms castle)))))
-                               (T outcome-text))))
+                               (t outcome-text))))
                (push-text message outcome-text))))))
       (values events message))))
 
@@ -3571,11 +3571,11 @@ into the orb."
   (list
    (make-outcome 'flash-trap 'adv-springs-flash-trap
          (lambda (race-ref)
-           (format Nil "FLASH! Oh no! You are now a blind ~A"
+           (format nil "FLASH! Oh no! You are now a blind ~A"
                    (text-of-race race-ref))))
-   (make-outcome 'poetry   Nil "its another volume of Zot's Poetry! - Yeech!")
-   (make-outcome 'magazine Nil (lambda (race-ref)
-                   (format Nil "its an old copy of Play~A"
+   (make-outcome 'poetry   nil "its another volume of Zot's Poetry! - Yeech!")
+   (make-outcome 'magazine nil (lambda (race-ref)
+                   (format nil "its an old copy of Play~A"
                            (text-of-race race-ref))))
    (make-outcome 'dexterity-manual 'adv-reads-dexterity-manual "dexterity")
    (make-outcome 'strength-manual  'adv-reads-strength-manual "strength")
@@ -3611,17 +3611,17 @@ into the orb."
                  (join-history events outcome-effect))
                (when outcome-text
                  (setf outcome-text
-                       (format Nil "You open the book and~%~A"
+                       (format nil "You open the book and~%~A"
                                (cond
                                  ((eq outcome-name 'flash-trap)
                                   (funcall outcome-text (adv-rc adv)))
                                  ((find outcome-name
                                         '(dexterity-manual strength-manual))
-                                  (format Nil
+                                  (format nil
                                           "It's a manual of ~A" outcome-text))
                                  ((eq outcome-name 'magazine)
                                   (funcall outcome-text (random-race)))
-                                 (T outcome-text))))
+                                 (t outcome-text))))
                  (push-text message outcome-text)))))
       (values events message))))
 
@@ -3636,7 +3636,7 @@ into the orb."
                    'adv-springs-gas-trap "Gas! You stagger from the room")
      (make-outcome 'gold-pieces 'make-adv-richer
            (lambda (gps)
-             (format Nil "Find ~D gold pieces" gps))))
+             (format nil "Find ~D gold pieces" gps))))
   "All the outcomes of opening chests.")
 
 (defun adv-opens-chest (castle)
@@ -3669,7 +3669,7 @@ into the orb."
                (join-history events outcome-effect)))
            (when outcome-text
              (setf outcome-text
-                   (format Nil "You open the chest and ~A~%"
+                   (format nil "You open the chest and ~A~%"
                            (etypecase outcome-text
                              (string outcome-text)
                              (function
@@ -3743,12 +3743,12 @@ into the orb."
          (max (if (eq *cas-coords* 'zot) 8 7))
          ;; [wc 2013-01-31] FIXME: castle size dependant code, prompts
          ;; really only need to be generated once, etc
-         (error-text (format Nil "Try a number from ~D to ~D" min max))
-         (prompts (list (format Nil "~A-coord (~D=far west  ~D=far east ) "
+         (error-text (format nil "Try a number from ~D to ~D" min max))
+         (prompts (list (format nil "~A-coord (~D=far west  ~D=far east ) "
                                 (if (eq *cas-coords* 'zot) "Y" "X") min max)
-                        (format Nil "~A-coord (~D=far north ~D=far south) "
+                        (format nil "~A-coord (~D=far north ~D=far south) "
                                 (if (eq *cas-coords* 'zot) "X" "Y") min max)
-                        (format Nil "Level   (~D=top       ~D=bottom   ) "
+                        (format nil "Level   (~D=top       ~D=bottom   ) "
                                 min max))))
     (when (eq *cas-coords* 'zot)
       (rotatef (nth 0 prompts) (nth 1 prompts)))
@@ -3759,7 +3759,7 @@ into the orb."
                 (with-player-input (coord prompt :readf #'wiz-read-n)
                   (cond ((typep coord (list 'integer min max))
                          coord)
-                        (T (setf coord (wiz-error error-text))))))))
+                        (t (setf coord (wiz-error error-text))))))))
       ;; (when (eq *cas-coords* 'zot)
       ;;        (rotatef (nth 1 coords) (nth 2 coords)))
       (if (eq *cas-coords* 'zot)
@@ -3779,7 +3779,7 @@ into the orb."
               (T
                (record-events events (make-event 'adv-used 'runestaff))
                (destructuring-bind (outcome-name outcome-effect outcome-text)
-                   (make-outcome 'adv-teleports #'make-adv-teleport 'Nil)
+                   (make-outcome 'adv-teleports #'make-adv-teleport 'nil)
                  (when outcome-effect
                    (setf outcome-effect
                          (when outcome-name
@@ -3845,7 +3845,7 @@ into the orb."
               (treasure    'adv-finds-treasure)
               (vendor      'adv-meets-vendor)
               (monster     'adv-meets-adversary)
-              (T           'adv-finds-room)))
+              (t           'adv-finds-room)))
            castle)
         (join-history events find-creature-events)
         (push-text message find-creature-message))
@@ -3871,7 +3871,7 @@ into the orb."
     (join-history events
                     (send-adv *entrance*))
     (push-text message
-               (format Nil "~|~&Ok ~A, you enter the castle and begin.~%"
+               (format nil "~|~&Ok ~A, you enter the castle and begin.~%"
                        (adv-race (cas-adventurer castle))))
     (values events message)))
 
@@ -3881,20 +3881,20 @@ into the orb."
 
 (defparameter *minor-event-outcomes*
   (list
-   (make-outcome 'adv-stepped-on Nil "stepped on a frog")
-   (make-outcome 'adv-heard      Nil
+   (make-outcome 'adv-stepped-on nil "stepped on a frog")
+   (make-outcome 'adv-heard      nil
                  (lambda ()
-                   (format Nil "hear ~A"
+                   (format nil "hear ~A"
                            (random-elt '("a scream" "footsteps"
                                          "a wumpus" "thunder")))))
-   (make-outcome 'adv-sneezed    Nil "sneezed")
-   (make-outcome 'adv-saw        Nil "see a bat fly by")
-   (make-outcome 'adv-smelled    Nil
+   (make-outcome 'adv-sneezed    nil "sneezed")
+   (make-outcome 'adv-saw        nil "see a bat fly by")
+   (make-outcome 'adv-smelled    nil
                  (lambda ()
-                   (format Nil "smell ~A frying"
+                   (format nil "smell ~A frying"
                            (text-of-creature (random-monster)))))
-   (make-outcome 'adv-felt       Nil "feel like you are being watched")
-   (make-outcome 'game-announced Nil "are playing Wizard's Castle"))
+   (make-outcome 'adv-felt       nil "feel like you are being watched")
+   (make-outcome 'game-announced nil "are playing Wizard's Castle"))
   "Minor events at beginning of turn")
 
 ;; check game states
@@ -3943,13 +3943,13 @@ into the orb."
                          *minor-event-outcomes*)
                         *minor-event-outcomes*)))))
 	(when (and bl (has-treasure-p adv 'opal-eye))
-	  (setf bl Nil)
+	  (setf bl nil)
 	  (record-events history
 			 (make-event 'adv-cured 'sight-restored 'opal-eye))
 	  (format message "~%~A cures your blindness"
 		  (text-of-creature 'opal-eye)))
 	(when (and bf (has-treasure-p adv 'blue-flame))
-	  (setf bf Nil)
+	  (setf bf nil)
 	  (record-events history
 			 (make-event 'adv-unbound 'book-burnt 'blue-flame))
 	  (format message "~%~A dissolves the book"
@@ -3978,14 +3978,14 @@ into the orb."
   "Return event and messages when there's an input error."
   (values
    (make-history (make-event* 'player-error error-type args))
-   (wiz-error (format Nil "Stupid ~A that wasn't a valid command"
+   (wiz-error (format nil "Stupid ~A that wasn't a valid command"
                       (adv-race (cas-adventurer castle))))))
 
 (defun main-read (&optional (stream *wiz-qio*))
   "The reader for the main input."
   (with-input-from-string (str (wiz-read-line stream))
-    (let ((i (read-char str Nil))
-          (j (peek-char Nil str Nil)))
+    (let ((i (read-char str nil))
+          (j (peek-char nil str nil)))
       (string-upcase
        (cond ((null i) "")
              ((null j) (string i))
@@ -4024,7 +4024,7 @@ into the orb."
                 (setf wiz-form (make-wiz-form 'adv-finds-creature)))
                ((latest-event-p history 'adv-entered-room)
                 (setf wiz-form (make-wiz-form 'adv-enters-room)))
-               (T (setf wiz-form Nil)))
+               (t (setf wiz-form nil)))
        until (null wiz-form)))
   (when (adv-alive-p (cas-adventurer castle))
     (begin-turn castle)))
@@ -4050,14 +4050,14 @@ into the orb."
       ((and *wiz-help* (or (equal input "H")
                            (equal input "?")))
        (make-wiz-form 'player-help))
-      (T (make-wiz-form 'player-error 'main-input input)))))
+      (t (make-wiz-form 'player-error 'main-input input)))))
 
 (defun end-game-p (castle)
   (case (name-of-event (latest-event (cas-history castle)))
     (adv-slain        'death)
     (adv-left-castle  'exit)
     (player-quit-game 'quit)
-    (T                Nil)))
+    (t                nil)))
 
 ;; (defparameter *play-again* T)
 
@@ -4065,17 +4065,17 @@ into the orb."
   ;; (when *play-again*
   (if (wiz-y-or-n-p "Play-again ")
       'player-plays)
-      Nil)
+      nil)
 
 (defun make-message-play-again (castle choice)
-  (format Nil
+  (format nil
           (if (eq choice 'player-plays)
               "Some ~A never learn~%"
               "Maybe dumb ~A not so dumb after all~%")
           (adv-race (cas-adventurer castle))))
 
-(defun main (&key (adventurer Nil) (castle Nil)
-               (intro Nil) (help Nil))
+(defun main (&key (adventurer nil) (castle nil)
+               (intro nil) (help nil))
   "The main game loop. If an adventurer is passed in, a castle also
 passed in must not also have an adventurer already in it."
   ;; (setf *random-state* (make-random-state t))
@@ -4084,7 +4084,7 @@ passed in must not also have an adventurer already in it."
   (when help
     (setf *wiz-help* help))
   (loop
-     with play-again = Nil
+     with play-again = nil
      do
        (setf castle (or castle (setup-castle)))
        (with-accessors ((adv cas-adventurer)
@@ -4097,7 +4097,7 @@ passed in must not also have an adventurer already in it."
            (when message
              (wiz-write-line message)))
          (loop
-            with ending = Nil
+            with ending = nil
             do
               (let ((message (main-eval castle (main-input))))
                 (when message
@@ -4112,7 +4112,7 @@ passed in must not also have an adventurer already in it."
        (wiz-write-line
         (make-message-play-again castle play-again))
        (when play-again
-         (setf adventurer Nil castle Nil))
+         (setf adventurer nil castle nil))
      until (null play-again)))
 
 (defun play-ohare (&rest args &key &allow-other-keys)
@@ -4130,10 +4130,10 @@ passed in must not also have an adventurer already in it."
 (defvar *r* (make-random-state T)
   "Reusable random state for test environment.")
 
-(defvar *a* Nil
+(defvar *a* nil
   "Test adventurer.")
 
-(defvar *z* Nil
+(defvar *z* nil
   "Test castle (may or may not contain adventurer).")
 
 (defun make-test-adv (&optional adv-name)
@@ -4143,36 +4143,36 @@ passed in must not also have an adventurer already in it."
            (blind-adept (list :rc 'human  :sx 'female
                               :st 18 :iq 18  :dx 18
                               :wv  3 :av  3  :ah 21
-                              :gp 20 :lf Nil :fl  0
+                              :gp 20 :lf nil :fl  0
                               :bl  T))
            (bookworm    (list :rc 'hobbit :sx 'male
                               :st  6 :iq 18  :dx 18
-                              :gp 20 :lf Nil :fl  0
+                              :gp 20 :lf nil :fl  0
                               :bf  T))
            (valkyrie    (list :rc 'dwarf  :sx 'female
                               :st 16 :iq 14  :dx  8
                               :wv  2 :av 3   :ah 21
-                              :gp 10 :lf Nil :fl 10))
+                              :gp 10 :lf nil :fl 10))
            (barbarian   (list :rc 'human  :sx 'male
                               :st 18 :iq  6  :dx 12
                               :wv  3 :av  1  :ah  7
-                              :gp  0 :lf Nil :fl 10
+                              :gp  0 :lf nil :fl 10
                               :cr '(forget)))
            (sorceress   (list :rc 'elf    :sx 'female
                               :st  6 :iq 18  :dx 12
                               :wv  1 :av  1  :ah  7
-                              :gp  0 :lf  T  :fl 99
+                              :gp  0 :lf  t  :fl 99
                               :rf  T
                               :cr '(lethargy)))
            (tourist     (list :rc 'human  :sx 'male
                               :st  6 :iq 10  :dx 8
                               :gp 6000
                               :cr '(leech)))
-           (T           (list :rc 'human
+           (t           (list :rc 'human
                               :sx (random-sex (make-random-state T))
                               :st 11 :iq 10  :dx 11
                               :wv  2 :av  2  :ah 14
-                              :gp  0 :lf  T  :fl  0)
+                              :gp  0 :lf  t  :fl  0)
                         ;; NOTE: the randomly chosen sex for the
                         ;; default adventurer uses a random state
                         ;; independant from *R*.
@@ -4208,7 +4208,7 @@ passed in must not also have an adventurer already in it."
                (curse-notify *curse-notify*)
                (gaze-map *gaze-mapper*)
                (cas-coords *cas-coords*)
-               (intro Nil) (help Nil)
+               (intro nil) (help nil)
                ;; (play-again *play-again*)
                (random-state (make-random-state *r*)))
   "Run a test game."
@@ -4243,7 +4243,7 @@ passed in must not also have an adventurer already in it."
                 (setf wiz-form (make-wiz-form 'adv-finds-creature)))
                ((latest-event-p history 'adv-entered-room)
                 (setf wiz-form (make-wiz-form 'adv-enters-room)))
-               (T (setf wiz-form Nil)))
+               (t (setf wiz-form nil)))
        until (null wiz-form)
        finally (return
                  (values
