@@ -948,7 +948,7 @@ treasure arguments."
      'monster)
     ((treasure-p creature)
      'treasure)
-    (T
+    (t
      creature)))
 
 (defparameter *meals*
@@ -1699,7 +1699,7 @@ limits."
                (buy-equipment (list 'flares flares) flares adv))
               ((typep flares (list 'integer (1+ gp)))
                (setf flares (wiz-error "You can only afford ~D" gp)))
-              (T
+              (t
                (setf flares (wiz-error
                              "If you don't want any just type 0 (zero)"))))))))
 
@@ -2022,7 +2022,7 @@ castle."
           (lambda (n) (castle-index-from-level-index n level rooms))
           (filter-array-indices #'room-empty-p
                                 (get-castle-level castle level))))
-        (T
+        (t
          (filter-array-indices #'room-empty-p rooms))))))
 
 ;; FIXME: depends on castle size constant 64.
@@ -2367,7 +2367,7 @@ castle."
                     (format nil "Great unmitigated Zot!~
                                  ~&You just found the Orb of Zot~
                                  ~&The Runestaff is gone")))
-        (T
+        (t
          (record-events events (make-event 'adv-warped))
          (join-history events (move-adv castle went))))
       (values events message))))
@@ -2377,7 +2377,7 @@ castle."
   (assert (eq (cas-creature-here castle) 'warp))
   (cond ((orb-of-zot-here-p castle)
          (adv-finds-orb-of-zot castle))
-        (T
+        (t
          (make-adv-warp castle))))
 
 ;;;; Combat
@@ -2563,7 +2563,7 @@ castle."
        (cond ((null treasure)
               (record-event events (make-event 'adv-tried 'bribe foe-name))
               (push-text message "'All I want is your life!'"))
-             (T
+             (t
               (when (wiz-y-or-n-p
                      (wiz-format nil "I want ~A will you give it too me "
                                  (text-of-creature treasure)))
@@ -2699,7 +2699,7 @@ castle."
          (record-event events (make-event 'adv-tried 'attack-with-hands-bound))
          (push-text message
                     (wiz-error "You can't beat it to death with a book!!~%")))
-        (T
+        (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (make-adv-strike adv)
            (cond
@@ -2709,7 +2709,7 @@ castle."
                   (funcall outcome-effect adv foe)
                 (join-history events strike-effects)
                 (push-text message strike-message)))
-             (T
+             (t
               (push-text message outcome-text))))))
       (values events message))))
 
@@ -2724,7 +2724,7 @@ castle."
              (push-text message 
                         (format nil "The ~A is stuck and can't attack"
                                 (subseq (foe-text foe) 2))))
-            (T
+            (t
              (record-event events (make-event 'foe-unbound))
              (push-text message "The web just broke!")))
       (values
@@ -3085,7 +3085,7 @@ castle."
              (values events
                      (wiz-write-line
                       (format nil "~2&You're too poor to trade, ~A" race))))
-            (T
+            (t
              (join-history events (buy-armor-from-vendor   adv))
              (join-history events (buy-weapon-from-vendor  adv))
              (join-history events (buy-potions-from-vendor adv))
@@ -3124,7 +3124,7 @@ castle."
   ;;  (make-event 'adv-found (cas-creature-here castle))))
   )
 
-(Defun make-message-adv-left-castle (castle event)
+(defun make-message-adv-left-castle (castle event)
   "What does the game report to the player when the adventurer leaves
 the castle."
   (assert (event-kind-p event 'adv-leaves-castle))
@@ -3279,7 +3279,7 @@ the castle."
                  (adv-tried-blind castle 'view-map)
                (join-history events blind-events)
                (push-text message (wiz-error blind-message))))
-            (T
+            (t
              (let ((level (first here)))
                (record-events events
                               (make-event 'adv-viewed-map level))
@@ -3322,7 +3322,7 @@ the castle."
              (adv-tried-without-item 'flares)
            (join-history events without-item-events)
            (push-text message (wiz-error without-item-message))))
-        (T
+        (t
          (decf-adv-inv (adv-fl adv))
          (let ((near-coords (get-near-coords castle here)))
            (record-events events
@@ -3365,7 +3365,7 @@ the castle."
              (adv-tried-without-item 'lamp (adv-rc adv))
            (join-history events without-item-events)
            (push-text message (wiz-error without-item-message))))
-        (T
+        (t
          (let ((direction
                 (or direction
                     (wiz-read-direction
@@ -3376,7 +3376,7 @@ the castle."
                                  (make-event 'player-error 'bad-lamp-direction))
                   (push-text message
                              (wiz-error "Turkey! That's not a direction")))
-                 (T
+                 (t
                   (let* ((there (cas-adv-near castle direction))
                          (creature (get-castle-creature castle there)))
                     (cas-adv-map-near castle direction)
@@ -3423,7 +3423,7 @@ the castle."
              (adv-tried-wrong-room castle 'drink here)
            (join-history events wrong-room-events)
            (push-text message (wiz-error wrong-room-message))))
-        (T
+        (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *drink-pool-outcomes*)
            (record-event events (make-event 'adv-drank 'pool))
@@ -3528,7 +3528,7 @@ into the orb."
              (adv-tried-wrong-room castle 'gaze here)
            (join-history events wrong-room-events)
            (push-text message (wiz-error wrong-room-message))))
-        (T
+        (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *gaze-crystal-orb-outcomes*)
            (record-event events (make-event 'adv-used 'crystal-orb))
@@ -3598,7 +3598,7 @@ into the orb."
                  (adv-tried-wrong-room castle 'open here)
                (join-history events wrong-room-events)
                (push-text message (wiz-error wrong-room-message))))
-            (T
+            (t
              (destructuring-bind (outcome-name outcome-effect outcome-text)
                  (random-elt *open-book-outcomes*)
                (record-events events (make-event 'adv-opened 'book))
@@ -3607,7 +3607,7 @@ into the orb."
                        (cond
                          ((eq outcome-name 'glue-trap)
                           (funcall outcome-effect adv 'book))
-                         (T
+                         (t
                           (funcall outcome-effect adv))))
                  (join-history events outcome-effect))
                (when outcome-text
@@ -3652,7 +3652,7 @@ into the orb."
              (adv-tried-wrong-room castle 'open here)
            (join-history events open-events)
            (wiz-error open-message)))
-        (T
+        (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (get-outcome (random-elt '(bomb-trap gas-trap
                                         gold-pieces gold-pieces))
@@ -3734,7 +3734,7 @@ into the orb."
                                        (adv-rc adv) 'stairs-down) 
                (join-history events wrong-room-events)
                (push-text message (wiz-error wrong-room-message))))
-            (T
+            (t
              (record-event events (make-event 'adv-walked direction))
              (join-history events (move-adv castle direction))))
       (values events message))))
@@ -3777,7 +3777,7 @@ into the orb."
                    (adv-tried-without-item 'runestaff)
                  (join-history events without-item-events)
                  (push-text message (wiz-error without-item-message))))
-              (T
+              (t
                (record-events events (make-event 'adv-used 'runestaff))
                (destructuring-bind (outcome-name outcome-effect outcome-text)
                    (make-outcome 'adv-teleports #'make-adv-teleport 'nil)
@@ -3990,7 +3990,7 @@ into the orb."
       (string-upcase
        (cond ((null i) "")
              ((null j) (string i))
-             (T
+             (t
               (if (and (char-equal i #\D) (char-equal j #\R))
                   (concatenate 'string (list i j))
                   (string i))))))))
