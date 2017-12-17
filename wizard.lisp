@@ -187,7 +187,7 @@
        (nconc
         (multiple-value-list (truncate (car x) dim))
         (cdr x)))
-   (cdr (array-dimensions array)) :initial-value (list index) :from-end T))
+   (cdr (array-dimensions array)) :initial-value (list index) :from-end t))
 
 ;;; array filter
 
@@ -386,13 +386,13 @@ different input is needed."
 
 
 (defun wiz-y-or-n-p (prompt &optional message)
-  "Return T, nil or requery if answer is Y, N, or something else."
+  "Return t, nil or requery if answer is Y, N, or something else."
   (when message
     (wiz-write-line message))
   (with-player-input
       (input prompt :readf #'wiz-read-char)
     (case input
-      (#\Y T)
+      (#\Y t)
       (#\N nil)
       (t (setf input (wiz-error "Answer yes or no "))))))
 
@@ -402,7 +402,7 @@ different input is needed."
   (with-player-input
       (input prompt :readf #'wiz-read-char)
     (case input
-      (#\Y T)
+      (#\Y t)
       (t nil))))
 
 (defun wiz-read-direction (prompt &optional input-error-message)
@@ -935,7 +935,7 @@ treasure arguments."
 
 (defun creature-type-p (creature type)
   "Return t if the type of creature is valid"
-  (cond ((eq type creature) T)
+  (cond ((eq type creature) t)
         ((eq type 'monster) (monster-p creature))
         ((eq type 'treasure) (treasure-p creature))
         ((eq type 'room) (room-p creature))
@@ -1456,11 +1456,11 @@ limits."
   (make-history (make-event 'adv-lost treasure)))
 
 (defun bind-adv-hands (adv item)
-  (setf (adv-bf adv) T)
+  (setf (adv-bf adv) t)
   (make-history (make-event 'adv-bound item)))
 
 (defun make-adv-blind (adv blinder)
-  (setf (adv-bl adv) T)
+  (setf (adv-bl adv) t)
   (make-history (make-event 'adv-blinded blinder)))
 
 (defun break-adv-weapon (adv)
@@ -1514,13 +1514,13 @@ limits."
               (wear-armor adv item)
               (make-history (make-event 'adv-donned item)))
              ((eq item 'lamp)
-              (setf (adv-lf adv) T)
+              (setf (adv-lf adv) t)
               (make-history (make-event 'adv-gained item)))
              ((eq item 'runestaff)
-              (setf (adv-rf adv) T)
+              (setf (adv-rf adv) t)
               (make-history (make-event 'adv-gained item)))
              ((eq item 'orb-of-zot)
-              (setf (adv-of adv) T)
+              (setf (adv-of adv) t)
               (setf (adv-rf adv) nil)
               (make-history (make-event 'adv-gained item)
                             (make-event 'adv-lost 'runestaff)))
@@ -2395,7 +2395,7 @@ castle."
   (text "")
   (strike-damage 0) ; q1
   (hit-points 0)    ; q2
-  (first-turn T)    ; q3
+  (first-turn t)    ; q3
   (enwebbed 0)     ; enemy enwebbed
   (end nil)
   (hit-point-limiter (make-limiter #'< 0 hit-points))
@@ -3109,7 +3109,7 @@ castle."
             ((eq choice #\I) (adv-ignored-vendor))
             ((eq choice #\A)
              (wiz-write-line "You'll be sorry you did that")
-             (setf (cas-vendor-fury castle) T)
+             (setf (cas-vendor-fury castle) t)
              (adv-meets-adversary castle))
             (t   (setf choice (wiz-error "Nice shot, ~A" (adv-race adv)))))))))
 
@@ -4060,7 +4060,7 @@ into the orb."
     (player-quit-game 'quit)
     (t                nil)))
 
-;; (defparameter *play-again* T)
+;; (defparameter *play-again* t)
 
 (defun play-again-p ()
   ;; (when *play-again*
@@ -4117,7 +4117,7 @@ passed in must not also have an adventurer already in it."
      until (null play-again)))
 
 (defun play-ohare (&rest args &key &allow-other-keys)
-  (let ((*curse-notify* T))
+  (let ((*curse-notify* t))
     (apply #'main args)))
 
 (defun play-stetson (&rest args &key &allow-other-keys)
@@ -4128,7 +4128,7 @@ passed in must not also have an adventurer already in it."
 
 ;;;; Test Environment
 
-(defvar *r* (make-random-state T)
+(defvar *r* (make-random-state t)
   "Reusable random state for test environment.")
 
 (defvar *a* nil
@@ -4145,11 +4145,11 @@ passed in must not also have an adventurer already in it."
                               :st 18 :iq 18  :dx 18
                               :wv  3 :av  3  :ah 21
                               :gp 20 :lf nil :fl  0
-                              :bl  T))
+                              :bl  t))
            (bookworm    (list :rc 'hobbit :sx 'male
                               :st  6 :iq 18  :dx 18
                               :gp 20 :lf nil :fl  0
-                              :bf  T))
+                              :bf  t))
            (valkyrie    (list :rc 'dwarf  :sx 'female
                               :st 16 :iq 14  :dx  8
                               :wv  2 :av 3   :ah 21
@@ -4163,14 +4163,14 @@ passed in must not also have an adventurer already in it."
                               :st  6 :iq 18  :dx 12
                               :wv  1 :av  1  :ah  7
                               :gp  0 :lf  t  :fl 99
-                              :rf  T
+                              :rf  t
                               :cr '(lethargy)))
            (tourist     (list :rc 'human  :sx 'male
                               :st  6 :iq 10  :dx 8
                               :gp 6000
                               :cr '(leech)))
            (t           (list :rc 'human
-                              :sx (random-sex (make-random-state T))
+                              :sx (random-sex (make-random-state t))
                               :st 11 :iq 10  :dx 11
                               :wv  2 :av  2  :ah 14
                               :gp  0 :lf  t  :fl  0)
@@ -4191,7 +4191,7 @@ passed in must not also have an adventurer already in it."
 (defun setup-test (&key adv-name map-all-rooms enter-castle)
   "Set or reset test environment."
   (let ((*random-state* (make-random-state *r*)))
-    (setf *z* (setup-castle T))
+    (setf *z* (setup-castle t))
     (setf *a* (make-test-adv adv-name))
     (when map-all-rooms
       (map-all-rooms :adv *a* :castle *z*))
@@ -4204,7 +4204,7 @@ passed in must not also have an adventurer already in it."
 ;;;; [wc 2013-01-31] TODO: come up with an error handler that does
 ;;;; something useful for reporting problems for play testers.
 
-(defun test (&key (adventurer *a*) (castle *z*) (last-castle T)
+(defun test (&key (adventurer *a*) (castle *z*) (last-castle t)
                (forget-type *forgetfulness*)
                (curse-notify *curse-notify*)
                (gaze-map *gaze-mapper*)
