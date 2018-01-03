@@ -72,9 +72,11 @@
 (defpackage #:wizards-castle
   (:nicknames #:wizard #:zot)
   (:use #:cl)
-  (:export #:main #:setup-adventurer #:setup-castle)
+  (:export #:main #:play-ohare #:play-stetson)
+  (:export #:*help-text-dos* #:*intro-text-dos*)
+  (:export #:setup-adventurer #:setup-castle) ; FIXME: reconsider exporting these
   (:export #:test #:make-test-adv #:setup-test)
-  (:export #:*r* #:*a* #:*z* )
+  (:export #:*r* #:*a* #:*z*)
   (:documentation "Joseph Power's _Wizard's Castle_"))
 
 (in-package #:wizards-castle)
