@@ -4030,28 +4030,34 @@ into the orb."
   (when (adv-alive-p (cas-adventurer castle))
     (begin-turn castle)))
 
-(defun main-input ()
-  "Gets input and returns a form to be evaluated with the castle."
-  (with-player-input (input "Your move " :readf #'main-read)
-    (cond
-      ((equal input "DR") (make-wiz-form 'adv-drinks-pool))
-      ((equal input "N")  (make-wiz-form 'adv-walks 'north))
-      ((equal input "S")  (make-wiz-form 'adv-walks 'south))
-      ((equal input "W")  (make-wiz-form 'adv-walks 'west))
-      ((equal input "E")  (make-wiz-form 'adv-walks 'east))
-      ((equal input "U")  (make-wiz-form 'adv-walks 'up))
-      ((equal input "D")  (make-wiz-form 'adv-walks 'down))
-      ((equal input "M")  (make-wiz-form 'adv-uses-map))
-      ((equal input "F")  (make-wiz-form 'adv-uses-flare))
-      ((equal input "L")  (make-wiz-form 'adv-uses-lamp))
-      ((equal input "O")  (make-wiz-form 'adv-opens))
-      ((equal input "G")  (make-wiz-form 'adv-uses-crystal-orb))
-      ((equal input "T")  (make-wiz-form 'adv-uses-runestaff))
-      ((equal input "Q")  (make-wiz-form 'quit-game))
-      ((and *wiz-help* (or (equal input "H")
-                           (equal input "?")))
-       (make-wiz-form 'player-help))
-      (t (make-wiz-form 'player-error 'main-input input)))))
+(defparameter *main-commands*
+  '(("DR" adv-drinks-pool)
+    ("N"  adv-walks north)
+    ("S"  adv-walks south)
+    ("W"  adv-walks west)
+    ("E"  adv-walks east)
+    ("U"  adv-walks up)
+    ("D"  adv-walks down)
+    ("M"  adv-uses-map)
+    ("F"  adv-uses-flare)
+    ("L"  adv-uses-lamp)
+    ("O"  adv-opens)
+    ("G"  adv-uses-crystal-orb)
+    ("T"  adv-uses-runestaff)
+    ("Q"  quit-game)
+    ("H"  player-help)
+    ("?"  player-help))
+  "The principle commands.")
+
+(defun setup-main-input (&key (help *wiz-help*))
+  (let ((commands (if help *main-commands* (butlast *main-commands* 2))))
+    (lambda ()
+      "Gets input and returns a form to be evaluated with the castle."
+      (with-player-input (input "Your move " :readf #'main-read)
+        (let ((command (rest (assoc input commands :test #'string-equal))))
+          (apply #'make-wiz-form
+                 (or command
+                     (list 'player-error 'main-input input))))))))
 
 (defun end-game-p (castle)
   (case (name-of-event (latest-event (cas-history castle)))
@@ -4086,6 +4092,7 @@ passed in must not also have an adventurer already in it."
     (setf *wiz-help* help))
   (loop
      with play-again = nil
+     with main-input = (setup-main-input)
      do
        (setf castle (or castle (setup-castle)))
        (with-accessors ((adv cas-adventurer)
@@ -4100,7 +4107,7 @@ passed in must not also have an adventurer already in it."
          (loop
             with ending = nil
             do
-              (let ((message (main-eval castle (main-input))))
+              (let ((message (main-eval castle (funcall main-input))))
                 (when message
                   (wiz-write-line message)))
               (setf ending (end-game-p castle))
