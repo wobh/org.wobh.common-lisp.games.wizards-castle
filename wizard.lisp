@@ -459,7 +459,8 @@ returns INPUT-ERROR."
     adv-left-castle
     adv-slain
     player-quit-game
-    player-error)
+    player-error
+    player-viewed-help)
   "List of events")
 
 (defun event-p (obj)
@@ -3159,11 +3160,12 @@ the castle."
 
 (defparameter *wiz-help* nil)
 
-(defun player-help ()
+(defun player-help (castle)
   "Report help for game."
+  (declare (ignorable castle))
   (assert (not (null *wiz-help*)))
   (values
-   (make-history (make-event 'player-views 'help))
+   (make-history (make-event 'player-viewed-help))
    *wiz-help*))
 
 
