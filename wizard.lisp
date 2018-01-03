@@ -3575,18 +3575,19 @@ into the orb."
 (defparameter *open-book-outcomes*
   (list
    (make-outcome 'flash-trap 'adv-springs-flash-trap
-         (lambda (race-ref)
-           (format nil "FLASH! Oh no! You are now a blind ~A"
-                   (text-of-race race-ref))))
+                 (lambda (race-ref)
+                   (format nil "FLASH! Oh no! You are now a blind ~A"
+                           (text-of-race race-ref))))
    (make-outcome 'poetry   nil "its another volume of Zot's Poetry! - Yeech!")
-   (make-outcome 'magazine nil (lambda (race-ref)
+   (make-outcome 'magazine nil
+                 (lambda (race-ref)
                    (format nil "its an old copy of Play~A"
                            (text-of-race race-ref))))
    (make-outcome 'dexterity-manual 'adv-reads-dexterity-manual "dexterity")
    (make-outcome 'strength-manual  'adv-reads-strength-manual "strength")
    (make-outcome 'glue-trap 'adv-springs-glue-trap
-         (format nil "the book sticks to your hands -~&~
-                      Now you can't draw your weapon")))
+                 (format nil "the book sticks to your hands -~&~
+                              Now you can't draw your weapon")))
   "All the outcomes of opening books")
 
 (defun adv-opens-book (castle)
