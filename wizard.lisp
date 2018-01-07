@@ -4149,47 +4149,51 @@ passed in must not also have an adventurer already in it."
 (defvar *z* nil
   "Test castle (may or may not contain adventurer).")
 
+(defparameter *adventurers*
+  (list
+   :blind-adept '(:rc human  :sx female
+                  :st 18 :iq 18  :dx 18
+                  :wv  3 :av  3  :ah 21
+                  :gp 20 :lf nil :fl  0
+                  :bl  t)
+   :bookworm    '(:rc hobbit :sx male
+                  :st  6 :iq 18  :dx 18
+                  :gp 20 :lf nil :fl  0
+                  :bf  t)
+   :valkyrie    '(:rc dwarf  :sx female
+                  :st 16 :iq 14  :dx  8
+                  :wv  2 :av 3   :ah 21
+                  :gp 10 :lf nil :fl 10)
+   :barbarian   '(:rc human  :sx male
+                  :st 18 :iq  6  :dx 12
+                  :wv  3 :av  1  :ah  7
+                  :gp  0 :lf nil :fl 10
+                  :cr (forget))
+   :sorceress   '(:rc elf    :sx female
+                  :st  6 :iq 18  :dx 12
+                  :wv  1 :av  1  :ah  7
+                  :gp  0 :lf  t  :fl 99
+                  :rf  t
+                  :cr (lethargy))
+   :tourist     '(:rc human  :sx male
+                  :st  6 :iq 10  :dx 8
+                  :gp 6000
+                  :cr (leech)))
+  "Test adventurers")
+
 (defun make-test-adv (&optional adv-name)
   "Make one of several pre-generated characters."
   (apply #'make-adventurer
-         (case adv-name
-           (blind-adept (list :rc 'human  :sx 'female
-                              :st 18 :iq 18  :dx 18
-                              :wv  3 :av  3  :ah 21
-                              :gp 20 :lf nil :fl  0
-                              :bl  t))
-           (bookworm    (list :rc 'hobbit :sx 'male
-                              :st  6 :iq 18  :dx 18
-                              :gp 20 :lf nil :fl  0
-                              :bf  t))
-           (valkyrie    (list :rc 'dwarf  :sx 'female
-                              :st 16 :iq 14  :dx  8
-                              :wv  2 :av 3   :ah 21
-                              :gp 10 :lf nil :fl 10))
-           (barbarian   (list :rc 'human  :sx 'male
-                              :st 18 :iq  6  :dx 12
-                              :wv  3 :av  1  :ah  7
-                              :gp  0 :lf nil :fl 10
-                              :cr '(forget)))
-           (sorceress   (list :rc 'elf    :sx 'female
-                              :st  6 :iq 18  :dx 12
-                              :wv  1 :av  1  :ah  7
-                              :gp  0 :lf  t  :fl 99
-                              :rf  t
-                              :cr '(lethargy)))
-           (tourist     (list :rc 'human  :sx 'male
-                              :st  6 :iq 10  :dx 8
-                              :gp 6000
-                              :cr '(leech)))
-           (t           (list :rc 'human
-                              :sx (random-sex (make-random-state t))
-                              :st 11 :iq 10  :dx 11
-                              :wv  2 :av  2  :ah 14
-                              :gp  0 :lf  t  :fl  0)
-                        ;; NOTE: the randomly chosen sex for the
-                        ;; default adventurer uses a random state
-                        ;; independant from *R*.
-                        ))))
+         (getf *adventurers*
+               adv-name
+               (list :rc 'human
+                     :sx (random-sex (make-random-state t))
+                     ;; NOTE: the randomly chosen sex for the
+                     ;; default adventurer uses a random state
+                     ;; independant from *R*.
+                     :st 11 :iq 10  :dx 11
+                     :wv  2 :av  2  :ah 14
+                     :gp  0 :lf  t  :fl  0))))
 
 (defun map-all-rooms (&key (adv *a*) (castle *z*))
   "Maps all the rooms in a castle."
@@ -4281,7 +4285,7 @@ passed in must not also have an adventurer already in it."
   (setf (adv-iq *a*) 0)
   (assert (null (adv-alive-p *a*))))
 
-(let ((*a* (make-test-adv 'sorceress)))
+(let ((*a* (make-test-adv :sorceress)))
   (assert (and (null (adv-of *a*))
                (adv-rf *a*)))
   (outfit-with 'orb-of-zot *a*)
