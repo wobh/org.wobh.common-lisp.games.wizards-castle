@@ -1151,17 +1151,20 @@ treasure arguments."
 
 (defconstant +adv-rank-min+ 0)
 (defconstant +adv-rank-max+ 18)
-(defparameter *adv-rank-limiter*
-  (make-limiter #'< +adv-rank-min+ +adv-rank-max+))
+
+(defun adv-rank (new-rank)
+  "Constructs new rank value."
+  (min +adv-rank-max+
+       (max +adv-rank-min+ new-rank)))
 
 (define-modify-macro incf-adv-rank (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall *adv-rank-limiter* (+ place delta))))
+    (setf place (adv-rank (+ place delta))))
   "Adventurer rankings must stay within 0 and 18")
 
 (define-modify-macro decf-adv-rank (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall *adv-rank-limiter* (- place delta))))
+    (setf place (adv-rank (- place delta))))
   "Adventurer rankings must stay within 0 and 18")
 
 (defun set-adv-rank (adv ranking rank)
@@ -1169,7 +1172,7 @@ treasure arguments."
 limits."
   ;; (assert (find ranking *rankings* :key 'first))
   (funcall (fdefinition (list 'setf ranking))
-           (funcall *adv-rank-limiter* rank) adv))
+           (adv-rank rank) adv))
 
 (defun set-adv-rank-max (adv ranking)
   "Set an adventurer's ranking to ranking maximum."
