@@ -4279,6 +4279,20 @@ passed in must not also have an adventurer already in it."
   (setf (adv-iq *a*) 0)
   (assert (null (adv-alive-p *a*))))
 
+(let ((*a* (make-test-adv)))
+  (with-accessors ((st adv-st) (iq adv-iq) (dx adv-dx)) *a*
+    (assert (equal '(11 10 11) (list st iq dx))))
+  (loop
+     with delta = 1
+     for ranking in '(adv-st adv-iq adv-dx)
+     do
+       (set-adv-rank-max *a* ranking)
+       (assert (= +adv-rank-max+ (funcall ranking *a*)))
+       (funcall (fdefinition (list 'setf ranking))
+                (incf-adv-rank delta (funcall ranking *a*))
+                *a*)
+       (assert (= +adv-rank-max+ (funcall ranking *a*)))))
+
 (let ((*a* (make-test-adv :sorceress)))
   (assert (cast-spells-p *a*))
   (assert (and (null (adv-of *a*))
@@ -4288,13 +4302,17 @@ passed in must not also have an adventurer already in it."
                (null (adv-rf *a*)))))
 
 (let ((*a* (make-test-adv)))
-  (assert (zerop (adv-fl *a*)))
-  (outfit-with '(flares 4) *a*)
-  (assert (= 4 (adv-fl *a*))))
+  (with-accessors ((fl adv-fl)) *a*
+    (assert (zerop fl))
+    (incf-adv-inv fl 4)
+    (assert (= 4 fl))
+    (decf-adv-inv fl 5)
+    (assert (zerop fl))))
 
 (let ((*a* (make-test-adv)))
-  (assert (zerop (adv-gp *a*)))
-  (incf-adv-inv (adv-gp *a*) 4)
-  (assert (= 4 (adv-gp *a*)))
-  (decf-adv-inv (adv-gp *a*) 5)
-  (assert (zerop (adv-gp *a*))))
+  (with-accessors ((gp adv-gp)) *a*
+    (assert (zerop gp))
+    (incf-adv-inv gp 4)
+    (assert (= 4 gp))
+    (decf-adv-inv gp 5)
+    (assert (zerop gp))))
