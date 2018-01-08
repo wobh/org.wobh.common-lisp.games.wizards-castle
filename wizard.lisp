@@ -1250,9 +1250,14 @@ limits."
   "Does the adventurer have the runestaff?"
   (adv-rf adv))
 
+;; 2500 IFIQ<15ORQ3>1THENPRINT:PRINT"** YOU CAN'T CAST A SPELL NOW!":GOTO2320
+
+(defparameter *magic-user-iq-threshold* 14
+  "Limit of minimum IQ for casting spells")
+
 (defun cast-spells-p (adv)
   "Is the adventurer smart enough to cast spells?"
-  (< (adv-iq adv) 15))
+  (< *magic-user-iq-threshold* (adv-iq adv)))
 
 (defun adv-without-item-p (adv item-ref)
   "Is the adventurer missing the item?"
@@ -2434,7 +2439,7 @@ castle."
 ;; 2530 st=st-1 : wc=fna(8)+1 : on 1 - (st < 1) goto 2690,2840
 
 (defun tangle-adversary (foe turns)
-  (setf (foe-enwebbed foe) turns)
+  (incf (foe-enwebbed foe) turns)
   (make-history (make-event 'foe-bound 'web turns)))
 
 (defun adv-casts-spell-web (castle)
@@ -2528,9 +2533,9 @@ castle."
   "The adventurer casts a spell."
   (with-accessors ((adv cas-adventurer)
                    (foe latest-foe)) castle
-    (if (or (cast-spells-p adv) (< 1 (foe-enwebbed foe)))
-        (wiz-error "You can't cast a spell now!")
-        (funcall (symbol-function (choose-spell)) castle))))
+    (if (or (cast-spells-p adv) (foe-enwebbed-p foe))
+        (funcall (symbol-function (choose-spell)) castle)
+        (wiz-error "You can't cast a spell now!"))))
 
 ;; Powers, 1980; 2500--2600
 
@@ -2833,9 +2838,6 @@ castle."
 ;; for q=1 to 750:next q:printchr$(12):gosub3270
 
 
-(defun adv-may-cast-spell-p (adv)
-  (< 14 (adv-iq adv)))
-
 (defun make-prompt-fight (adv foe)
   "Make the fight round prompt."
   (make-prompt-adv-choice
@@ -2844,7 +2846,7 @@ castle."
      (format facing "~&You may attack or retreat")
      (when (foe-bribable-p foe)
        (format facing " or bribe"))
-     (when (adv-may-cast-spell-p adv)
+     (when (cast-spells-p adv)
        (format facing " or cast a spell"))
      (format facing "~2&Your strength is ~D and dexterity is ~D~%"
              (adv-st adv) (adv-dx adv)))))
@@ -2901,6 +2903,9 @@ castle."
                 (setf fight-form 'foe-attacks)))
              (adv-bribes
               (unless (latest-event-p events 'adv-bribes)
+                (setf fight-form 'foe-attacks)))
+             (adv-casts-spell
+              (when (foe-alive-p foe)
                 (setf fight-form 'foe-attacks)))
              (adv-retreats
               (setf fight-form 'nil))
@@ -4275,6 +4280,7 @@ passed in must not also have an adventurer already in it."
   (assert (null (adv-alive-p *a*))))
 
 (let ((*a* (make-test-adv :sorceress)))
+  (assert (cast-spells-p *a*))
   (assert (and (null (adv-of *a*))
                (adv-rf *a*)))
   (outfit-with 'orb-of-zot *a*)
