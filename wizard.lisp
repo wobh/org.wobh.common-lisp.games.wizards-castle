@@ -2438,7 +2438,7 @@ castle."
 ;; 2520 if o$<>"w" then 2540
 ;; 2530 st=st-1 : wc=fna(8)+1 : on 1 - (st < 1) goto 2690,2840
 
-(defun tangle-adversary (foe turns)
+(defun tangle-adversary (foe &optional (turns (+ 2 (random 8))))
   (incf (foe-enwebbed foe) turns)
   (make-history (make-event 'foe-bound 'web turns)))
 
@@ -2446,12 +2446,11 @@ castle."
   "The adventurer casts a web spell to entangle adversary."
   (with-accessors ((adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((turns-enwebbed (+ 2 (random 8)))
-          (events (make-history)))
-      (record-event events (make-event 'adv-cast-spell 'web turns-enwebbed))
+    (let ((events (make-history)))
+      (record-event events (make-event 'adv-cast-spell 'web))
       (join-history events (make-adv-weaker adv 1))
       (unless (adv-alive-p adv)
-        (join-history events (tangle-adversary foe turns-enwebbed))))))
+        (join-history events (tangle-adversary foe))))))
 
 ;; 2540 if o$<>"f" then 2580
 ;; 2550 q=fna(7)+fna(7):st=st-1:iq=iq-1:if(iq<1)or(st<1)then2840
@@ -4323,3 +4322,8 @@ passed in must not also have an adventurer already in it."
     (assert (= 4 gp))
     (decf-adv-inv gp 5)
     (assert (zerop gp))))
+
+(let ((foe (make-adversary 'dragon)))
+  (assert (not (foe-enwebbed-p foe)))
+  (tangle-adversary foe)
+  (assert (foe-enwebbed-p foe)))
