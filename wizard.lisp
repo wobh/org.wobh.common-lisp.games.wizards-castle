@@ -2799,7 +2799,6 @@ castle."
                    (rf adv-rf) (of adv-of)) adv
     (with-output-to-string (message)
       (cond ((eq end 'death)
-             (sleep 7.5) 
              (format message "~|~A"
                      (make-string *wiz-width*
                                   :initial-element #\*))
@@ -2834,9 +2833,6 @@ castle."
       (format message "~&~D GP's" gp)
       (when rf (format message "~&the Runestaff"))
       (format message "~&and it took you ~D turns!" turns))))
-
-;; for q=1 to 750:next q:printchr$(12):gosub3270
-
 
 (defun make-prompt-fight (adv foe)
   "Make the fight round prompt."
@@ -4080,6 +4076,14 @@ into the orb."
               "Maybe dumb ~A not so dumb after all~%")
           (adv-race (cas-adventurer castle))))
 
+;; for q=1 to 750:next q:printchr$(12):gosub3270
+
+(defparameter *that-sleep-of-death* 7.5
+  "Pause on death.")
+
+(defun sleep-of-death (&optional (duration *that-sleep-of-death*))
+  (sleep duration))
+
 (defun main (&key (adventurer nil) (castle nil)
                (intro nil) (help nil))
   "The main game loop. If an adventurer is passed in, a castle also
@@ -4112,6 +4116,8 @@ passed in must not also have an adventurer already in it."
               (setf ending (end-game-p castle))
             until (not (null ending))
             finally
+              (when (eq ending 'death)
+                (sleep-of-death))
               (wiz-write-line
                (make-message-end-game
                 adv ending (count-turns history)))))
@@ -4228,6 +4234,7 @@ passed in must not also have an adventurer already in it."
          (*curse-notify* curse-notify)
          (*cas-coords* cas-coords)
          (*gaze-mapper* gaze-map)
+         (*that-sleep-of-death* 0.75)
          ;; (*play-again* play-again)
          ;; (*wiz-intro* intro)
          ;; (*wiz-help* help)
