@@ -1133,19 +1133,6 @@ treasure arguments."
 ;; - adv-cr: list of curses affecting you
 ;; - adv-tn: list of turns
 
-(defun limit (test value limit1 &optional limit2)
-  "Return value if test against limits succeeds otherwise return limit."
-  (if limit2 
-      (if (funcall test limit1 value)
-          (if (funcall test value limit2) value limit2)
-          limit1)
-      (if (funcall test value limit1) value limit1)))
-
-(defun make-limiter (test limit1 &optional limit2)
-  "Return a function which constrains value between limits."
-  (lambda (value)
-    (limit test value limit1 limit2)))
-
 ;;; Use only on ranked attributes, adv-st adv-dx adv-iq, with limits
 ;;; between 0 and 18
 
@@ -1184,17 +1171,18 @@ limits."
 
 ;;; Adventurer inventories like adv-gp, adv-fl (also adv-ah, adv-fd).
 
-(defparameter *adv-inv-limiter*
-  (make-limiter #'> 0))
+(defun adv-inv (new-inv)
+  "Constructs new inventory value."
+  (max 0 new-inv))
 
 (define-modify-macro incf-adv-inv (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall *adv-inv-limiter* (+ place delta))))
+    (setf place (adv-inv (+ place delta))))
   "Adventurer inventories cannot fall below zero")
 
 (define-modify-macro decf-adv-inv (&optional (delta 1))
   (lambda (place delta)
-    (setf place (funcall *adv-inv-limiter* (- place delta))))
+    (setf place (adv-inv (- place delta))))
   "Adventurer inventories cannot fall below zero")
 
 ;;; Adventurer attributes like race and sex.
@@ -2403,13 +2391,12 @@ castle."
   (hit-points 0)    ; q2
   (first-turn t)    ; q3
   (enwebbed 0)     ; enemy enwebbed
-  (end nil)
-  (hit-point-limiter (make-limiter #'< 0 hit-points))
-  )
+  (end nil))
 
-(define-modify-macro decf-foe-hit-points (limiter &optional (delta 1))
-  (lambda (foe-hp limiter delta)
-    (setf foe-hp (funcall limiter (- foe-hp delta))))
+(define-modify-macro decf-foe-hit-points (&optional (delta 1))
+  (lambda (foe-hp delta)
+    ;; it happens that foe hit points are an inventory.
+    (setf foe-hp (adv-inv (- foe-hp delta))))
   "Decrease foe hit points.")
 
 (defun text-of-foe (adversary)
@@ -2427,8 +2414,7 @@ castle."
   (< 0 (foe-enwebbed adversary)))
 
 (defun damage-foe (foe damage)
-  (decf-foe-hit-points
-   (foe-hit-points foe) (foe-hit-point-limiter foe) damage)
+  (decf-foe-hit-points (foe-hit-points foe) damage)
   (make-history (make-event 'foe-wounded damage)))
 
 (defun foe-bribable-p (foe)
@@ -4302,5 +4288,7 @@ passed in must not also have an adventurer already in it."
 
 (let ((*a* (make-test-adv)))
   (assert (zerop (adv-gp *a*)))
-  (incf (adv-gp *a*) 4)
-  (assert (= 4 (adv-gp *a*))))
+  (incf-adv-inv (adv-gp *a*) 4)
+  (assert (= 4 (adv-gp *a*)))
+  (decf-adv-inv (adv-gp *a*) 5)
+  (assert (zerop (adv-gp *a*))))
