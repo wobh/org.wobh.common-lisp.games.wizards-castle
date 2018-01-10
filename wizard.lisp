@@ -3797,11 +3797,14 @@ into the orb."
     (with-accessors ((st adv-st) (iq adv-iq) (dx adv-dx)
                      (fl adv-fl) (gp adv-gp) (lf adv-lf)
                      (wv adv-wv) (av adv-av)) adv
-      (format status "~2&~{~:}~%" "~A= ~A~^ "
-              (list "ST" st "IQ" iq "DX" dx
-                    "Flares" fl "GP'S" gp))
-      (format status "~&~A / ~A~@[ / a lamp~]~%"
-              (text-of-weapon wv) (text-of-armor av) lf)
+      (format status
+              "~2&~{~:}~%~
+               ~&~A / ~A~@[ / a lamp~]~%"
+              "~A= ~A~^ "
+              (list "ST" st "IQ" iq "DX" dx "Flares" fl "GP'S" gp)
+              (text-of-weapon wv)
+              (text-of-armor av)
+              lf)
       (format status "~2&Here you find ~A"
               (text-of-creature creature)))))
 
