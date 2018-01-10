@@ -1171,19 +1171,19 @@ limits."
 
 ;;; Adventurer inventories like adv-gp, adv-fl (also adv-ah, adv-fd).
 
-(defun adv-inv (new-inv)
+(defun new-inv (new-inv)
   "Constructs new inventory value."
   (max 0 new-inv))
 
-(define-modify-macro incf-adv-inv (&optional (delta 1))
+(define-modify-macro incf-inv (&optional (delta 1))
   (lambda (place delta)
-    (setf place (adv-inv (+ place delta))))
-  "Adventurer inventories cannot fall below zero")
+    (setf place (new-inv (+ place delta))))
+  "Inventories cannot fall below zero")
 
-(define-modify-macro decf-adv-inv (&optional (delta 1))
+(define-modify-macro decf-inv (&optional (delta 1))
   (lambda (place delta)
-    (setf place (adv-inv (- place delta))))
-  "Adventurer inventories cannot fall below zero")
+    (setf place (new-inv (- place delta))))
+  "Inventories cannot fall below zero")
 
 ;;; Adventurer attributes like race and sex.
 
@@ -1357,7 +1357,7 @@ limits."
   "What happens when the curse of the leech affects the adventurer."
   (assert (adv-cursed-p adv 'leech))
   (unless (has-treasure-p adv 'pale-pearl)
-    (decf-adv-inv (adv-gp adv) (random-range 1 5))))
+    (decf-inv (adv-gp adv) (random-range 1 5))))
 
 (defparameter *forgetfulness* :random
   "What kind of forgetfulness curse ")
@@ -1431,19 +1431,19 @@ limits."
   (make-history (make-event 'adv-changed-sex new-sex)))
 
 (defun make-adv-richer (adv delta)
-  (incf-adv-inv (adv-gp adv) delta)
+  (incf-inv (adv-gp adv) delta)
   (make-history (make-event 'adv-gained 'gold-pieces delta)))
 
 (defun make-adv-poorer (adv delta)
-  (decf-adv-inv (adv-gp adv) delta)
+  (decf-inv (adv-gp adv) delta)
   (make-history (make-event 'adv-lost 'gold-pieces delta)))
 
 (defun give-adv-flares (adv delta)
-  (incf-adv-inv (adv-fl adv) delta)
+  (incf-inv (adv-fl adv) delta)
   (make-history (make-event 'adv-gained 'flares delta)))
 
 (defun take-adv-flares (adv delta)
-  (decf-adv-inv (adv-fl adv) delta)
+  (decf-inv (adv-fl adv) delta)
   (make-history (make-event 'adv-lost 'flares delta)))
 
 (defun give-adv-treasure (adv treasure)
@@ -1479,10 +1479,10 @@ limits."
           (total-damage 0))
       (when (< 0 av)
         (decf dmg av)           ; reduce damage by armor-value
-        (decf-adv-inv ah av)    ; reduce armor-hits by armor-value
+        (decf-inv ah av)    ; reduce armor-hits by armor-value
         (incf total-damage av)
         (when (< 0 dmg)         ; when damage more-than zero
-          (decf-adv-inv ah dmg) ; reduce armor-hits by damage
+          (decf-inv ah dmg) ; reduce armor-hits by damage
           (incf total-damage dmg)
           (decf dmg 0))
         (record-event events
@@ -1526,7 +1526,7 @@ limits."
              (t (error error-fmt item))))
       (list
        (cond ((eq (first item) 'flares)
-              (incf-adv-inv (adv-fl adv) (second item))
+              (incf-inv (adv-fl adv) (second item))
               (make-history (make-event 'adv-gained item (second item))))
              (t (error error-fmt item)))))))
 
@@ -1611,7 +1611,7 @@ limits."
 	   (with-player-input (choice prompt :readf #'wiz-read-n)
 	     (if (typep choice (list 'integer 0 ot))
 		 (progn
-		   (decf-adv-inv ot choice)
+		   (decf-inv ot choice)
 		   (funcall (fdefinition (list 'setf ranking))
 			    (incf-adv-rank choice
 					   (funcall ranking adv))
@@ -2400,8 +2400,7 @@ castle."
 
 (define-modify-macro decf-foe-hit-points (&optional (delta 1))
   (lambda (foe-hp delta)
-    ;; it happens that foe hit points are an inventory.
-    (setf foe-hp (adv-inv (- foe-hp delta))))
+    (setf foe-hp (new-inv (- foe-hp delta))))
   "Decrease foe hit points.")
 
 (defun text-of-foe (adversary)
@@ -3316,7 +3315,7 @@ the castle."
            (join-history events without-item-events)
            (push-text message (wiz-error without-item-message))))
         (t
-         (decf-adv-inv (adv-fl adv))
+         (decf-inv (adv-fl adv))
          (let ((near-coords (get-near-coords castle here)))
            (record-events events
                           (make-event 'adv-used 'flare)
@@ -4310,17 +4309,17 @@ passed in must not also have an adventurer already in it."
 (let ((*a* (make-test-adv)))
   (with-accessors ((fl adv-fl)) *a*
     (assert (zerop fl))
-    (incf-adv-inv fl 4)
+    (incf-inv fl 4)
     (assert (= 4 fl))
-    (decf-adv-inv fl 5)
+    (decf-inv fl 5)
     (assert (zerop fl))))
 
 (let ((*a* (make-test-adv)))
   (with-accessors ((gp adv-gp)) *a*
     (assert (zerop gp))
-    (incf-adv-inv gp 4)
+    (incf-inv gp 4)
     (assert (= 4 gp))
-    (decf-adv-inv gp 5)
+    (decf-inv gp 5)
     (assert (zerop gp))))
 
 (let ((foe (make-adversary 'dragon)))
