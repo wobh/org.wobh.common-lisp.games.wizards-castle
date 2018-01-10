@@ -892,7 +892,7 @@ returns INPUT-ERROR."
   ;; FIXME: creature-battle-skill, creature-combat value?
   "Return the enemy value."
   ;; (assert (adversary-p adversary))
-  (- (value-of-creature adversary) 12))
+  (+ -12 (value-of-creature adversary)))
 
 (defun calc-adversary-hit-points (adversary)
   "Return the enemy hit points."
