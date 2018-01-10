@@ -4287,6 +4287,20 @@ passed in must not also have an adventurer already in it."
   (setf (adv-iq *a*) 0)
   (assert (null (adv-alive-p *a*))))
 
+;; FIXME: I don't trust that this works.
+;; (loop
+;;    with delta = -1
+;;    for ranking in '(adv-st adv-iq adv-dx)
+;;    do
+;;      (let ((adv (make-test-adv)))
+;;        (assert (adv-alive-p adv))
+;;        (set-adv-rank-min adv ranking)
+;;        (assert (null (adv-alive-p adv)))
+;;        (funcall (fdefinition (list 'setf ranking))
+;;                 (decf-adv-rank delta (funcall ranking adv))
+;;                 adv)
+;;        (assert (= +adv-rank-min+ (funcall ranking adv)))))
+
 (let ((*a* (make-test-adv)))
   (with-accessors ((st adv-st) (iq adv-iq) (dx adv-dx)) *a*
     (assert (equal '(11 10 11) (list st iq dx))))
