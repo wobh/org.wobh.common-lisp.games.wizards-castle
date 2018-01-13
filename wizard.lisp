@@ -1189,8 +1189,12 @@ limits."
 
 (define-modify-macro random-change-adv-attr (alternates)
   (lambda (place alternates)
-    (setf place 
-          (remove-if (lambda (alt-val) (eq place alt-val)) alternates)))
+    (setf place
+          (if (find place alternates)
+              (random-elt
+               (remove-if (lambda (alt) (eq place alt))
+                          alternates))
+              place)))
   "Change attribute to random selection of alternates")
 
 (defun adv-alive-p (adv)
