@@ -1546,23 +1546,19 @@ limits."
   (wiz-write-line "You may be an Elf, Dwarf, Man, or Hobbit")
   (with-accessors ((rc adv-rc) (st adv-st) (dx adv-dx)) adv
     (with-player-input (race (make-prompt-adv-choice))
-        (case race
-           (#\H (setf st  4 ; (incf-adv-rank st (* 2 1))
-                      dx 12 ; (decf-adv-rank dx (* 2 1))
-           ;;         ot 12 ; (incf ot 4)
-                      rc 'hobbit))
-           (#\E (setf st  6 ; (incf-adv-rank st (* 2 2))
-                      dx 10 ; (decf-adv-rank dx (* 2 2))
-                      rc 'elf))
-           (#\M (setf st  8 ; (incf-adv-rank st (* 2 3))
-                      dx  8 ; (decf-adv-rank dx (* 2 3))
-                      rc 'human))
-           (#\D (setf st 10 ; (incf st (* 2 4))
-                      dx  6 ; (decf dx (* 2 4))
-                      rc 'dwarf))
-           (t   (setf race
-                      (wiz-error
-                       "That was incorrect. Please type E, D, M, or H.")))))))
+      (setf rc
+            (case race
+              (#\H 'hobbit)
+              (#\E 'elf) 
+              (#\M 'human)
+              (#\D 'dwarf) 
+              (t   (wiz-error
+                    "That was incorrect. Please type E, D, M, or H.")))))
+    (let* ((*races* '(hobbit elf human dwarf))
+           (adj (* 2 (1+ (position rc *races*)))))
+      (incf-adv-rank st adj)
+      (decf-adv-rank dx adj))
+    adv))
 
 ;; Original code set st to 2 and dx to 14. This bit of math adjusted
 ;; the attributes to their racial "norms" where:
@@ -1570,8 +1566,7 @@ limits."
 ;; 270 forq=1to4:ifleft$(r$(q),1)=o$thenrc=q:st=st+2*q:dx=dx-2*q
 ;; 280 nextq:print:ot=ot+4*(rc=1):ifrc>0thenr$(3)="human"
 
-;; I've judged this not worth the effort of reproducing. Here's the
-;; table of outcomes:
+;; Here's a table of outcomes:
 
 ;; | q | race   | st | dx | iq | ot |
 ;; |---+--------+----+----+----+----|
@@ -1580,6 +1575,9 @@ limits."
 ;; | 2 | elf    |  6 | 10 |  8 |  8 |
 ;; | 3 | "man"  |  8 |  8 |  8 |  8 |
 ;; | 4 | dwarf  | 10 |  6 |  8 |  8 |
+
+;; I duplicated this logic for a possible feature where attributes are
+;; adjusted when an adventurer's race is changed (from pool drinking).
 
 (defun choose-sex (adv)
   "Choose the adventurer's sex."
