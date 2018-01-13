@@ -1633,7 +1633,7 @@ limits."
 					   (funcall ranking adv))
 			    adv))
 		 (setf choice (wiz-error "")))))
-      (values st iq dx ot))))
+      (values adv ot))))
 
 (defparameter *catalog-fmt* "~{~A<~A>~^ ~}"
   "Format control string used for printing catalogs.")
