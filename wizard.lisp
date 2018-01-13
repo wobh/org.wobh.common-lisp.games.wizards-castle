@@ -1561,20 +1561,20 @@ limits."
   "Choose the adventurer's race."
   (wiz-write-line "You may be an Elf, Dwarf, Man, or Hobbit")
   (with-accessors ((rc adv-rc) (st adv-st) (dx adv-dx)) adv
-    (with-player-input (race (make-prompt-adv-choice))
-      (setf rc
-            (case race
-              (#\H 'hobbit)
-              (#\E 'elf) 
-              (#\M 'human)
-              (#\D 'dwarf) 
-              (t   (wiz-error
+    (with-player-input (choice (make-prompt-adv-choice))
+      (case choice
+        (#\H (set-adv-race rc 'hobbit))
+        (#\E (set-adv-race rc 'elf))
+        (#\M (set-adv-race rc 'human))
+        (#\D (set-adv-race rc 'dwarf))
+        (t   (setf choice
+                   (wiz-error
                     "That was incorrect. Please type E, D, M, or H.")))))
     (let* ((*races* '(hobbit elf human dwarf))
            (adj (* 2 (1+ (position rc *races*)))))
       (incf-adv-rank st adj)
-      (decf-adv-rank dx adj))
-    adv))
+      (decf-adv-rank dx adj)
+      adv)))
 
 ;; Original code set st to 2 and dx to 14. This bit of math adjusted
 ;; the attributes to their racial "norms" where:
@@ -1597,13 +1597,15 @@ limits."
 
 (defun choose-sex (adv)
   "Choose the adventurer's sex."
-  (with-accessors ((race adv-race) (sx adv-sx)) adv
-    (with-player-input (sex "Sex ")
-      (case sex
-        (#\M (setf sx 'male))
-        (#\F (setf sx 'female))
-        (t   (setf sex (wiz-error "Cute ~A, real cute. Try M or F" race)))))))
-      
+  (with-player-input (choice "Sex ")
+    (case choice
+      (#\M (set-adv-sex (adv-sx adv) 'male))
+      (#\F (set-adv-sex (adv-sx adv) 'female))
+      (t   (setf choice
+                 (wiz-error "Cute ~A, real cute. Try M or F"
+                                    (adv-race adv))))))
+  adv)
+
 (defun allocate-points (adv)
   "Distribute other points to attributes."
   (with-accessors ((race adv-race)
