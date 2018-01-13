@@ -1187,6 +1187,18 @@ limits."
 
 ;;; Adventurer attributes like race and sex.
 
+(define-modify-macro set-adv-sex (sex)
+  (lambda (place sex)
+    (setf place
+          (if (find sex *sexes*) sex place)))
+  "Change adventurer's sex.")
+
+(define-modify-macro set-adv-race (race)
+  (lambda (place race)
+    (setf place
+          (if (find race *races*) race place)))
+  "Change adventurer's race.")
+
 (define-modify-macro random-change-adv-attr (alternates)
   (lambda (place alternates)
     (setf place
@@ -1427,11 +1439,11 @@ limits."
     events))
 
 (defun change-adv-race (adv new-race)
-  (setf (adv-rc adv) new-race)
+  (set-adv-race (adv-rc adv) new-race)
   (make-history (make-event 'adv-changed-race new-race)))
 
 (defun change-adv-sex (adv new-sex)
-  (setf (adv-sx adv) new-sex)
+  (set-adv-sex (adv-sx adv) new-sex)
   (make-history (make-event 'adv-changed-sex new-sex)))
 
 (defun make-adv-richer (adv delta)
