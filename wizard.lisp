@@ -386,23 +386,20 @@ different input is needed."
         until (not (null ,var))
         finally (return ,out))))
 
-
 (defun wiz-y-or-n-p (prompt &optional message)
   "Return t, nil or requery if answer is Y, N, or something else."
   (when message
     (wiz-write-line message))
-  (with-player-input
-      (input prompt :readf #'wiz-read-char)
+  (with-player-input (input prompt :readf #'wiz-read-char)
     (case input
       (#\Y t)
       (#\N nil)
       (t (setf input (wiz-error "Answer yes or no "))))))
 
 (defun wiz-y-p (prompt &optional message)
-    (when message
-      (wiz-write-line message))
-  (with-player-input
-      (input prompt :readf #'wiz-read-char)
+  (when message
+    (wiz-write-line message))
+  (with-player-input (input prompt :readf #'wiz-read-char)
     (case input
       (#\Y t)
       (t nil))))
@@ -1095,15 +1092,15 @@ treasure arguments."
   (rf nil)
   (of nil)
   (bl nil)
-  (st 2)
-  (iq 8)
+  (st  2)
+  (iq  8)
   (dx 14)
-;;(ot 8) ; FIXME: not used after character creation
-  (av 0) ; FIXME: symbol
-  (ah 0) ; FIXME: property?
-  (wv 0) ; FIXME: symbol
+;;(ot  8) ; FIXME: not used after character creation
+  (av  0) ; FIXME: symbol
+  (ah  0) ; FIXME: property?
+  (wv  0) ; FIXME: symbol
   (gp 60)
-  (fl 0)
+  (fl  0)
   (lf nil)
   (fd 60)
   (tr ()) ; FIXME: list, vector?
@@ -1136,7 +1133,7 @@ treasure arguments."
 ;;; Use only on ranked attributes, adv-st adv-dx adv-iq, with limits
 ;;; between 0 and 18
 
-(defconstant +adv-rank-min+ 0)
+(defconstant +adv-rank-min+  0)
 (defconstant +adv-rank-max+ 18)
 
 (defun adv-rank (new-rank)
@@ -1603,7 +1600,7 @@ limits."
       (#\F (set-adv-sex (adv-sx adv) 'female))
       (t   (setf choice
                  (wiz-error "Cute ~A, real cute. Try M or F"
-                                    (adv-race adv))))))
+                            (adv-race adv))))))
   adv)
 
 (defun allocate-points (adv)
@@ -2102,7 +2099,6 @@ castle."
       (setf (elt lvl-mt 0)
             (remove (castle-coords-index castle *entrance*) (elt lvl-mt 0)))
     (unless silent (wiz-write-string "in"))
-
       (flet ((random-lvl-room (level)
                (pop (elt lvl-mt level)))
              (random-cas-room ()
@@ -2111,10 +2107,12 @@ castle."
         ;; 2 stairs down (4) on floors 1 - 7 (0 - 6)
         ;; 2 stairs up (3) on floors 2 - 8 (1 - 7)
         ;; (place-stairs-in-castle castle)
-        (loop for lvl-dn from 0 below (1- height)
+        (loop
+           for lvl-dn from 0 below (1- height)
            for lvl-up from 1 below height
            do
-             (loop repeat 2
+             (loop
+                repeat 2
                 do
                   (let* ((dn (random-lvl-room lvl-dn))
                          (up (castle-coords-index
@@ -2130,30 +2128,32 @@ castle."
         (unless silent (wiz-write-string "i"))
         ;; Place monsters (13 - 24).
         ;; 1 each monster on all floors
-        (loop for level from 0 below height
+        (loop
+           for level from 0 below height
            for ch across "tializin"
            do
-             (loop for monster in *monsters*
+             (loop
+                for monster in *monsters*
                 do
-                  (setf (get-castle-creature castle
-                                             (random-lvl-room level))
+                  (setf (get-castle-creature castle (random-lvl-room level))
                         monster))
            ;; (place-creatures-on-level castle level *monsters*)
              (unless silent (wiz-write-string (string ch))))
         ;; Place vendor and items.
         ;; 3 each item on all floors (5 - 12)
         ;; 1 vendor on all floors (25)
-        (loop for level from 0 below height
+        (loop
+           for level from 0 below height
            do
-             (loop repeat 3
+             (loop
+                repeat 3
                 do
-                  (loop for room in *rooms*
+                  (loop
+                     for room in *rooms*
                      do
-                       (setf (get-castle-creature castle
-                                                  (random-lvl-room level))
+                       (setf (get-castle-creature castle (random-lvl-room level))
                              room))
-                  (setf (get-castle-creature castle
-                                             (random-lvl-room level))
+                  (setf (get-castle-creature castle (random-lvl-room level))
                         'vendor))
            finally
              (unless silent (wiz-write-string "g")))
@@ -2221,14 +2221,13 @@ castle."
 (defun make-adv-stagger (castle turns)
   (let ((events (make-history)))
     (join-history events
-                    ;; (apply #'make-history ...
-                    (loop
-                       repeat turns
-                       collect
-                         (make-event 'adv-staggered)))
+                  ;; (apply #'make-history ...
+                  (loop
+                     repeat turns
+                     collect (make-event 'adv-staggered)))
     (join-history events
-                    (move-adv castle
-                              (random-elt '(north east west south))))))
+                  (move-adv castle
+                            (random-elt '(north east west south))))))
 
 (defun adv-springs-gas-trap (castle)
   (make-adv-stagger castle 20))
@@ -2260,7 +2259,7 @@ castle."
 		    (dexterity (make-adv-nimbler adv delta))
 		    (intelligence (make-adv-smarter adv delta))))))
 
-
+
 ;;;; Outcomes
 
 (defun make-outcome (outcome-name outcome-effect outcome-text)
@@ -2392,8 +2391,7 @@ castle."
   (assert (eq (cas-creature-here castle) 'warp))
   (cond ((orb-of-zot-here-p castle)
          (adv-finds-orb-of-zot castle))
-        (t
-         (make-adv-warp castle))))
+        (t (make-adv-warp castle))))
 
 ;;;; Combat
 
@@ -2411,7 +2409,7 @@ castle."
   (strike-damage 0) ; q1
   (hit-points 0)    ; q2
   (first-turn t)    ; q3
-  (enwebbed 0)     ; enemy enwebbed
+  (enwebbed 0)      ; enemy enwebbed
   (end nil))
 
 (define-modify-macro decf-foe-hit-points (&optional (delta 1))
