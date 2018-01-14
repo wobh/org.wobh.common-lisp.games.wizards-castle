@@ -4335,13 +4335,47 @@ passed in must not also have an adventurer already in it."
                 *a*)
        (assert (= +adv-rank-max+ (funcall ranking *a*)))))
 
+;;; Acquiring the Orb of Zot
 (let ((*a* (make-test-adv :sorceress)))
-  (assert (cast-spells-p *a*))
-  (assert (and (null (adv-of *a*))
-               (adv-rf *a*)))
+  (assert (and (null (adv-of *a*)) (adv-rf *a*)) ()
+          "This adventurer should have ~A but not ~A: ~S"
+          (text-of-creature 'runestaff)
+          (text-of-creature 'orb-of-zot)
+          *a*)
   (outfit-with 'orb-of-zot *a*)
-  (assert (and (adv-of *a*)
-               (null (adv-rf *a*)))))
+  (assert (and (adv-of *a*) (null (adv-rf *a*))) ()
+          "This adventurer should have ~A but not ~A: ~S"
+          (text-of-creature 'orb-of-zot)
+          (text-of-creature 'runestaff)
+          *a*))
+
+(let ((*a* (make-test-adv)))
+  (assert (null (cast-spells-p *a*)) ()
+          "This adventurer should not be able to cast spells: ~S" *a*)
+  (assert (equal '(nil
+                   ((adv-gained intelligence 5))
+                   t
+                   ((adv-lost intelligence 2))
+                   nil)
+                 (list (cast-spells-p *a*)
+                       (make-adv-smarter *a* 5)
+                       (cast-spells-p *a*)
+                       (make-adv-dumber *a* 2)
+                       (cast-spells-p *a*)))))
+
+(let ((*a* (make-test-adv :sorceress)))
+  (assert (cast-spells-p *a*) ()
+          "This adventurer should be able to cast spells: ~S" *a*)
+  (assert (equal '(t
+                   ((adv-lost intelligence 5))
+                   nil
+                   ((adv-gained intelligence 2))
+                   t)
+                 (list (cast-spells-p *a*)
+                       (make-adv-dumber *a* 5)
+                       (cast-spells-p *a*)
+                       (make-adv-smarter *a* 2)
+                       (cast-spells-p *a*)))))
 
 (let ((*a* (make-test-adv)))
   (with-accessors ((fl adv-fl)) *a*
@@ -4351,9 +4385,10 @@ passed in must not also have an adventurer already in it."
     (decf-inv fl 5)
     (assert (zerop fl))))
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :barbarian)))
   (with-accessors ((gp adv-gp)) *a*
-    (assert (zerop gp))
+    (assert (zerop gp)
+            () "This adventurer should have no money: ~S" *a*)
     (incf-inv gp 4)
     (assert (= 4 gp))
     (decf-inv gp 5)
@@ -4389,8 +4424,8 @@ passed in must not also have an adventurer already in it."
           () "This adventurer should have surpassing dexterity: ~S" *a*)
   (assert (null (adv-initiative-p *a*))
           () "This adventurer should never have initiative: ~S" *a*)
-  ;; the following doesn't work because the effect doesn't occur until
-  ;; `begin-turn' :(.
+  ;; FIXME: the following doesn't work because the effect doesn't
+  ;; occur until `begin-turn'.
   ;; (assert (equal '(t
   ;;                  ((adv-gained opal-eye))
   ;;                  nil
