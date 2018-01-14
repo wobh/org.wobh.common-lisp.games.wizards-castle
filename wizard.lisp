@@ -1360,10 +1360,14 @@ limits."
       (find curse-name (adv-cr adv))
       (adv-cr adv)))
 
+(defun lethargic-p (adv)
+  (unless (has-treasure-p adv 'ruby-red)
+    (find 'lethargy (adv-cr adv))))
+
 (defun curse-lethargy (adv)
   "What happens when the curse of lethargy affects the adventurer."
   (assert (adv-cursed-p adv 'lethargy))
-  (unless (has-treasure-p adv 'ruby-red)
+  (when (lethargic-p adv)
     (make-event 'adv-dozed)))
 
 (defun curse-leech (adv)
@@ -2878,12 +2882,14 @@ castle."
       (find (name-of-event (latest-event events))
             '(adv-slain foe-slain adv-entered-room adv-bribed))))
 
+;; 2310 if(c(1,4)>t(1))or(bl=1)or(dx<fna(9)+fna(9))then2690
+
 (defun adv-initiative-p (adv)
-  "Does the adventurer get the first shot in a fight?"
-  (or (blind-p adv)
-      (and (adv-cursed-p adv 'lethargy)
-           (not (has-treasure-p adv 'green-gem)))
-      (< (adv-dx adv) (+ (random-range 1 9) (random-range 1 9)))))
+  "Does the adversary get the first shot in a fight?"
+  (not (or (lethargic-p adv)
+           (blind-p adv)
+           (< (adv-dx adv)
+              (+ (random-range 1 9) (random-range 1 9))))))
 
 (defun adv-meets-adversary (castle)
   "The adventurer fights an creature in the castle."
@@ -4357,3 +4363,47 @@ passed in must not also have an adventurer already in it."
   (assert (not (foe-enwebbed-p foe)))
   (tangle-adversary foe)
   (assert (foe-enwebbed-p foe)))
+
+(let ((*a* (make-test-adv :sorceress)))
+  (assert (lethargic-p *a*)
+          () "This adventurer should be lethargic: ~S" *a*)
+  (assert (null (adv-initiative-p *a*))
+          () "This adventurer never has initiative: ~S." *a*)
+  (assert (equal '(lethargy
+                   ((adv-gained ruby-red))
+                   nil
+                   ((adv-lost ruby-red))
+                   lethargy)
+                 (list (lethargic-p *a*)
+                       (give-adv-treasure *a* 'ruby-red)
+                       (lethargic-p *a*)
+                       (take-adv-treasure *a* 'ruby-red)
+                       (lethargic-p *a*)))
+          () "While this adventurer has ~A, their lethargy should be cured: ~S"
+          (name-of-creature 'ruby-red) *a*))
+
+(let ((*a* (make-test-adv :blind-adept)))
+  (assert (blind-p *a*)
+          () "This adventurer should be blind: ~S" *a*)
+  (assert (= +adv-rank-max+ (adv-dx *a*))
+          () "This adventurer should have surpassing dexterity: ~S" *a*)
+  (assert (null (adv-initiative-p *a*))
+          () "This adventurer should never have initiative: ~S" *a*)
+  ;; the following doesn't work because the effect doesn't occur until
+  ;; `begin-turn' :(.
+  ;; (assert (equal '(t
+  ;;                  ((adv-gained opal-eye))
+  ;;                  nil
+  ;;                  ((adv-lost opal-eye))
+  ;;                  nil)
+  ;;                (list (blind-p *a*)
+  ;;                      (give-adv-treasure *a* 'opal-eye)
+  ;;                      (blind-p *a*)
+  ;;                      (take-adv-treasure *a* 'opal-eye)
+  ;;                      (blind-p *a*)))
+  ;;         () "When this adventurer gains ~A, it's blindness should be cured: ~S"
+  ;;         (name-of-creature 'opal-eye) *a*)
+  ;; (assert (adv-initiative-p *a*)
+  ;;         () "Cured of blindness, this adventurer should always have initiative: ~S"
+  ;;         *a*)
+  )
