@@ -4117,8 +4117,8 @@ passed in must not also have an adventurer already in it."
   (loop
      with play-again = nil
      with main-input = (setup-main-input)
+     with castle = (or castle (setup-castle))
      do
-       (setf castle (or castle (setup-castle)))
        (with-accessors ((adv cas-adventurer)
                         (history cas-history)) castle
          (let ((message
