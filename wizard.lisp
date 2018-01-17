@@ -4179,7 +4179,7 @@ passed in must not also have an adventurer already in it."
                   :bl  t)
    :bookworm    '(:rc hobbit :sx male
                   :st  6 :iq 18  :dx 18
-                  :gp 20 :lf nil :fl  0
+                  :gp 20 :lf  t  :fl  0
                   :bf  t)
    :valkyrie    '(:rc dwarf  :sx female
                   :st 16 :iq 14  :dx  8
