@@ -4183,7 +4183,7 @@ passed in must not also have an adventurer already in it."
                   :bf  t)
    :valkyrie    '(:rc dwarf  :sx female
                   :st 16 :iq 14  :dx  8
-                  :wv  2 :av 3   :ah 21
+                  :wv  2 :av  3  :ah 21
                   :gp 10 :lf nil :fl 10)
    :barbarian   '(:rc human  :sx male
                   :st 18 :iq  6  :dx 12
