@@ -1555,6 +1555,20 @@ limits."
       (join-history events (make-adv-poorer adv price))
       (join-history events (outfit-with equipment adv)))))
 
+(defun cure-adv-blindness (adv)
+  (with-accessors ((bl adv-bl)) adv
+    (when (and bl (has-treasure-p adv 'opal-eye))
+      (setf bl nil)
+      (make-history (make-event 'adv-cured 'sight-restored 'opal-eye)))))
+
+(defun unbind-adv-hand (adv)
+  (with-accessors ((bf adv-bf)) adv
+    (when (and bf (has-treasure-p adv 'blue-flame))
+      (setf bf nil)
+      (make-history (make-event 'adv-unbound 'book-burnt 'blue-flame)))))
+
+
+
 
 ;;; Create character
 
@@ -3943,7 +3957,7 @@ into the orb."
   "Every turn."
   (with-accessors ((adv cas-adventurer)
                    (history cas-history)) castle
-    (with-accessors ((bl adv-bl) (bf adv-bf) (cr adv-cr)) adv
+    (with-accessors ((cr adv-cr)) adv
       (loop
          for curse in cr
          do (apply-curse castle curse))
@@ -3959,18 +3973,16 @@ into the orb."
                          (get-outcome 'adv-sees *minor-event-outcomes*)
                          *minor-event-outcomes*)
                         *minor-event-outcomes*)))))
-	(when (and bl (has-treasure-p adv 'opal-eye))
-	  (setf bl nil)
-	  (record-events history
-			 (make-event 'adv-cured 'sight-restored 'opal-eye))
-	  (format message "~%~A cures your blindness"
-		  (text-of-creature 'opal-eye)))
-	(when (and bf (has-treasure-p adv 'blue-flame))
-	  (setf bf nil)
-	  (record-events history
-			 (make-event 'adv-unbound 'book-burnt 'blue-flame))
-	  (format message "~%~A dissolves the book"
-		  (text-of-creature 'blue-flame)))))))
+        (let ((healed-sight (cure-adv-blindness adv)))
+          (when healed-sight
+            (join-history history healed-sight)
+            (format message "~%~A cures your blindness"
+                    (text-of-creature (value-of-event healed-sight)))))
+        (let ((hand-freed (unbind-adv-hand adv)))
+          (when hand-freed
+            (join-history history hand-freed)
+            (format message "~%~A dissolves the book"
+                    (text-of-creature (value-of-event hand-freed)))))))))
 
 
 ;;;; Game
@@ -4426,19 +4438,21 @@ passed in must not also have an adventurer already in it."
           () "This adventurer should never have initiative: ~S" *a*)
   ;; FIXME: the following doesn't work because the effect doesn't
   ;; occur until `begin-turn'.
-  ;; (assert (equal '(t
-  ;;                  ((adv-gained opal-eye))
-  ;;                  nil
-  ;;                  ((adv-lost opal-eye))
-  ;;                  nil)
-  ;;                (list (blind-p *a*)
-  ;;                      (give-adv-treasure *a* 'opal-eye)
-  ;;                      (blind-p *a*)
-  ;;                      (take-adv-treasure *a* 'opal-eye)
-  ;;                      (blind-p *a*)))
-  ;;         () "When this adventurer gains ~A, it's blindness should be cured: ~S"
-  ;;         (name-of-creature 'opal-eye) *a*)
-  ;; (assert (adv-initiative-p *a*)
-  ;;         () "Cured of blindness, this adventurer should always have initiative: ~S"
-  ;;         *a*)
+  (assert (equal '(t
+                   ((adv-gained opal-eye))
+                   ((adv-cured sight-restored opal-eye))
+                   nil
+                   ((adv-lost opal-eye))
+                   nil)
+                 (list (blind-p *a*)
+                       (give-adv-treasure *a* 'opal-eye)
+                       (adv-sight-restored *a*)
+                       (blind-p *a*)
+                       (take-adv-treasure *a* 'opal-eye)
+                       (blind-p *a*)))
+          () "When this adventurer gains ~A, it's blindness should be cured: ~S"
+          (name-of-creature 'opal-eye) *a*)
+  (assert (adv-initiative-p *a*)
+          () "Cured of blindness, this adventurer should always have initiative: ~S"
+          *a*)
   )
