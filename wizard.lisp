@@ -1263,6 +1263,10 @@ limits."
   "Does the adventurer have the runestaff?"
   (adv-rf adv))
 
+(defun artifact-p (adv)
+  "Does the adventurer have either runestaff or orb of zot?"
+  (or (adv-rf adv) (adv-of adv)))
+
 ;; 2500 IFIQ<15ORQ3>1THENPRINT:PRINT"** YOU CAN'T CAST A SPELL NOW!":GOTO2320
 
 (defparameter *magic-user-iq-threshold* 14
@@ -3943,12 +3947,15 @@ into the orb."
 
 ;; gosub 3400 ->
 
+;; 620 t=t+1 : if rf+of>0 then 690
+
 (defun apply-curse (castle curse)
   "A curse strikes the adventurer."
   (with-accessors ((adv cas-adventurer)) castle
-    (let ((outcome (funcall (get-castle-curse castle curse 'function) adv)))
-      (when (event-p outcome)
-        (record-events (cas-history castle) outcome)))))
+    (unless (artifact-p adv)
+      (let ((outcome (funcall (get-castle-curse castle curse 'function) adv)))
+        (when (event-p outcome)
+          (record-events (cas-history castle) outcome))))))
 
 
 ;;;; Turn
