@@ -4454,5 +4454,4 @@ passed in must not also have an adventurer already in it."
           (name-of-creature 'opal-eye) *a*)
   (assert (adv-initiative-p *a*)
           () "Cured of blindness, this adventurer should always have initiative: ~S"
-          *a*)
-  )
+          *a*))
