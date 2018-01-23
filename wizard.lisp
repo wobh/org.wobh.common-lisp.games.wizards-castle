@@ -4453,7 +4453,7 @@ passed in must not also have an adventurer already in it."
                    nil)
                  (list (blind-p *a*)
                        (give-adv-treasure *a* 'opal-eye)
-                       (adv-sight-restored *a*)
+                       (cure-adv-blindness *a*)
                        (blind-p *a*)
                        (take-adv-treasure *a* 'opal-eye)
                        (blind-p *a*)))
