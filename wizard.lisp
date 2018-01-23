@@ -4415,7 +4415,7 @@ passed in must not also have an adventurer already in it."
   (assert (lethargic-p *a*)
           () "This adventurer should be lethargic: ~S" *a*)
   (assert (null (adv-initiative-p *a*))
-          () "This adventurer never has initiative: ~S." *a*)
+          () "This adventurer should never have initiative: ~S." *a*)
   (assert (equal '(lethargy
                    ((adv-gained ruby-red))
                    nil
