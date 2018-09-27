@@ -107,12 +107,9 @@
   "Get random element from sequence."
   (elt seq (random (length seq) random-state)))
 
-(defun random-range (bound1 bound2 &optional (random-state *random-state*))
-  "Get a random number in range inclusive."
-  (let ((above (min bound1 bound2))
-        (below (1+ (max bound1 bound2))))
-    (+ above
-       (random (- below above) random-state))))
+(defun random-whole (limit &optional (random-state *random-state*))
+  "Return random integer n, 0 < n <= `limit'."
+  (1+ (random limit random-state)))
 
 (defun nshuffle (seq &optional (random-state *random-state*))
   "Destructively Knuth shuffle a sequence."
@@ -1376,11 +1373,14 @@ limits."
   (when (lethargic-p adv)
     (make-event 'adv-dozed)))
 
+(defconstant +curse-leech-theft-maximum+ 5)
+
 (defun curse-leech (adv)
   "What happens when the curse of the leech affects the adventurer."
   (assert (adv-cursed-p adv 'leech))
   (unless (has-treasure-p adv 'pale-pearl)
-    (decf-inv (adv-gp adv) (random-range 1 5))))
+    (decf-inv (adv-gp adv)
+              (random-whole +curse-leech-theft-maximum+))))
 
 (defparameter *forgetfulness* :random
   "What kind of forgetfulness curse ")
@@ -2060,6 +2060,9 @@ castle."
   "Get a random empty room from a castle or castle level."
   (first (shuffle (list-empty-room-indices castle level))))
 
+(defun castle-room-random (castle)
+  (random-array-subscripts (cas-rooms castle)))
+
 (defun castle-levels (castle)
   "Return the number of levels in the castle."
   (first (array-dimensions (cas-rooms castle))))
@@ -2248,8 +2251,12 @@ castle."
 (defun adv-springs-gas-trap (castle)
   (make-adv-stagger castle 20))
 
+(defconstant +trap-bomb-damage-maximum+ 6)
+
 (defun adv-springs-bomb-trap (adv)
-  (damage-adv adv (random-range 1 6)))
+  (damage-adv adv
+              (random-whole +trap-bomb-damage-maximum+)))
+
 
 (defun adv-springs-glue-trap (adv item)
   (bind-adv-hands adv item))
@@ -2263,11 +2270,13 @@ castle."
 (defun adv-reads-dexterity-manual (adv)
   (make-adv-nimbler adv +adv-rank-max+))
 
+(defconstant +vendor-potion-efficacy-maximum+ 6)
+
 (defun adv-drinks-potion (adv potion)
   (when (stringp potion)
     (setf potion (intern (string-upcase potion) "WIZARDS-CASTLE")))
   (let ((events (make-history))
-	(delta (random-range 1 6)))
+	(delta (random-whole +vendor-potion-efficacy-maximum+)))
     (record-event events (make-event 'adv-drank-potion potion))
     (join-history events
 		  (ecase potion
@@ -2331,12 +2340,14 @@ castle."
               (gold-pieces (adv-gp adv))
               (flares      (adv-fl adv))))))
 
+(defconstant +gold-in-rooms-maximum+ 10)
+
 (defun adv-finds-gold-pieces (castle)
   "What happens when an adventurer finds gold."
   (with-accessors ((adv  cas-adventurer)
                    (here cas-adv-here)) castle
     (assert (eq (get-castle-creature castle here) 'gold-pieces))
-    (let ((gps (random-range 1 10))
+    (let ((gps (random-whole +gold-in-rooms-maximum+))
           (events (make-history)))
       (clear-castle-room castle here)
       (join-history events (make-adv-richer adv gps))
@@ -2344,12 +2355,14 @@ castle."
       (values events
               (make-message-report-inv castle 'gold-pieces)))))
 
+(defconstant +flares-in-rooms-maximum+ 5)
+
 (defun adv-finds-flares (castle)
   "What happens when an adventurer finds flares."
   (with-accessors ((adv  cas-adventurer)
                    (here cas-adv-here)) castle
     (assert (eq (get-castle-creature castle here) 'flares))
-    (let* ((flares (random-range 1 5))
+    (let* ((flares (random-whole +flares-in-rooms-maximum+))
            (events (make-history)))
       (clear-castle-room castle here)
       (join-history events (give-adv-flares adv flares))
@@ -2528,6 +2541,9 @@ castle."
 ;;               "his"
 ;;               "yours")))
 
+(defconstant +magic-user-iq-minimum+ 15)
+(defconstant +death-spell-iq-factor-range+ 4)
+
 (defun adv-casts-spell-death (castle)
   "The adventurer casts a death spell."
   (with-accessors ((adv cas-adventurer)
@@ -2537,7 +2553,9 @@ castle."
       (record-events (cas-history castle)
                      (make-event 'adv-cast-spell 'death))
       (destructuring-bind (outcome-name outcome-effect outcome-text)
-          (get-outcome (if (< (adv-iq adv) (+ 15 (random-range 1 4)))
+          (get-outcome (if (< (adv-iq adv)
+                              (+ +magic-user-iq-minimum+
+                                 (random-whole +death-spell-iq-factor-range+)))
                            'adv-death
                            'foe-death)
                        *death-spell-outcomes*)
@@ -2621,6 +2639,8 @@ castle."
   "True if adventurer is hungry."
   (< 60 (count-turns (events-since 'adv-ate (cas-history castle)))))
 
+(defconstant +adversary-hoard-maximum+ 1000)
+
 (defun adv-slays-adversary (castle)
   "What happens when the adventurer kills a creature."
   (with-accessors ((adv cas-adventurer)
@@ -2644,7 +2664,7 @@ castle."
         (outfit-with 'runestaff adv)
         (push-text message "~2&Great Zot! You've found the Runestaff"))
       (if (monster-p (foe-creature foe))
-	  (let ((hoard (random-range 1 1000)))
+	  (let ((hoard (random-whole +adversary-hoard-maximum+)))
 	    (join-history events (make-adv-richer adv hoard))
 	    (push-text message
 		       (format nil "~2%You now get his hoard of ~D GP's" hoard)))
@@ -2764,9 +2784,13 @@ castle."
    (list 'foe-strike-hit 'damage-adv "  Ouch! He hit you"))
   "Outcomes when an adversary attacks.")
 
+(defconstant +adversary-strike-factor+ 6)
+
 (defun make-foe-strike (adv)
   (get-outcome
-   (if (< (+ (random-range 1 6) (random-range 1 6) (random-range 1 6)
+   (if (< (+ (random-whole +adversary-strike-factor+)
+             (random-whole +adversary-strike-factor+)
+             (random-whole +adversary-strike-factor+)
              (* 3 (if (blind-p adv) 1 0)))
           (adv-dx adv))
        'foe-strike-missed
@@ -2898,12 +2922,15 @@ castle."
 
 ;; 2310 if(c(1,4)>t(1))or(bl=1)or(dx<fna(9)+fna(9))then2690
 
+(defconstant +adventurer-dx-initiative-factor+ 9)
+
 (defun adv-initiative-p (adv)
   "Does the adversary get the first shot in a fight?"
   (not (or (lethargic-p adv)
            (blind-p adv)
            (< (adv-dx adv)
-              (+ (random-range 1 9) (random-range 1 9))))))
+              (+ (random-whole +adventurer-dx-initiative-factor+)
+                 (random-whole +adventurer-dx-initiative-factor+))))))
 
 (defun adv-meets-adversary (castle)
   "The adventurer fights an creature in the castle."
@@ -3437,6 +3464,8 @@ the castle."
            (format nil "turn into a ~A" (text-of-sex sex-ref)))))
   "All of the drink outcomes.")
 
+(defconstant +pool-effect-maximum+ 3)
+
 (defun adv-drinks-pool (castle)
   "Return events and message from drinking from a magic pool."
   (with-accessors ((adv cas-adventurer)
@@ -3464,7 +3493,9 @@ the castle."
                       (funcall outcome-effect
                                adv (random-elt
                                     (remove (adv-rc adv) *sexes*))))
-                     (t (funcall outcome-effect adv (random-range 1 3)))))
+                     (t (funcall outcome-effect
+                                 adv
+                                 (random-whole +pool-effect-maximum+)))))
              (join-history events outcome-effect))
            (when outcome-text
              (let ((effect (latest-event events)))
@@ -3536,6 +3567,8 @@ there. This info could be mapped.")
     )
   "The visions in the crystal orb.")
 
+(defconstant +orb-damage-maximum+ 2)
+
 (defun adv-uses-crystal-orb (castle)
   "Return events and message of what happens when the adventurer gazes
 into the orb."
@@ -3562,10 +3595,11 @@ into the orb."
              (setf outcome-effect
                    (ecase outcome-name
                      (heap
-                      (funcall outcome-effect adv (random-range 1 2)))
+                      (funcall outcome-effect
+                               adv
+                               (random-whole +orb-damage-maximum+)))
                      (room
-                      (let* ((coords (random-array-subscripts
-                                      (cas-rooms castle)))
+                      (let* ((coords (castle-room-random castle))
                              (creature (get-castle-creature castle coords)))
                         (when *gaze-mapper*
                           (funcall outcome-effect adv coords creature))))))
@@ -3583,10 +3617,8 @@ into the orb."
                                   (funcall outcome-text coords creature)))
                                (orb-of-zot
                                 (funcall outcome-text 
-                                         (if (< (random-range 1 8) 4)
-                                             (cas-loc-orb castle)
-                                             (random-array-subscripts
-                                              (cas-rooms castle)))))
+                                         (random-elt (list (cas-loc-orb castle)
+                                                           (castle-room-random castle)))))
                                (t outcome-text))))
                (push-text message outcome-text))))))
       (values events message))))
@@ -3667,6 +3699,8 @@ into the orb."
              (format nil "Find ~D gold pieces" gps))))
   "All the outcomes of opening chests.")
 
+(defconstant +gold-in-chests-maximum+ 1000)
+
 (defun adv-opens-chest (castle)
   "Return events and messages when adventurer opens a chest."
   (with-accessors ((adv cas-adventurer)
@@ -3689,7 +3723,8 @@ into the orb."
              (setf outcome-effect
                    (case outcome-name
                      (gold-pieces (funcall outcome-effect
-                                           adv (random-range 1 1000)))
+                                           adv
+                                           (random-whole +gold-in-chests-maximum+)))
                      (bomb-trap (funcall outcome-effect
                                          adv))
                      (gas-trap (funcall outcome-effect castle))))
