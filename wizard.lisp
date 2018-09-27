@@ -1285,7 +1285,7 @@ limits."
 ;; |---+------------------+---------------------|
 ;; | 0 | "the ruby red"   | cures lethargy      |
 ;; | 1 | "the norn stone" |                     |
-;; | 2 | "the pale pearl" | removes leech       |
+;; | 2 | "the pale pearl" | cures leech         |
 ;; | 3 | "the opal eye"   | cures blindness     |
 ;; | 4 | "the green gem"  | cures forgetfulness |
 ;; | 5 | "the blue flame" | burns books         |
