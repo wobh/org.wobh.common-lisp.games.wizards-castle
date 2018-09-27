@@ -3967,13 +3967,15 @@ into the orb."
         (let ((healed-sight (cure-adv-blindness adv)))
           (when healed-sight
             (join-history history healed-sight)
-            (format message "~%~A cures your blindness"
-                    (text-of-creature (value-of-event healed-sight)))))
+            (format message
+                    "~%~A cures your blindness"
+                    (text-of-creature (value-of-event (latest-event history))))))
         (let ((hand-freed (unbind-adv-hand adv)))
           (when hand-freed
             (join-history history hand-freed)
-            (format message "~%~A dissolves the book"
-                    (text-of-creature (value-of-event hand-freed)))))))))
+            (format message
+                    "~%~A dissolves the book"
+                    (text-of-creature (value-of-event (latest-event history))))))))))
 
 
 ;;;; Game
