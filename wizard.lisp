@@ -933,14 +933,6 @@ treasure arguments."
   "Sort the given treasure list."
   (sort treasure-list #'treasure-lessp))
 
-(defun creature-type-p (creature type)
-  "Return t if the type of creature is valid"
-  (cond ((eq type creature) t)
-        ((eq type 'monster) (monster-p creature))
-        ((eq type 'treasure) (treasure-p creature))
-        ((eq type 'room) (room-p creature))
-        (t nil)))
-
 (defun type-of-creature (creature)
   "Return the type of creature given."
   (cond
@@ -1852,11 +1844,6 @@ may be an index or list of coordinates."
   (eq creature-ref
       (get-castle-creature castle room-ref (type-of creature-ref))))
 
-(defun cas-creature-type-p (castle room-ref creature-type)
-  "Is the creature in this room of the expected type?"
-  (creature-type-p (get-castle-creature castle room-ref) creature-type))
-;; [wc 2012-02-03] FIXME: no one actually calls this.
-
 (defun get-castle-creature-text (castle room-ref)
   "Get castle creature text."
   (get-castle-creature castle room-ref 'string))
@@ -1890,9 +1877,6 @@ may be an index or list of coordinates."
 
 ;; (defun vendor-here-p (castle)
 ;;   (eq (cas-creature-here castle) 'vendor))
-
-;; (defun monster-here-p (castle)
-;;   (creature-type-p (cas-creature-here castle) 'monster))
 
 (defun cas-adv-near (castle vector-ref)
   "Return coords of room near the adventurer's current room."
