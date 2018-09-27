@@ -2504,10 +2504,12 @@ castle."
   "Outcomes of the death spell.")
 
 (defun make-adv-dead (adv)
-  (make-adv-dumber adv (adv-iq adv)))
+  (let ((history (make-adv-dumber adv (adv-iq adv))))
+    (record-event history (make-event 'adv-slain 'death-spell))))
 
 (defun make-foe-dead (foe)
-  (damage-foe foe (foe-hit-points foe)))
+  (let ((history (damage-foe foe (foe-hit-points foe))))
+    (record-event history (make-event 'foe-slain 'death-spell))))
   
 ;; (defun make-message-cast-death (castle event)
 ;;   (assert (event-kind-p event '(adv-cast-spell death)))
