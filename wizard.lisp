@@ -84,36 +84,46 @@
 
 ;;;; Randomess functions
 
+;;; TODO: use *random-state* directly--I don't think we have anything
+;;; to prove here.
+
 ;;; Powers, 1980, pg 14, ln# 70
 ;;; DEFFNA(Q)=1+INT(RND(8)*Q)
 
 (defun random-array-subscripts (array &optional (random-state *random-state*))
   "Create a list random subscripts in array."
-  (mapcar (lambda (n) (random n random-state))
-          (array-dimensions array)))
+  (flet ((randomn (n)
+           (random n random-state)))
+    (mapcar #'randomn
+            (array-dimensions array))))
 
 (defun random-aref (array &optional (random-state *random-state*))
   "Get random element of array."
-  (row-major-aref array (random (array-total-size array)
-                                random-state)))
+  (row-major-aref array
+                  (random (array-total-size array)
+                          random-state)))
 
 (defun random-elt (seq &optional (random-state *random-state*))
   "Get random element from sequence."
   (elt seq (random (length seq) random-state)))
 
-(defun random-range (limit
-                     &optional (limit-max nil) (random-state *random-state*))
+(defun random-range (bound1 bound2 &optional (random-state *random-state*))
   "Get a random number in range inclusive."
-  (if limit-max
-      (+ limit (random (- (1+ limit-max) limit) random-state))
-      (random (1+ limit) random-state)))
+  (let ((above (min bound1 bound2))
+        (below (1+ (max bound1 bound2))))
+    (+ above
+       (random (- below above) random-state))))
 
-(defun shuffle (seq &optional (random-state *random-state*))
-  "Knuth shuffle a sequence."
+(defun nshuffle (seq &optional (random-state *random-state*))
+  "Destructively Knuth shuffle a sequence."
   (let ((len (length seq)))
     (dotimes (i len seq)
       (rotatef (elt seq i)
                (elt seq (+ i (random (- len i) random-state)))))))
+
+(defun shuffle (seq &optional (random-state *random-state*))
+  "Non-destructively Knuth shuffle a sequence."
+  (nshuffle (copy-seq seq) random-state))
 
 ;;; Knuth shuffle
 ;;; https://groups.google.com/d/topic/comp.lang.lisp/1ZtO84hrAuM/discussion
@@ -2257,7 +2267,7 @@ castle."
   (when (stringp potion)
     (setf potion (intern (string-upcase potion) "WIZARDS-CASTLE")))
   (let ((events (make-history))
-	(delta (random-range 6)))
+	(delta (random-range 1 6)))
     (record-event events (make-event 'adv-drank-potion potion))
     (join-history events
 		  (ecase potion
