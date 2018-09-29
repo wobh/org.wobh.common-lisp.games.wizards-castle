@@ -3176,16 +3176,6 @@ castle."
   ;;  (make-event 'adv-found (cas-creature-here castle))))
   )
 
-(defun make-message-adv-left-castle (castle event)
-  "What does the game report to the player when the adventurer leaves
-the castle."
-  (assert (event-kind-p event 'adv-leaves-castle))
-  (format nil
-          "~&You left the castle with~:[out~;~] the Orb of Zot"
-          (adv-of (cas-adventurer castle))
-          ;; (event-kind-p event '(adv-leaves-castle orb-of-zot))
-          ))
-
 
 ;;;; Help message
 
