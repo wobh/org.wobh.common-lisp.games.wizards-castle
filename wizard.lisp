@@ -2656,8 +2656,9 @@ castle."
       (when (and (adv-hungry-p castle) (monster-p (foe-creature foe)))
         (record-event events
                       (make-event 'adv-ate (foe-creature foe)))
-        (format nil "~2&You spend an hour eating ~A~A"
-                (text-of-foe foe) (random-meal)))
+        (push-text message
+                   (format nil "~2&You spend an hour eating ~A~A"
+                           (text-of-foe foe) (random-meal))))
       (when (runestaff-here-p castle)
         (record-event events
                       (make-event 'adv-found 'runestuff))
