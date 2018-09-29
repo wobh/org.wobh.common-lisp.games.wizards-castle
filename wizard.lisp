@@ -3774,31 +3774,32 @@ into the orb."
     (let ((room-type (cas-creature-here castle))
           (events (make-history))
           (message (make-text)))
-      (cond ((and (equal direction 'north)
-                  (equal room-type 'entrance))
-             (record-events events
-                            (make-event 'adv-walked direction)
-                            (make-event 'adv-left-castle
-                                            (if (adv-of adv)
-                                                'orb
-                                                'no-orb))))
-            ((and (equal direction 'up)
-                  (wrong-room-p castle here 'stairs-up))
-             (multiple-value-bind (wrong-room-events wrong-room-message)
-                 (adv-tried-wrong-room castle 'use-stairs here
-                                       (adv-rc adv) 'stairs-up)
-               (join-history events wrong-room-events)
-               (push-text message (wiz-error wrong-room-message))))
-            ((and (eq direction 'down)
-                  (wrong-room-p castle here 'stairs-down))
-             (multiple-value-bind (wrong-room-events wrong-room-message)
-                 (adv-tried-wrong-room castle 'use-stairs here
-                                       (adv-rc adv) 'stairs-down) 
-               (join-history events wrong-room-events)
-               (push-text message (wiz-error wrong-room-message))))
-            (t
-             (record-event events (make-event 'adv-walked direction))
-             (join-history events (move-adv castle direction))))
+      (flet ((handle-wrong-room (room-type)
+               (multiple-value-bind (wrong-room-events wrong-room-message)
+                   (adv-tried-wrong-room castle
+                                         'use-stairs here
+                                         (adv-rc adv)
+                                         room-type)
+                 (join-history events
+                               wrong-room-events)
+                 (push-text message
+                            (wiz-error wrong-room-message)))))
+        (cond ((and (equal direction 'north)
+                    (equal room-type 'entrance))
+               (record-events events
+                              (make-event 'adv-walked direction)
+                              (if (adv-of adv)
+                                  (make-event 'adv-left-castle 'with-orb)
+                                  (make-event 'adv-left-castle))))
+              ((and (equal direction 'up)
+                    (wrong-room-p castle here 'stairs-up))
+               (handle-wrong-room 'stairs-up))
+              ((and (eq direction 'down)
+                    (wrong-room-p castle here 'stairs-down))
+               (handle-wrong-room 'stairs-down))
+              (t
+               (record-event events (make-event 'adv-walked direction))
+               (join-history events (move-adv castle direction)))))
       (values events message))))
 
 (defun read-castle-coordinates ()
