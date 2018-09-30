@@ -4070,6 +4070,13 @@ into the orb."
   (assert (find wiz-form-name *wiz-forms*))
   (list* wiz-form-name args))
 
+(defun end-game-p (castle)
+  (case (name-of-event (latest-event (cas-history castle)))
+    (adv-slain        'death)
+    (adv-left-castle  'exit)
+    (player-quit-game 'quit)
+    (t                nil)))
+
 (defun main-eval (castle wiz-form)
   "Main evaluator"
   (assert (wiz-form-p wiz-form))
@@ -4087,7 +4094,7 @@ into the orb."
                 (setf wiz-form (make-wiz-form 'adv-enters-room)))
                (t (setf wiz-form nil)))
        until (null wiz-form)))
-  (when (adv-alive-p (cas-adventurer castle))
+  (unless (end-game-p castle)
     (begin-turn castle)))
 
 (defparameter *main-commands*
@@ -4118,13 +4125,6 @@ into the orb."
           (apply #'make-wiz-form
                  (or command
                      (list 'player-error 'main-input input))))))))
-
-(defun end-game-p (castle)
-  (case (name-of-event (latest-event (cas-history castle)))
-    (adv-slain        'death)
-    (adv-left-castle  'exit)
-    (player-quit-game 'quit)
-    (t                nil)))
 
 ;; (defparameter *play-again* t)
 
