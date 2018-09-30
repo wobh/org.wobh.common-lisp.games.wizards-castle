@@ -3247,10 +3247,10 @@ castle."
    (make-outcome 'gaze  nil "No orb - no gaze")
    (make-outcome 'open  nil "The only thing you opened was your big mouth")
    (make-outcome 'drink nil "If you want a drink find a pool")
-   (make-outcome 'use-stairs nil (lambda (race-ref creature-ref)
-                                   (format nil "Oh ~A, no ~A in here"
-                                           (text-of-race race-ref)
-                                           (text-of-creature creature-ref)))))
+   (make-outcome 'use-stairs nil (lambda (stream castle room-needed)
+                                   (format stream "Oh ~A, no ~A in here"
+                                           (text-of-race (adv-race (cas-adventurer castle)))
+                                           (text-of-creature room-needed)))))
   "Messages when the adventure tries something in the wrong room.")
 
 (defun wrong-room-p (castle coords creature)
@@ -3270,9 +3270,7 @@ castle."
         (join-history events (funcall outcome-effect)))
       (when outcome-text
         (push-text message
-                   (etypecase outcome-text
-                     (string outcome-text)
-                     (function (apply outcome-text args))))))
+                   (format nil outcome-text castle (first args)))))
     (values events message)))
 
 (defun adv-tried-blind (castle action)
@@ -3768,8 +3766,8 @@ into the orb."
       (flet ((handle-wrong-room (room-type)
                (multiple-value-bind (wrong-room-events wrong-room-message)
                    (adv-tried-wrong-room castle
-                                         'use-stairs here
-                                         (adv-rc adv)
+                                         'use-stairs
+                                         here
                                          room-type)
                  (join-history events
                                wrong-room-events)
