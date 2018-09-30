@@ -2299,6 +2299,19 @@ castle."
 (defun get-outcome (outcome-name outcomes)
   (find outcome-name outcomes :key 'name-of-outcome))
 
+;;; None of the following are used:
+
+;;; - `make-outcome-effect'
+;;; - `make-outcome-text'
+
+;;; And consequently, neither are their support functions which they
+;;; are the sole callers of:
+
+;;; - `effect-of-outcome'
+;;; - `text-of-outcome'
+
+;;; This whole section looks like an incomplete refactoring.
+
 (defun effect-of-outcome (outcome &rest args)
   (let ((effect-ref (second outcome)))
     (etypecase effect-ref
