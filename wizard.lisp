@@ -4215,7 +4215,7 @@ passed in must not also have an adventurer already in it."
 (defparameter *adventurers*
   (list
    :blind-adept '(:rc human  :sx female
-                  :st 18 :iq 18  :dx 18
+                  :st 18 :iq 12  :dx 18
                   :wv  3 :av  3  :ah 21
                   :gp 20 :lf nil :fl  0
                   :bl  t)
