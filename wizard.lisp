@@ -4278,7 +4278,7 @@ passed in must not also have an adventurer already in it."
       (map-all-rooms :adv *a* :castle *z*))
     (when enter-castle
       (join-history (cas-history *z*)
-                      (adv-enters-castle *z* *a*)))
+                    (adv-enters-castle *z* *a*)))
     (values *a* *z*)))
 
 
