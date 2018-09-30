@@ -4173,22 +4173,21 @@ passed in must not also have an adventurer already in it."
      with play-again = nil
      with main-input = (setup-main-input)
      with castle = (or castle (setup-castle))
+     for message = (main-eval castle
+                              (make-wiz-form
+                               'adv-enters-castle
+                               (or adventurer (setup-adventurer))))
      do
        (with-accessors ((adv cas-adventurer)
                         (history cas-history)) castle
-         (let ((message
-                (main-eval castle 
-                           (make-wiz-form
-                            'adv-enters-castle
-                            (or adventurer (setup-adventurer))))))
-           (when message
-             (wiz-write-line message)))
+         (when message
+           (wiz-write-line message))
          (loop
             with ending = nil
+            for message = (main-eval castle (funcall main-input))
             do
-              (let ((message (main-eval castle (funcall main-input))))
-                (when message
-                  (wiz-write-line message)))
+              (when message
+                (wiz-write-line message))
               (setf ending (end-game-p castle))
             until (not (null ending))
             finally
