@@ -3654,37 +3654,31 @@ into the orb."
           (message (make-text)))
       ;; TODO [wc 2013-01-29] Seems like BLIND-P ought to have an
       ;; effect on some of the events.
-      (cond ((wrong-room-p castle here 'book)
-             (multiple-value-bind (wrong-room-events wrong-room-message)
-                 (adv-tried-wrong-room castle 'open here)
-               (join-history events wrong-room-events)
-               (push-text message (wiz-error wrong-room-message))))
-            (t
-             (destructuring-bind (outcome-name outcome-effect outcome-text)
-                 (random-elt *open-book-outcomes*)
-               (record-events events (make-event 'adv-opened 'book))
-               (when outcome-effect
-                 (setf outcome-effect
-                       (cond
-                         ((eq outcome-name 'glue-trap)
-                          (funcall outcome-effect adv 'book))
-                         (t
-                          (funcall outcome-effect adv))))
-                 (join-history events outcome-effect))
-               (when outcome-text
-                 (setf outcome-text
-                       (format nil "You open the book and~%~A"
-                               (cond
-                                 ((eq outcome-name 'flash-trap)
-                                  (funcall outcome-text (adv-rc adv)))
-                                 ((find outcome-name
-                                        '(dexterity-manual strength-manual))
-                                  (format nil
-                                          "It's a manual of ~A" outcome-text))
-                                 ((eq outcome-name 'magazine)
-                                  (funcall outcome-text (random-race)))
-                                 (t outcome-text))))
-                 (push-text message outcome-text)))))
+      (destructuring-bind (outcome-name outcome-effect outcome-text)
+          (random-elt *open-book-outcomes*)
+        (record-events events (make-event 'adv-opened 'book))
+        (when outcome-effect
+          (setf outcome-effect
+                (cond
+                  ((eq outcome-name 'glue-trap)
+                   (funcall outcome-effect adv 'book))
+                  (t
+                   (funcall outcome-effect adv))))
+          (join-history events outcome-effect))
+        (when outcome-text
+          (setf outcome-text
+                (format nil "You open the book and~%~A"
+                        (cond
+                          ((eq outcome-name 'flash-trap)
+                           (funcall outcome-text (adv-rc adv)))
+                          ((find outcome-name
+                                 '(dexterity-manual strength-manual))
+                           (format nil
+                                   "It's a manual of ~A" outcome-text))
+                          ((eq outcome-name 'magazine)
+                           (funcall outcome-text (random-race)))
+                          (t outcome-text))))
+          (push-text message outcome-text)))
       (values events message))))
 
 
@@ -3709,41 +3703,34 @@ into the orb."
                    (here cas-adv-here)) castle
     (let ((events (make-history))
           (message (make-text)))
-      (cond
-        ((wrong-room-p castle here 'chest)
-         (multiple-value-bind (open-events open-message)
-             (adv-tried-wrong-room castle 'open here)
-           (join-history events open-events)
-           (wiz-error open-message)))
-        (t
-         (destructuring-bind (outcome-name outcome-effect outcome-text)
-             (get-outcome (random-elt '(bomb-trap gas-trap
-                                        gold-pieces gold-pieces))
-                          *open-chest-outcomes*)
-           (record-event events (make-event 'adv-opened 'chest))
-           (when outcome-effect
-             (setf outcome-effect
-                   (case outcome-name
-                     (gold-pieces (funcall outcome-effect
-                                           adv
-                                           (random-whole +gold-in-chests-maximum+)))
-                     (bomb-trap (funcall outcome-effect
-                                         adv))
-                     (gas-trap (funcall outcome-effect castle))))
-             (when outcome-effect
-               (join-history events outcome-effect)))
-           (when outcome-text
-             (setf outcome-text
-                   (format nil "You open the chest and ~A~%"
-                           (etypecase outcome-text
-                             (string outcome-text)
-                             (function
-                              (if (eq outcome-name 'gold-pieces)
-                                  (funcall outcome-text
-                                           (value-of-event
-                                            (latest-event events)))
-                                  (funcall outcome-text))))))
-             (push-text message outcome-text)))))
+      (destructuring-bind (outcome-name outcome-effect outcome-text)
+          (get-outcome (random-elt '(bomb-trap gas-trap
+                                     gold-pieces gold-pieces))
+                       *open-chest-outcomes*)
+        (record-event events (make-event 'adv-opened 'chest))
+        (when outcome-effect
+          (setf outcome-effect
+                (case outcome-name
+                  (gold-pieces (funcall outcome-effect
+                                        adv
+                                        (random-whole +gold-in-chests-maximum+)))
+                  (bomb-trap (funcall outcome-effect
+                                      adv))
+                  (gas-trap (funcall outcome-effect castle))))
+          (when outcome-effect
+            (join-history events outcome-effect)))
+        (when outcome-text
+          (setf outcome-text
+                (format nil "You open the chest and ~A~%"
+                        (etypecase outcome-text
+                          (string outcome-text)
+                          (function
+                           (if (eq outcome-name 'gold-pieces)
+                               (funcall outcome-text
+                                        (value-of-event
+                                         (latest-event events)))
+                               (funcall outcome-text))))))
+          (push-text message outcome-text)))
       (values events message))))
 
 
@@ -3758,7 +3745,8 @@ into the orb."
       (multiple-value-bind (open-events open-message)
           (case creature
             (chest (adv-opens-chest castle))
-            (book  (adv-opens-book castle)))
+            (book  (adv-opens-book castle))
+            (otherwise (adv-tried-wrong-room castle 'open here)))
         (clear-castle-room castle here)
         (join-history events (cas-adv-map-here castle))
         (values
