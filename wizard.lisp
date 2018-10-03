@@ -3283,7 +3283,7 @@ castle."
         (join-history events (funcall outcome-effect)))
       (when outcome-text
         (push-text message
-                   (format nil outcome-text castle (first args)))))
+                   (wiz-format-error nil outcome-text castle (first args)))))
     (values events message)))
 
 (defun adv-tried-blind (castle action)
@@ -3479,7 +3479,7 @@ castle."
          (multiple-value-bind (wrong-room-events wrong-room-message)
              (adv-tried-wrong-room castle 'drink here)
            (join-history events wrong-room-events)
-           (push-text message (wiz-error wrong-room-message))))
+           (push-text message wrong-room-message)))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *drink-pool-outcomes*)
@@ -3588,7 +3588,7 @@ into the orb."
          (multiple-value-bind (wrong-room-events wrong-room-message)
              (adv-tried-wrong-room castle 'gaze here)
            (join-history events wrong-room-events)
-           (push-text message (wiz-error wrong-room-message))))
+           (push-text message wrong-room-message)))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *gaze-crystal-orb-outcomes*)
@@ -3772,8 +3772,7 @@ into the orb."
                                          room-type)
                  (join-history events
                                wrong-room-events)
-                 (push-text message
-                            (wiz-error wrong-room-message)))))
+                 (push-text message wrong-room-message))))
         (cond ((and (equal direction 'north)
                     (equal room-type 'entrance))
                (record-events events
