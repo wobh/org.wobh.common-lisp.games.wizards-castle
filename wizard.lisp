@@ -3291,8 +3291,8 @@ castle."
   (assert (find action '(use-crystal-orb use-lamp use-flare view-map)))
   (values
    (make-history (make-event 'adv-tried action 'blind))
-   (format nil "You can't see anything, dumb ~A"
-           (adv-race (cas-adventurer castle)))))
+   (wiz-format-error nil "You can't see anything, dumb ~A"
+                     (adv-race (cas-adventurer castle)))))
 
 
 ;;;; Map
@@ -3333,7 +3333,7 @@ castle."
              (multiple-value-bind (blind-events blind-message)
                  (adv-tried-blind castle 'view-map)
                (join-history events blind-events)
-               (push-text message (wiz-error blind-message))))
+               (push-text message blind-message)))
             (t
              (let ((level (first here)))
                (record-events events
@@ -3371,7 +3371,7 @@ castle."
          (multiple-value-bind (blind-events blind-message)
              (adv-tried-blind castle 'use-flare)
            (join-history events blind-events)
-           (push-text message (wiz-error blind-message))))
+           (push-text message blind-message)))
         ((adv-without-item-p adv 'flares)
          (multiple-value-bind (without-item-events without-item-message)
              (adv-tried-without-item 'flares)
@@ -3414,7 +3414,7 @@ castle."
          (multiple-value-bind (blind-events blind-message)
              (adv-tried-blind castle 'use-lamp)
            (join-history events blind-events)
-           (push-text message (wiz-error blind-message))))
+           (push-text message blind-message)))
         ((adv-without-item-p adv 'lamp)
          (multiple-value-bind (without-item-events without-item-message)
              (adv-tried-without-item 'lamp (adv-rc adv))
@@ -3583,7 +3583,7 @@ into the orb."
          (multiple-value-bind (blind-events blind-message)
              (adv-tried-blind castle 'use-crystal-orb)
            (join-history events blind-events)
-           (push-text message (wiz-error blind-message))))
+           (push-text message blind-message)))
         ((wrong-room-p castle here 'crystal-orb)
          (multiple-value-bind (wrong-room-events wrong-room-message)
              (adv-tried-wrong-room castle 'gaze here)
