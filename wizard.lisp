@@ -3229,16 +3229,16 @@ castle."
 (defparameter *without-item-outcomes*
   (list
    (make-outcome 'flares nil "Hey bright one, you're out of flares")
-   (make-outcome 'lamp   nil (lambda (race-ref)
-                                       (format nil "You don't have a lamp ~A"
-                                               (text-of-race race-ref))))
+   (make-outcome 'lamp   nil (lambda (stream castle)
+                               (format stream "You don't have a lamp ~A"
+                                       (text-of-race (adv-rc (cas-adventurer castle))))))
    (make-outcome 'runestaff nil "You can't teleport without the runestaff"))
   "Messages when the adventurer tries something without the necessary item.")
 
 ;; (defun get-message (message-key messages)
 ;;   (getf messages (intern (string message-key) 'keyword)))
 
-(defun adv-tried-without-item (item &rest args)
+(defun adv-tried-without-item (castle item)
   "What happens when the adventurer tries to use something they don't have?"
   (let ((events (make-history))
         (message (make-text)))
@@ -3250,9 +3250,7 @@ castle."
         (join-history events (funcall outcome-effect)))
       (when outcome-text
         (push-text message
-                   (etypecase outcome-text
-                     (string outcome-text)
-                     (function (apply outcome-text args))))))
+                   (wiz-format-error nil outcome-text castle))))
     (values events message)))
 
 (defparameter *wrong-room-outcomes*
@@ -3374,9 +3372,9 @@ castle."
            (push-text message blind-message)))
         ((adv-without-item-p adv 'flares)
          (multiple-value-bind (without-item-events without-item-message)
-             (adv-tried-without-item 'flares)
+             (adv-tried-without-item castle 'flares)
            (join-history events without-item-events)
-           (push-text message (wiz-error without-item-message))))
+           (push-text message without-item-message)))
         (t
          (decf-inv (adv-fl adv))
          (let ((near-coords (get-near-coords castle here)))
@@ -3417,9 +3415,9 @@ castle."
            (push-text message blind-message)))
         ((adv-without-item-p adv 'lamp)
          (multiple-value-bind (without-item-events without-item-message)
-             (adv-tried-without-item 'lamp (adv-rc adv))
+             (adv-tried-without-item castle 'lamp)
            (join-history events without-item-events)
-           (push-text message (wiz-error without-item-message))))
+           (push-text message without-item-message)))
         (t
          (let ((direction
                 (or direction
@@ -3826,9 +3824,9 @@ into the orb."
             (message (make-text)))
         (cond ((adv-without-item-p adv 'runestaff)
                (multiple-value-bind (without-item-events without-item-message)
-                   (adv-tried-without-item 'runestaff)
+                   (adv-tried-without-item castle 'runestaff)
                  (join-history events without-item-events)
-                 (push-text message (wiz-error without-item-message))))
+                 (push-text message without-item-message)))
               (t
                (record-events events (make-event 'adv-used 'runestaff))
                (destructuring-bind (outcome-name outcome-effect outcome-text)
