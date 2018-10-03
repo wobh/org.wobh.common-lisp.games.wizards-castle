@@ -3674,7 +3674,7 @@ into the orb."
                           ((find outcome-name
                                  '(dexterity-manual strength-manual))
                            (format nil
-                                   "It's a manual of ~A" outcome-text))
+                                   "it's a manual of ~A" outcome-text))
                           ((eq outcome-name 'magazine)
                            (funcall outcome-text (random-race)))
                           (t outcome-text))))
