@@ -4247,19 +4247,24 @@ passed in must not also have an adventurer already in it."
                   :cr (leech)))
   "Test adventurers")
 
-(defun make-test-adv (&optional adv-name)
-  "Make one of several pre-generated characters."
+(defun make-basic-adv ()
   (apply #'make-adventurer
-         (getf *adventurers*
-               adv-name
-               (list :rc 'human
-                     :sx (random-sex (make-random-state t))
-                     ;; NOTE: the randomly chosen sex for the
-                     ;; default adventurer uses a random state
-                     ;; independant from *R*.
-                     :st 11 :iq 10  :dx 11
-                     :wv  2 :av  2  :ah 14
-                     :gp  0 :lf  t  :fl  0))))
+         (list :rc 'human
+               :sx (random-sex (make-random-state t))
+               ;; NOTE: the randomly chosen sex for the
+               ;; default adventurer uses a random state
+               ;; independant from *R*.
+               :st 11 :iq 10  :dx 11
+               :wv  2 :av  2  :ah 14
+               :gp  0 :lf  t  :fl  0)))
+
+(defun make-test-adv (adv-name)
+  "Make one of several pre-generated characters."
+  (if (eql adv-name :basic)
+      (make-basic-adv)
+      (apply #'make-adventurer
+             (getf *adventurers*
+                   adv-name))))
 
 (defun map-all-rooms (&key (adv *a*) (castle *z*))
   "Maps all the rooms in a castle."
@@ -4274,10 +4279,10 @@ passed in must not also have an adventurer already in it."
   "Set or reset test environment."
   (let ((*random-state* (make-random-state *r*)))
     (setf *z* (setup-castle t))
-    (setf *a* (make-test-adv adv-name))
+    (setf *a* (and adv-name (make-test-adv adv-name)))
     (when map-all-rooms
       (map-all-rooms :adv *a* :castle *z*))
-    (when enter-castle
+    (when (and *a* enter-castle)
       (join-history (cas-history *z*)
                     (adv-enters-castle *z* *a*)))
     (values *a* *z*)))
@@ -4338,17 +4343,17 @@ passed in must not also have an adventurer already in it."
 
 ;;; Tests
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :basic)))
   (assert (adv-alive-p *a*))
   (setf (adv-st *a*) 0)
   (assert (null (adv-alive-p *a*))))
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :basic)))
   (assert (adv-alive-p *a*))
   (setf (adv-dx *a*) 0)
   (assert (null (adv-alive-p *a*))))
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :basic)))
   (assert (adv-alive-p *a*))
   (setf (adv-iq *a*) 0)
   (assert (null (adv-alive-p *a*))))
@@ -4367,7 +4372,7 @@ passed in must not also have an adventurer already in it."
 ;;                 adv)
 ;;        (assert (= +adv-rank-min+ (funcall ranking adv)))))
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :basic)))
   (with-accessors ((st adv-st) (iq adv-iq) (dx adv-dx)) *a*
     (assert (equal '(11 10 11) (list st iq dx))))
   (loop
@@ -4395,7 +4400,7 @@ passed in must not also have an adventurer already in it."
           (text-of-creature 'runestaff)
           *a*))
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :basic)))
   (assert (null (cast-spells-p *a*)) ()
           "This adventurer should not be able to cast spells: ~S" *a*)
   (assert (equal '(nil
@@ -4423,7 +4428,7 @@ passed in must not also have an adventurer already in it."
                        (make-adv-smarter *a* 2)
                        (cast-spells-p *a*)))))
 
-(let ((*a* (make-test-adv)))
+(let ((*a* (make-test-adv :basic)))
   (with-accessors ((fl adv-fl)) *a*
     (assert (zerop fl))
     (incf-inv fl 4)
