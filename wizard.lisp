@@ -1589,8 +1589,8 @@ limits."
         (#\M (set-adv-race rc 'human))
         (#\D (set-adv-race rc 'dwarf))
         (t   (setf choice
-                   (wiz-error
-                    "That was incorrect. Please type E, D, M, or H.")))))
+                   (wiz-format-error *wiz-err*
+                                     "That was incorrect. Please type E, D, M, or H.")))))
     (let* ((*races* '(hobbit elf human dwarf))
            (adj (* 2 (1+ (position rc *races*)))))
       (incf-adv-rank st adj)
@@ -1623,8 +1623,9 @@ limits."
       (#\M (set-adv-sex (adv-sx adv) 'male))
       (#\F (set-adv-sex (adv-sx adv) 'female))
       (t   (setf choice
-                 (wiz-error "Cute ~A, real cute. Try M or F"
-                            (adv-race adv))))))
+                 (wiz-format-error *wiz-err*
+                                   "Cute ~A, real cute. Try M or F"
+                                   (adv-race adv))))))
   adv)
 
 (defun allocate-points (adv)
@@ -1653,7 +1654,7 @@ limits."
 			    (incf-adv-rank choice
 					   (funcall ranking adv))
 			    adv))
-		 (setf choice (wiz-error "")))))
+		 (setf choice (wiz-format-error *wiz-err* "")))))
       (values adv ot))))
 
 (defparameter *catalog-fmt* "~{~A<~A>~^ ~}"
@@ -1691,12 +1692,13 @@ limits."
                               (get-catalog-price 'leather catalog) adv))
           (#\N 'no-armor)
           (t   (setf choice
-                     (wiz-error "Are you ~A or a ~A ? Type P,C,L, or N"
-                                (text-of-creature
-                                 ;; NOTE: Dragons are excluded from the list
-                                 ;; of beasts of insult
-                                 (random-elt (remove 'dragon *monsters*)))
-                                race))))))))
+                     (wiz-format-error *wiz-err*
+                                       "Are you ~A or a ~A ? Type P,C,L, or N"
+                                       (text-of-creature
+                                        ;; NOTE: Dragons are excluded from the list
+                                        ;; of beasts of insult
+                                        (random-elt (remove 'dragon *monsters*)))
+                                       race))))))))
 
 
 (defun buy-weapon (adv)
@@ -1713,8 +1715,9 @@ limits."
           (#\D (buy-equipment 'dagger (get-catalog-price 'dagger catalog) adv))
           (#\N 'no-weapon)
           (t   (setf choice
-                     (wiz-error  "Is your IQ really ~D? Type S, M, D, or N"
-                                 (adv-iq adv)))))))))
+                     (wiz-format-error *wiz-out*
+                                       "Is your IQ really ~D? Type S, M, D, or N"
+                                       (adv-iq adv)))))))))
 
 (defun buy-lamp (adv)
   "The adventurer may buy a lamp."
@@ -1734,10 +1737,13 @@ limits."
         (cond ((typep flares (list 'integer 0 gp))
                (buy-equipment (list 'flares flares) flares adv))
               ((typep flares (list 'integer (1+ gp)))
-               (setf flares (wiz-error "You can only afford ~D" gp)))
+               (setf flares (wiz-format-error *wiz-err*
+                                              "You can only afford ~D"
+                                              gp)))
               (t
-               (setf flares (wiz-error
-                             "If you don't want any just type 0 (zero)"))))))))
+               (setf flares
+                     (wiz-format-error *wiz-err*
+                                       "If you don't want any just type 0 (zero)"))))))))
 
 (defun setup-adventurer ()
   "Make pc avatar"
