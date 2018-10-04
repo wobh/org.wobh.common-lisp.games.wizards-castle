@@ -401,7 +401,9 @@ different input is needed."
     (case input
       (#\Y t)
       (#\N nil)
-      (t (setf input (wiz-error "Answer yes or no "))))))
+      (t (setf input
+               (wiz-format-error *wiz-err*
+                                 "Answer yes or no "))))))
 
 (defun wiz-y-p (prompt &optional message)
   (when message
@@ -423,7 +425,9 @@ returns INPUT-ERROR."
       (#\W 'west)
       (#\S 'south)
       (t (if input-error-message
-             (setf direction (wiz-error input-error-message))
+             (setf direction
+                   (wiz-format-error *wiz-err*
+                                     input-error-message))
              'input-error)))))
 
 ;;; ASCII controls used in code:
@@ -3434,7 +3438,8 @@ castle."
                   (record-events events
                                  (make-event 'player-error 'bad-lamp-direction))
                   (push-text message
-                             (wiz-error "Turkey! That's not a direction")))
+                             (wiz-format-error nil
+                                               "Turkey! That's not a direction")))
                  (t
                   (let* ((there (cas-adv-near castle direction))
                          (creature (get-castle-creature castle there)))
@@ -4034,15 +4039,17 @@ into the orb."
                       (make-event 'player-error 'quit-canceled)))
     (unless (event-kind-p (latest-event events) 'player-quit-game)
       (push-text message
-                 (wiz-error "Then don't say that you do")))
+                 (wiz-format-error nil
+                                   "Then don't say that you do")))
     (values events message)))
 
 (defun player-error (castle error-type &rest args)
   "Return event and messages when there's an input error."
   (values
    (make-history (make-event* 'player-error error-type args))
-   (wiz-error (format nil "Stupid ~A that wasn't a valid command"
-                      (adv-race (cas-adventurer castle))))))
+   (wiz-format-error *wiz-err*
+                     "Stupid ~A that wasn't a valid command"
+                     (adv-race (cas-adventurer castle)))))
 
 (defun main-read (&optional (stream *wiz-qio*))
   "The reader for the main input."
