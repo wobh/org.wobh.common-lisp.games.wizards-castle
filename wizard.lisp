@@ -2856,8 +2856,8 @@ castle."
       (multiple-value-bind (foe-attack-events foe-attack-message)
           (foe-attacks castle)
         (join-history events foe-attack-events)
-        (wiz-write-line foe-attack-message))
-      (wiz-write-line "You have escaped")
+        (wiz-format *wiz-out* foe-attack-message))
+      (wiz-format *wiz-out* "You have escaped")
       (let ((direction (wiz-read-direction
                         "Do you go north, south, east, or west "
                         (format nil "Don't press your luck ~A"
@@ -2974,7 +2974,7 @@ castle."
                (funcall fight-form castle)
              (join-history events action-events)
              (when action-message
-               (wiz-write-line action-message)))
+               (wiz-format *wiz-out* action-message)))
            (ecase fight-form
              (adv-attacks
               (when (foe-alive-p foe)
