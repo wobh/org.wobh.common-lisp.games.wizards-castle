@@ -391,7 +391,7 @@ different input is needed."
 (defun wiz-y-or-n-p (prompt &optional message)
   "Return t, nil or requery if answer is Y, N, or something else."
   (when message
-    (wiz-write-line message))
+    (wiz-format *wiz-out* message))
   (with-player-input (input prompt :readf #'wiz-read-char)
     (case input
       (#\Y t)
@@ -402,7 +402,7 @@ different input is needed."
 
 (defun wiz-y-p (prompt &optional message)
   (when message
-    (wiz-write-line message))
+    (wiz-format *wiz-out* message))
   (with-player-input (input prompt :readf #'wiz-read-char)
     (case input
       (#\Y t)
@@ -640,7 +640,7 @@ returns INPUT-ERROR."
   (write-line (string #\page))
   (write-line "Creating Arrays")
   (when intro
-    (wiz-write-line intro)))
+    (wiz-format *wiz-out* intro)))
 
 (defun make-message-title (&optional (width *wiz-width*))
   "Print title screen"
