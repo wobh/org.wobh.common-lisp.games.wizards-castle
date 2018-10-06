@@ -2352,7 +2352,7 @@ castle."
 (defun make-message-report-inv (castle inv)
   "Make message for letting to "
   (with-accessors ((adv cas-adventurer)) castle
-    (format nil "~2&You have ~D"
+    (format nil "~2&You have ~D~%"
             (ecase inv
               (gold-pieces (adv-gp adv))
               (flares      (adv-fl adv))))))
@@ -2913,7 +2913,7 @@ castle."
   "Make the fight round prompt."
   (make-prompt-adv-choice
    (with-output-to-string (facing)
-     (format facing "~&You're facing ~A~%" (foe-text foe))
+     (format facing "~2&You're facing ~A~%" (foe-text foe))
      (format facing "~&You may attack or retreat")
      (when (foe-bribable-p foe)
        (format facing " or bribe"))
@@ -3467,7 +3467,7 @@ castle."
                                  (format text "~2&The lamp shines into ~
                                                ~{(~D,~D) Level ~D~}~%"
                                          (wiz-coords there))
-                                 (format text "~2&There you will find ~A"
+                                 (format text "~2&There you will find ~A~%"
                                          (text-of-creature creature))))))))))
       (values events message))))
 
@@ -3890,7 +3890,7 @@ into the orb."
               (text-of-weapon wv)
               (text-of-armor av)
               lf)
-      (format status "~2&Here you find ~A"
+      (format status "~2&Here you find ~A~%"
               (text-of-creature creature)))))
 
 (defun adv-enters-room (castle)
@@ -4017,7 +4017,7 @@ into the orb."
          do (apply-curse castle curse))
       (with-output-to-string (message)
 	(when (zerop (random 5))
-	  (format message "~&You ~A"
+	  (format message "~2&You ~A~%"
                   (text-of-outcome
                    (random-elt 
                     (if (blind-p adv)
