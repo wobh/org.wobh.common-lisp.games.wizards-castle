@@ -3066,8 +3066,11 @@ castle."
     (when (< 1249 gp)
       (let ((catalog (adv-budget gp *vendor-armor-catalog*))
             (events (make-history)))
-        (wiz-write-line
-         (format nil "Ok ~A, you have ~D and ~A." race gp (text-of-armor av)))
+        (wiz-format *wiz-out*
+                    "Ok ~A, you have ~D and ~A."
+                    race
+                    gp
+                    (text-of-armor av))
         (join-history
          events
          (with-player-input
@@ -3102,9 +3105,10 @@ castle."
     (when (< 1249 gp)
       (let ((catalog (adv-budget gp *vendor-weapons-catalog*))
             (events (make-history)))
-        (wiz-write-line
-         (format nil "You have ~D GP's left and ~A in hand."
-                 gp (text-of-weapon wv)))
+        (wiz-format *wiz-out*
+                    "You have ~D GP's left and ~A in hand."
+                    gp
+                    (text-of-weapon wv))
         (join-history
          events
          (with-player-input
@@ -3145,9 +3149,10 @@ castle."
                (record-event events (make-event 'adv-bought 'potion name price))
                (join-history events (make-adv-poorer adv price))
 	       (join-history events (adv-drinks-potion adv name))
-               (wiz-write-line
-                (format nil "~2&Your ~A is now ~D"
-                        name (funcall attr adv))))
+               (wiz-format *wiz-out* 
+                           "~2&Your ~A is now ~D"
+                           name
+                           (funcall attr adv)))
            until (< gp price))))
     events))
 
@@ -3157,7 +3162,7 @@ castle."
       (when (<= price gp)
         (when (wiz-y-or-n-p
                (format nil "Want a lamp for have ~D GP's " price))
-          (wiz-write-line "Its guaranteed to outlive you!")
+          (wiz-format *wiz-out* "Its guaranteed to outlive you!")
           (buy-equipment 'lamp price adv))))))
 
 (defun trade-with-vendor (adv)
@@ -3166,8 +3171,9 @@ castle."
       (join-history events (sell-treasures-to-vendor adv))
       (cond ((< gp 1000)
              (values events
-                     (wiz-write-line
-                      (format nil "~2&You're too poor to trade, ~A" race))))
+                     (wiz-format *wiz-out* 
+                                 "~2&You're too poor to trade, ~A"
+                                 race)))
             (t
              (join-history events (buy-armor-from-vendor   adv))
              (join-history events (buy-weapon-from-vendor  adv))
@@ -3191,7 +3197,7 @@ castle."
             ((eq choice #\T) (trade-with-vendor adv))
             ((eq choice #\I) (adv-ignored-vendor))
             ((eq choice #\A)
-             (wiz-write-line "You'll be sorry you did that")
+             (wiz-format *wiz-out* "You'll be sorry you did that")
              (setf (cas-vendor-fury castle) t)
              (adv-meets-adversary castle))
             (t   (setf choice
