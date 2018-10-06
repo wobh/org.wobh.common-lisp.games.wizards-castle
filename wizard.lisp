@@ -335,11 +335,6 @@ order and values."
   "Write a formatted error message to STREAM."
   (wiz-format stream "~%** ~?" string args))
 
-(defun wiz-error (string &rest args)
-  "Writes wiz-formatted error message to *WIZ-ERR*, returns nil."
-  (apply #'wiz-format-error *wiz-err* string args)
-  (finish-output *wiz-err*))
-
 (defun wiz-prompt (string &rest args)
   "Write a prompt."
   (terpri *wiz-qio*)
