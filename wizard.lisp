@@ -1579,7 +1579,7 @@ limits."
 
 (defun choose-race (adv)
   "Choose the adventurer's race."
-  (wiz-write-line "You may be an Elf, Dwarf, Man, or Hobbit")
+  (wiz-format *wiz-out* "You may be an Elf, Dwarf, Man, or Hobbit")
   (with-accessors ((rc adv-rc) (st adv-st) (dx adv-dx)) adv
     (with-player-input (choice (make-prompt-adv-choice))
       (case choice
@@ -1632,13 +1632,12 @@ limits."
   (with-accessors ((race adv-race)
                    (st adv-st) (dx adv-dx) (iq adv-iq)) adv
     (let ((ot (if (eq (adv-rc adv) 'hobbit) 12 8)))
-      (wiz-write-line
-       (with-output-to-string (stats)
-         (wiz-format stats "~|~&Ok ~A, you have these statistics:~%" race)
-         (wiz-format stats "~&strength= ~D intelligence= ~D dexterity= ~D~%"
-                     st iq dx)
-         (wiz-format stats "~&and ~D other points to allocate as you wish.~%"
-                     ot)))
+      (wiz-format *wiz-out*
+                  "~|~
+                   ~&Ok ~A, you have these statistics:~%~
+                   ~&strength= ~D intelligence= ~D dexterity= ~D~%~
+                   ~&and ~D other points to allocate as you wish.~%"
+                  race st iq dx ot)
       (loop
          for (ranking ranking-text) in *rankings*
 	 for prompt = (wiz-format nil
