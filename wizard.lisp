@@ -2598,7 +2598,9 @@ castle."
       (#\W 'adv-casts-spell-web)
       (#\F 'adv-casts-spell-fireball)
       (#\D 'adv-casts-spell-death)
-      (t   (setf spell (wiz-error "Choose one of the listed options"))))))
+      (t   (setf spell
+                 (wiz-format-error *wiz-err*
+                                   "Choose one of the listed options"))))))
 
 (defun adv-casts-spell (castle)
   "The adventurer casts a spell."
@@ -2606,7 +2608,7 @@ castle."
                    (foe latest-foe)) castle
     (if (or (cast-spells-p adv) (foe-enwebbed-p foe))
         (funcall (symbol-function (choose-spell)) castle)
-        (wiz-error "You can't cast a spell now!"))))
+        (wiz-format-error nil "You can't cast a spell now!"))))
 
 ;; Powers, 1980; 2500--2600
 
@@ -2763,13 +2765,14 @@ castle."
         ((not (armed-p adv))
          (record-event events (make-event 'adv-tried 'unarmed-attack))
          (push-text message
-                    (wiz-error
-                     (format nil "Pounding on ~A won't hurt it~%"
-                             (text-of-creature (foe-creature foe))))))
+                    (wiz-format-error nil
+                                      "Pounding on ~A won't hurt it~%"
+                                      (text-of-creature (foe-creature foe)))))
         ((bound-p adv)
          (record-event events (make-event 'adv-tried 'attack-with-hands-bound))
          (push-text message
-                    (wiz-error "You can't beat it to death with a book!!~%")))
+                    (wiz-format-error nil
+                                      "You can't beat it to death with a book!!~%")))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (make-adv-strike adv)
@@ -2935,7 +2938,8 @@ castle."
         (#\B 'adv-bribes)
         (#\C 'adv-casts-spell)
         (t   (setf choice
-                   (wiz-error "Choose one of the listed options")))))))
+                   (wiz-format-error *wiz-err*
+                                      "Choose one of the listed options")))))))
 
 (defun fight-end-p (events)
   "Return true if fight is over"
@@ -3077,18 +3081,21 @@ castle."
              (#\P (if (find 'plate catalog :key 'first)
                       (buy-equipment
                        'plate (get-catalog-price 'plate catalog) adv)
-                      (setf armor (wiz-error "You can't afford plate"))))
+                      (setf armor
+                            (wiz-format-error *wiz-err*
+                                              "You can't afford plate"))))
              (#\C (if (find 'chainmail catalog :key 'first)
                       (buy-equipment
                        'chainmail (get-catalog-price 'chainmail catalog) adv)
                       (setf armor
-                            (wiz-error "You haven't got that much cash"))))
+                            (wiz-format-error *wiz-err*
+                                              "You haven't got that much cash"))))
              (#\L (buy-equipment
                    'leather (get-catalog-price 'leather catalog) adv))
              (#\N (make-history (make-event 'adv-bought 'no-armor)))
              (t   (setf armor
-                        (wiz-error
-                         "Don't be silly. Choose a selection"))))))))))
+                        (wiz-format-error *wiz-err*
+                                          "Don't be silly. Choose a selection"))))))))))
 
 (defparameter *vendor-weapons-catalog*
   '((no-weapon 0) (dagger 1250) (mace 1500) (sword 2000))
@@ -3111,17 +3118,22 @@ castle."
              (#\S (if (find 'sword catalog :key 'first)
                       (buy-equipment 'sword
                                      (get-catalog-price 'sword catalog) adv)
-                      (setf weapon (wiz-error "Dungeon express card - ~
+                      (setf weapon
+                            (wiz-format-error *wiz-err*
+                                              "Dungeon express card - ~
                                                you left home without it!"))))
              (#\M (if (find 'mace catalog :key 'first)
                       (buy-equipment 'mace
                                      (get-catalog-price 'mace catalog) adv)
                       (setf weapon
-                            (wiz-error "Sorry sir, I don't give credit"))))
+                            (wiz-format-error *wiz-err*
+                                              "Sorry sir, I don't give credit"))))
              (#\D (buy-equipment 'dagger
                                  (get-catalog-price 'dagger catalog) adv))
              (#\N (make-history (make-event 'adv-bought 'no-weapon)))
-             (t (setf weapon (wiz-error "Try choosing a selection"))))))))))
+             (t (setf weapon
+                      (wiz-format-error *wiz-err*
+                                        "Try choosing a selection"))))))))))
 
 (defun buy-potions-from-vendor (adv)
   "The adventurer may buy potions from a castle vendor."
@@ -3187,7 +3199,10 @@ castle."
              (wiz-write-line "You'll be sorry you did that")
              (setf (cas-vendor-fury castle) t)
              (adv-meets-adversary castle))
-            (t   (setf choice (wiz-error "Nice shot, ~A" (adv-race adv)))))))))
+            (t   (setf choice
+                       (wiz-format-error *wiz-err*
+                                         "Nice shot, ~A"
+                                         (adv-race adv)))))))))
 
 
 ;;;; Entering, exiting
@@ -3821,7 +3836,9 @@ into the orb."
                 (with-player-input (coord prompt :readf #'wiz-read-n)
                   (cond ((typep coord (list 'integer min max))
                          coord)
-                        (t (setf coord (wiz-error error-text))))))))
+                        (t (setf coord
+                                 (wiz-format-error *wiz-err*
+                                                   error-text))))))))
       ;; (when (eq *cas-coords* 'zot)
       ;;        (rotatef (nth 1 coords) (nth 2 coords)))
       (if (eq *cas-coords* 'zot)
