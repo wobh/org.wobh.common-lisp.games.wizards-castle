@@ -323,10 +323,6 @@ order and values."
   "Format a string for output in wizard's castle."
   (apply #'format stream *wiz-format-string* str args))
 
-(defun wiz-write-line (string &key (stream *wiz-out*) (start 0) end)
-  "Write a line in Wizard's Castle."
-  (write-line (wiz-format nil string) stream :start start :end end))
-
 (defun wiz-write-string (string &key (stream *wiz-out*) (start 0) end)
   "Write a string in Wizard's Castle." 
   (write-string (wiz-format nil string) stream :start start :end end))
