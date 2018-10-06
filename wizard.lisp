@@ -4108,7 +4108,7 @@ into the orb."
              (apply (first wiz-form) castle (rest wiz-form))
            (join-history history events)
            (when message
-             (wiz-write-line message)))
+             (wiz-format *wiz-out* message)))
          (cond ((eq (first wiz-form) 'adv-enters-room)
                 (setf wiz-form (make-wiz-form 'adv-finds-creature)))
                ((latest-event-p history 'adv-entered-room)
@@ -4176,7 +4176,7 @@ into the orb."
 passed in must not also have an adventurer already in it."
   ;; (setf *random-state* (make-random-state t))
   (launch intro)
-  (wiz-write-line (make-message-title))
+  (wiz-format *wiz-out* (make-message-title))
   (when help
     (setf *wiz-help* help))
   (loop
@@ -4191,24 +4191,25 @@ passed in must not also have an adventurer already in it."
        (with-accessors ((adv cas-adventurer)
                         (history cas-history)) castle
          (when message
-           (wiz-write-line message))
+           (wiz-format *wiz-out* message))
          (loop
             with ending = nil
             for message = (main-eval castle (funcall main-input))
             do
               (when message
-                (wiz-write-line message))
+                (wiz-format *wiz-out* message))
               (setf ending (end-game-p castle))
             until (not (null ending))
             finally
               (when (eq ending 'death)
                 (sleep-of-death))
-              (wiz-write-line
-               (make-message-end-game
-                adv ending (count-turns history)))))
+              (wiz-format *wiz-out*
+                          (make-message-end-game adv
+                                                 ending
+                                                 (count-turns history)))))
        (setf play-again (play-again-p))
-       (wiz-write-line
-        (make-message-play-again castle play-again))
+       (wiz-format *wiz-out*
+                   (make-message-play-again castle play-again))
        (when play-again
          (setf adventurer nil castle nil))
      until (null play-again)))
@@ -4347,7 +4348,7 @@ passed in must not also have an adventurer already in it."
            (record-event turn (oldest-event events))
            (join-history history events)
            (when message
-             (wiz-write-line message)))
+             (wiz-format *wiz-out* message)))
          (cond ((eq (first wiz-form) 'adv-enters-room)
                 (setf wiz-form (make-wiz-form 'adv-finds-creature)))
                ((latest-event-p history 'adv-entered-room)
