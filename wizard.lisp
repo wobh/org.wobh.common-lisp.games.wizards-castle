@@ -1717,7 +1717,7 @@ limits."
     (when (< 0 gp)
       (wiz-format *wiz-out*
                   "~|~&Ok, ~A, you have ~D gold pieces left~%" race gp)
-      (with-player-input (flares "Flares cost 1 GP each. How many do you want "
+      (with-player-input (flares "~&Flares cost 1 GP each. How many do you want "
                                  :readf #'wiz-read-n)
         (cond ((typep flares (list 'integer 0 gp))
                (buy-equipment (list 'flares flares) flares adv))
@@ -2574,7 +2574,7 @@ castle."
 
 (defun choose-spell ()
   "Adventurer chooses a spell to cast."
-  (with-player-input (spell "Which spell (web, fireball, or deathspell) ")
+  (with-player-input (spell "~&Which spell (web, fireball, or deathspell) ")
     (case spell
       (#\W 'adv-casts-spell-web)
       (#\F 'adv-casts-spell-fireball)
@@ -2845,8 +2845,8 @@ castle."
         (wiz-format *wiz-out* foe-attack-message))
       (wiz-format *wiz-out* "You have escaped")
       (let ((direction (wiz-read-direction
-                        "Do you go north, south, east, or west "
-                        (format nil "Don't press your luck ~A"
+                        "~&Do you go north, south, east, or west "
+                        (format nil "~&Don't press your luck ~A"
                                 (adv-race adv)))))
         (record-event events (make-event 'adv-retreated direction))
         (join-history events (move-adv castle direction))
@@ -3178,7 +3178,7 @@ castle."
         (with-player-input
             (choice
              (make-prompt-adv-choice
-              "You may trade with, attack, or ignore the vendor"))
+              "~&You may trade with, attack, or ignore the vendor"))
           (cond
             ((eq choice #\T) (trade-with-vendor adv))
             ((eq choice #\I) (adv-ignored-vendor))
