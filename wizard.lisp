@@ -352,8 +352,8 @@ order and values."
   "Make a prompt with 'Your choice' at the end."
   (let ((prompt "Your choice "))
     (if intro
-        (wiz-format nil "~2&~A~2%~(~A~)" intro prompt)
-        (wiz-format nil "~2&~A" prompt))))
+        (format nil "~2&~A~2%~(~A~)" intro prompt)
+        (format nil "~2&~A" prompt))))
 
 (defmacro with-player-input
     ((var prompt &key
@@ -1627,8 +1627,9 @@ limits."
                   race st iq dx ot)
       (loop
          for (ranking ranking-text) in *rankings*
-	 for prompt = (wiz-format nil
-				  "~2&How many points do you add to ~A " ranking-text)
+	 for prompt = (format nil
+			      "~2&How many points do you add to ~A "
+                              ranking-text)
          while (< 0 ot)
          do
 	   (with-player-input (choice prompt :readf #'wiz-read-n)
@@ -2616,8 +2617,9 @@ castle."
               (push-text message "'All I want is your life!'"))
              (t
               (when (wiz-y-or-n-p
-                     (wiz-format nil "I want ~A will you give it too me "
-                                 (text-of-creature treasure)))
+                     (format nil
+                             "I want ~A will you give it too me "
+                             (text-of-creature treasure)))
                 (lose-treasure adv treasure)
                 (record-event events (make-event 'adv-bribed foe-name treasure))
                 (push-text message "OK, just don't tell anyone")
@@ -3035,7 +3037,9 @@ castle."
          (let ((tr-t (text-of-creature tr))
                (tr-v (random (* (1+ (value-of-treasure tr)) 1500))))
            (when (wiz-y-or-n-p
-                  (wiz-format nil "Do you want to sell ~A for ~D " tr-t tr-v))
+                  (format nil
+                          "~&Do you want to sell ~A for ~D "
+                          tr-t tr-v))
              (join-history events (sell-treasure adv tr tr-v)))))))
 
 (defun adv-budget (gp catalog)
