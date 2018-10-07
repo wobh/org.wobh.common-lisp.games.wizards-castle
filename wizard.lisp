@@ -323,10 +323,6 @@ order and values."
   "Format a string for output in wizard's castle."
   (apply #'format stream *wiz-format-string* str args))
 
-(defun wiz-write-string (string &key (stream *wiz-out*) (start 0) end)
-  "Write a string in Wizard's Castle." 
-  (write-string (wiz-format nil string) stream :start start :end end))
-
 (defun wiz-format-error (stream string &rest args)
   "Write a formatted error message to STREAM."
   (wiz-format stream "~%** ~?" string args))
@@ -2103,7 +2099,7 @@ castle."
          (height (castle-height (cas-rooms castle)))
          (lvl-mt (loop for level from 0 below height
                     collect (shuffle (list-empty-room-indices castle level)))))
-    (unless silent (wiz-write-string "Please be patient - "))
+    (unless silent (wiz-format *wiz-out* "Please be patient - "))
     ;; Place entrance (2)
     (with-accessors ((rooms cas-rooms)
                      (orb cas-loc-orb)
@@ -2112,7 +2108,7 @@ castle."
       (setf (get-castle-creature castle *entrance*) 'entrance)
       (setf (elt lvl-mt 0)
             (remove (castle-coords-index castle *entrance*) (elt lvl-mt 0)))
-    (unless silent (wiz-write-string "in"))
+    (unless silent (wiz-format *wiz-out* "in"))
       (flet ((random-lvl-room (level)
                (pop (elt lvl-mt level)))
              (random-cas-room ()
@@ -2139,12 +2135,12 @@ castle."
                     (setf (get-castle-creature castle up) 'stairs-up)
                     (setf (elt lvl-mt lvl-up)
                           (remove up (elt lvl-mt lvl-up))))))
-        (unless silent (wiz-write-string "i"))
+        (unless silent (wiz-format *wiz-out* "i"))
         ;; Place monsters (13 - 24).
         ;; 1 each monster on all floors
         (loop
            for level from 0 below height
-           for ch across "tializin"
+           for char across "tializin"
            do
              (loop
                 for monster in *monsters*
@@ -2152,7 +2148,7 @@ castle."
                   (setf (get-castle-creature castle (random-lvl-room level))
                         monster))
            ;; (place-creatures-on-level castle level *monsters*)
-             (unless silent (wiz-write-string (string ch))))
+             (unless silent (wiz-format *wiz-out* "~C" char)))
         ;; Place vendor and items.
         ;; 3 each item on all floors (5 - 12)
         ;; 1 vendor on all floors (25)
@@ -2170,7 +2166,7 @@ castle."
                   (setf (get-castle-creature castle (random-lvl-room level))
                         'vendor))
            finally
-             (unless silent (wiz-write-string "g")))
+             (unless silent (wiz-format *wiz-out* "g")))
         ;; (place-creatures-on-level castle level *rooms* :population 3)
         ;; Place unique things.
         (let ((cas-mt (shuffle (list-empty-room-indices castle))))
@@ -2183,14 +2179,14 @@ castle."
           ;; Place curses. 1 curse in 3 random empty rooms.
           (loop
              for curse in curses 
-             for s across " ca"
+             for char across " ca"
              do
                (setf (third curse)
                      (castle-index-coords castle (random-elt cas-mt)))
              ;; Multiple curses can be in the same room.
-               (unless silent (wiz-write-string (string s)))
+               (unless silent (wiz-format *wiz-out* "~C" char))
              finally
-               (unless silent (wiz-write-string "s")))
+               (unless silent (wiz-format *wiz-out* "s")))
           ;; Place runestaff with 1 random monster (13 - 24).
           (let ((loc-rune (pop cas-mt)))
             (setf (get-castle-creature castle loc-rune) (random-monster)
@@ -2200,7 +2196,7 @@ castle."
           (let ((loc-orb (pop cas-mt)))
             (setf (get-castle-creature castle loc-orb) 'warp
                   orb (array-index-row-major (cas-rooms castle) loc-orb)))
-          (unless silent (wiz-write-string "tle"))))
+          (unless silent (wiz-format *wiz-out* "tle"))))
       (unless silent (wiz-format *wiz-out* "~%~%"))
       castle)))
 
