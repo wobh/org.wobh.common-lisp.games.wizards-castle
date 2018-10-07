@@ -331,11 +331,6 @@ order and values."
   "Write a formatted error message to STREAM."
   (wiz-format stream "~%** ~?" string args))
 
-(defun wiz-prompt (string &rest args)
-  "Write a prompt."
-  (terpri *wiz-qio*)
-  (wiz-write-string (apply #'wiz-format nil string args)))
-
 (defun wiz-read-line (&optional (stream *wiz-qio*))
   "Read a line of player input."
   (read-line stream))
@@ -367,7 +362,7 @@ order and values."
 (defmacro with-player-input
     ((var prompt &key
           (readf #'wiz-read-char) (istream *wiz-qio*)
-          (writef #'wiz-prompt)   (ostream *wiz-qio*))
+          (writef #'wiz-format)   (ostream *wiz-qio*))
      &body body)
   "Read input to var and do something with it or set var to nil if a
 different input is needed."
@@ -376,7 +371,7 @@ different input is needed."
         with ,var = nil
         with ,out = nil
         do
-          (funcall ,writef ,prompt ,ostream)
+          (funcall ,writef ,ostream ,prompt)
           (finish-output ,ostream)
           (clear-input ,istream)
           (setf ,var (funcall ,readf ,istream))
