@@ -357,12 +357,12 @@ order and values."
        (zot   (1- coord))
        (array coord)))))
 
-(defun make-prompt-adv-choice (&optional string)
+(defun make-prompt-adv-choice (&optional intro)
   "Make a prompt with 'Your choice' at the end."
   (let ((prompt "Your choice "))
-    (if string
-        (wiz-format nil "~A~%~&~A" string prompt)
-        (wiz-format nil "~&~A" prompt))))
+    (if intro
+        (wiz-format nil "~2&~A~2%~(~A~)" intro prompt)
+        (wiz-format nil "~2&~A" prompt))))
 
 (defmacro with-player-input
     ((var prompt &key
@@ -1575,7 +1575,7 @@ limits."
 
 (defun choose-race (adv)
   "Choose the adventurer's race."
-  (wiz-format *wiz-out* "You may be an Elf, Dwarf, Man, or Hobbit")
+  (wiz-format *wiz-out* "~2&You may be an Elf, Dwarf, Man, or Hobbit")
   (with-accessors ((rc adv-rc) (st adv-st) (dx adv-dx)) adv
     (with-player-input (choice (make-prompt-adv-choice))
       (case choice
@@ -1613,7 +1613,7 @@ limits."
 
 (defun choose-sex (adv)
   "Choose the adventurer's sex."
-  (with-player-input (choice "Sex ")
+  (with-player-input (choice "~&Sex ")
     (case choice
       (#\M (set-adv-sex (adv-sx adv) 'male))
       (#\F (set-adv-sex (adv-sx adv) 'female))
@@ -1637,7 +1637,7 @@ limits."
       (loop
          for (ranking ranking-text) in *rankings*
 	 for prompt = (wiz-format nil
-				  "How many points do you add to ~A " ranking-text)
+				  "~2&How many points do you add to ~A " ranking-text)
          while (< 0 ot)
          do
 	   (with-player-input (choice prompt :readf #'wiz-read-n)
@@ -1658,9 +1658,9 @@ limits."
   (make-prompt-adv-choice
    (with-output-to-string (catalog)
      (wiz-format catalog
-                 "~&Here is a list of ~A you can buy (with cost in <>)~%"
+                 "~2&Here is a list of ~A you can buy (with cost in <>)"
                  stuff)
-     (wiz-format catalog "~&~{~{~A<~D>~^ ~}~}~%"
+     (wiz-format catalog "~&~{~{~A<~D>~^ ~}~}"
                  (map 'list (lambda (item)
                               (list (funcall item-printer (first item))
                                     (second item)))
@@ -1716,7 +1716,7 @@ limits."
 (defun buy-lamp (adv)
   "The adventurer may buy a lamp."
   (when (< 19 (adv-gp adv))
-    (when (wiz-y-or-n-p "~|Do you want to buy a lamp for 20 GP's ")
+    (when (wiz-y-or-n-p "~|~&Do you want to buy a lamp for 20 GP's ")
       (buy-equipment 'lamp 20 adv))
     (adv-lf adv)))
 
@@ -2797,8 +2797,8 @@ castle."
 
 (defparameter *foe-attack-outcomes*
   (list
-   (list 'foe-strike-missed nil "  Hah! He missed you")
-   (list 'foe-strike-hit 'damage-adv "  Ouch! He hit you"))
+   (list 'foe-strike-missed nil "~2&  Hah! He missed you~%")
+   (list 'foe-strike-hit 'damage-adv "~2&  Ouch! He hit you~%"))
   "Outcomes when an adversary attacks.")
 
 (defconstant +adversary-strike-factor+ 6)
@@ -3443,7 +3443,7 @@ castle."
          (let ((direction
                 (or direction
                     (wiz-read-direction
-                     "Where do you shine the lamp (N,S,E, or W) "))))
+                     "~&Where do you shine the lamp (N,S,E, or W) "))))
                ;; No error or message if error comes from read-direction
            (cond ((eq direction 'input-error)
                   (record-events events
@@ -4142,7 +4142,7 @@ into the orb."
   (let ((commands (if help *main-commands* (butlast *main-commands* 2))))
     (lambda ()
       "Gets input and returns a form to be evaluated with the castle."
-      (with-player-input (input "Your move " :readf #'main-read)
+      (with-player-input (input "~2&Your move " :readf #'main-read)
         (let ((command (rest (assoc input commands :test #'string-equal))))
           (apply #'make-wiz-form
                  (or command
@@ -4152,15 +4152,15 @@ into the orb."
 
 (defun play-again-p ()
   ;; (when *play-again*
-  (if (wiz-y-or-n-p "Play-again ")
+  (if (wiz-y-or-n-p "~2&Play-again ")
       'player-plays)
       nil)
 
 (defun make-message-play-again (castle choice)
   (format nil
           (if (eq choice 'player-plays)
-              "Some ~A never learn~%"
-              "Maybe dumb ~A not so dumb after all~%")
+              "~2&Some ~A never learn~%"
+              "~2&Maybe dumb ~A not so dumb after all~%")
           (adv-race (cas-adventurer castle))))
 
 ;; for q=1 to 750:next q:printchr$(12):gosub3270
