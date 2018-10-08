@@ -105,7 +105,10 @@
 
 (defun random-elt (seq &optional (random-state *random-state*))
   "Get random element from sequence."
-  (elt seq (random (length seq) random-state)))
+  (case (length seq)
+    (0 nil)
+    (1 (elt seq 0))
+    (t (elt seq (random (length seq) random-state)))))
 
 (defun random-whole (limit &optional (random-state *random-state*))
   "Return random integer n, 0 < n <= `limit'."
@@ -352,7 +355,7 @@ order and values."
   "Make a prompt with 'Your choice' at the end."
   (let ((prompt "Your choice "))
     (if intro
-        (format nil "~2&~A~2%~(~A~)" intro prompt)
+        (format nil "~2&~A~2&~(~A~)" intro prompt)
         (format nil "~2&~A" prompt))))
 
 (defmacro with-player-input
@@ -1623,12 +1626,13 @@ limits."
                   "~&~|~
                    ~&Ok ~A, you have these statistics:~
                    ~&strength= ~D intelligence= ~D dexterity= ~D~
-                   ~&and ~D other points to allocate as you wish."
+                   ~&and ~D other points to allocate as you wish.~
+                   ~&"
                   race st iq dx ot)
       (loop
          for (ranking ranking-text) in *rankings*
 	 for prompt = (format nil
-			      "~2&How many points do you add to ~A "
+			      "~2&cHow many points do you add to ~A "
                               ranking-text)
          while (< 0 ot)
          do
@@ -1717,7 +1721,7 @@ limits."
   (with-accessors ((race adv-race) (gp adv-gp) (fl adv-fl)) adv
     (when (< 0 gp)
       (wiz-format *wiz-out*
-                  "~&~|~&Ok, ~A, you have ~D gold pieces left~%" race gp)
+                  "~&~|~&Ok, ~A, you have ~D gold pieces left" race gp)
       (with-player-input (flares "~&Flares cost 1 GP each. How many do you want "
                                  :readf #'wiz-read-n)
         (cond ((typep flares (list 'integer 0 gp))
@@ -2845,7 +2849,7 @@ castle."
           (foe-attacks castle)
         (join-history events foe-attack-events)
         (wiz-format *wiz-out* foe-attack-message))
-      (wiz-format *wiz-out* "You have escaped")
+      (wiz-format *wiz-out* "~&You have escaped")
       (let ((direction (wiz-read-direction
                         "~&Do you go north, south, east, or west "
                         (format nil "~&Don't press your luck ~A"
@@ -3314,7 +3318,7 @@ castle."
 (defun you-are-at (coords &optional (stream nil))
   "Make message 'You are at ...'"
   (format stream
-          "~&You are at ~{(~D,~D) Level ~D~}"
+          "~2&You are at ~{(~D,~D) Level ~D~}"
           (wiz-coords coords)))
 
 (defun make-level-map (castle level)
@@ -3456,9 +3460,9 @@ castle."
                     (push-text message
                                (with-output-to-string (text)
                                  (format text "~2&The lamp shines into ~
-                                               ~{(~D,~D) Level ~D~}~%"
+                                               ~{(~D,~D) Level ~D~}"
                                          (wiz-coords there))
-                                 (format text "~2&There you will find ~A~%"
+                                 (format text "~2&There you will find ~A"
                                          (text-of-creature creature))))))))))
       (values events message))))
 
@@ -3682,7 +3686,7 @@ into the orb."
           (join-history events outcome-effect))
         (when outcome-text
           (setf outcome-text
-                (format nil "~&You open the book and~%~A"
+                (format nil "~&You open the book and~&~A"
                         (cond
                           ((eq outcome-name 'flash-trap)
                            (funcall outcome-text (adv-rc adv)))
@@ -3702,12 +3706,12 @@ into the orb."
 (defparameter *open-chest-outcomes*
     (list
      (make-outcome 'bomb-trap
-                   'adv-springs-bomb-trap "~&KABOOM! It explodes")
+                   'adv-springs-bomb-trap "KABOOM! It explodes")
      (make-outcome 'gas-trap
-                   'adv-springs-gas-trap "~&Gas! You stagger from the room")
+                   'adv-springs-gas-trap "Gas! You stagger from the room")
      (make-outcome 'gold-pieces 'make-adv-richer
            (lambda (gps)
-             (format nil "~&Find ~D gold pieces" gps))))
+             (format nil "Find ~D gold pieces" gps))))
   "All the outcomes of opening chests.")
 
 (defconstant +gold-in-chests-maximum+ 1000)
@@ -3736,7 +3740,7 @@ into the orb."
             (join-history events outcome-effect)))
         (when outcome-text
           (setf outcome-text
-                (format nil "You open the chest and ~A~%"
+                (format nil "You open the chest and~&~A"
                         (etypecase outcome-text
                           (string outcome-text)
                           (function
@@ -3874,14 +3878,14 @@ into the orb."
                      (fl adv-fl) (gp adv-gp) (lf adv-lf)
                      (wv adv-wv) (av adv-av)) adv
       (format status
-              "~2&~{~:}~%~
-               ~&~A / ~A~@[ / a lamp~]~%"
+              "~2&~{~:}~
+               ~&~A / ~A~@[ / a lamp~]"
               "~A= ~A~^ "
               (list "ST" st "IQ" iq "DX" dx "Flares" fl "GP'S" gp)
               (text-of-weapon wv)
               (text-of-armor av)
               lf)
-      (format status "~2&Here you find ~A~%"
+      (format status "~2&Here you find ~A"
               (text-of-creature creature)))))
 
 (defun adv-enters-room (castle)
@@ -3944,7 +3948,7 @@ into the orb."
     (join-history events
                     (send-adv *entrance*))
     (push-text message
-               (format nil "~|~&Ok ~A, you enter the castle and begin.~%"
+               (format nil "~&~|~&Ok ~A, you enter the castle and begin."
                        (adv-race (cas-adventurer castle))))
     (values events message)))
 
@@ -4008,7 +4012,7 @@ into the orb."
          do (apply-curse castle curse))
       (with-output-to-string (message)
 	(when (zerop (random 5))
-	  (format message "~2&You ~A~%"
+	  (format message "~2&You ~A"
                   (text-of-outcome
                    (random-elt 
                     (if (blind-p adv)
@@ -4022,13 +4026,13 @@ into the orb."
           (when healed-sight
             (join-history history healed-sight)
             (format message
-                    "~%~A cures your blindness"
+                    "~&~A cures your blindness"
                     (text-of-creature (value-of-event (latest-event history))))))
         (let ((hand-freed (unbind-adv-hand adv)))
           (when hand-freed
             (join-history history hand-freed)
             (format message
-                    "~%~A dissolves the book"
+                    "~&~A dissolves the book"
                     (text-of-creature (value-of-event (latest-event history))))))))))
 
 
