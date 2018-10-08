@@ -325,7 +325,7 @@ order and values."
 
 (defun wiz-format-error (stream string &rest args)
   "Write a formatted error message to STREAM."
-  (wiz-format stream "~%** ~?" string args))
+  (wiz-format stream "~2&** ~?" string args))
 
 (defun wiz-read-line (&optional (stream *wiz-qio*))
   "Read a line of player input."
@@ -634,14 +634,14 @@ returns INPUT-ERROR."
   (let ((stars (make-string width :initial-element #\*))
         (title "THE WIZARD'S CASTLE"))
     (with-output-to-string (message)
-      (format message "~|")
-      (format message "~2&~A~%~%" stars)
-      (format message "~&~VT~A~%"
+      (format message "~&~|~&")
+      (format message "~&~A" stars)
+      (format message "~2&~VT~A"
               (1- (floor (- width (length title)) 2)) title)
-      (format message "~2&~A~%"  stars)
+      (format message "~2&~A"  stars)
       (format message "~2&~A"
               "Copyright 1980 (C) 1980 by Joseph R Power")
-      (format message "~2&~A~%~%"  "Last Revised - 04/12/80"))))
+      (format message "~2&~A~2%"  "Last Revised - 04/12/80"))))
 
 ;; FIXME what should I do about form-feed (CHR$(12)? clear screen CLS?
 ;; Seems likely the revision date here means 1980-04-12
@@ -1620,10 +1620,10 @@ limits."
                    (st adv-st) (dx adv-dx) (iq adv-iq)) adv
     (let ((ot (if (eq (adv-rc adv) 'hobbit) 12 8)))
       (wiz-format *wiz-out*
-                  "~|~
-                   ~&Ok ~A, you have these statistics:~%~
-                   ~&strength= ~D intelligence= ~D dexterity= ~D~%~
-                   ~&and ~D other points to allocate as you wish.~%"
+                  "~&~|~
+                   ~&Ok ~A, you have these statistics:~
+                   ~&strength= ~D intelligence= ~D dexterity= ~D~
+                   ~&and ~D other points to allocate as you wish."
                   race st iq dx ot)
       (loop
          for (ranking ranking-text) in *rankings*
@@ -1667,7 +1667,7 @@ limits."
   (with-accessors ((race adv-race) (gp adv-gp)) adv
     (let* ((catalog '((no-armor 0) (leather 10) (chainmail 20) (plate 30)))
            (prompt (make-prompt-catalog "armor" #'text-of-armor catalog)))
-      (wiz-format *wiz-out* "~|~2&Ok ~A, you have ~D gold pieces (GP's)"
+      (wiz-format *wiz-out* "~&~|~2&Ok ~A, you have ~D gold pieces (GP's)"
                   race gp)
       (with-player-input (choice prompt)
         (case choice
@@ -1692,7 +1692,7 @@ limits."
   (with-accessors ((race adv-race) (gp adv-gp)) adv
     (let* ((catalog '((no-weapon 0) (dagger 10) (mace 20) (sword 30)))
            (prompt (make-prompt-catalog "weapon" #'text-of-weapon catalog)))
-      (wiz-format *wiz-out*  "~|~2&Ok, bold ~A, you have ~D GP's left"
+      (wiz-format *wiz-out*  "~&~|~2&Ok, bold ~A, you have ~D GP's left"
                   race gp)
       (with-player-input (choice prompt)
         (case choice
@@ -1708,7 +1708,7 @@ limits."
 (defun buy-lamp (adv)
   "The adventurer may buy a lamp."
   (when (< 19 (adv-gp adv))
-    (when (wiz-y-or-n-p "~|~&Do you want to buy a lamp for 20 GP's ")
+    (when (wiz-y-or-n-p "~&~|~&Do you want to buy a lamp for 20 GP's ")
       (buy-equipment 'lamp 20 adv))
     (adv-lf adv)))
 
@@ -1717,7 +1717,7 @@ limits."
   (with-accessors ((race adv-race) (gp adv-gp) (fl adv-fl)) adv
     (when (< 0 gp)
       (wiz-format *wiz-out*
-                  "~|~&Ok, ~A, you have ~D gold pieces left~%" race gp)
+                  "~&~|~&Ok, ~A, you have ~D gold pieces left~%" race gp)
       (with-player-input (flares "~&Flares cost 1 GP each. How many do you want "
                                  :readf #'wiz-read-n)
         (cond ((typep flares (list 'integer 0 gp))
@@ -1733,7 +1733,7 @@ limits."
 
 (defun setup-adventurer ()
   "Make pc avatar"
-  (wiz-format t "~&All right, bold one~%")
+  (wiz-format t "~2&All right, bold one")
   (let ((adv (make-adventurer)))
     (choose-race     adv)
     (choose-sex      adv)
@@ -2198,7 +2198,7 @@ castle."
             (setf (get-castle-creature castle loc-orb) 'warp
                   orb (array-index-row-major (cas-rooms castle) loc-orb)))
           (unless silent (wiz-format *wiz-out* "tle"))))
-      (unless silent (wiz-format *wiz-out* "~%~%"))
+      (unless silent (wiz-format *wiz-out* "~2%"))
       castle)))
 
 
@@ -2340,7 +2340,7 @@ castle."
 (defun make-message-report-inv (castle inv)
   "Make message for letting to "
   (with-accessors ((adv cas-adventurer)) castle
-    (format nil "~2&You have ~D~%"
+    (format nil "~2&You have ~D"
             (ecase inv
               (gold-pieces (adv-gp adv))
               (flares      (adv-fl adv))))))
@@ -2519,7 +2519,7 @@ castle."
           (join-history events (damage-foe foe damage))
           (push-text message
                      (format nil
-                             "~%  It does ~D points of damage." damage)))))))
+                             "~&  It does ~D points of damage." damage)))))))
 
 ;; 2540 if o$<>"f" then ...
 ;; print"death - - - ";:ifiq<15+fna(4)thenprint"yours";iq=0goto2840
@@ -2600,8 +2600,8 @@ castle."
 
 (defparameter *bribe-outcomes*
   (list
-   (list 'bribe-refused nil "'All I want is your life!'")
-   (list 'bribe-accepted 'foe-accepts-bribe "Okay, just don't tell anyone."))
+   (list 'bribe-refused nil "~&'All I want is your life!'")
+   (list 'bribe-accepted 'foe-accepts-bribe "~&Okay, just don't tell anyone."))
   "Outcomes of bribing adversaries.")
 
 (defun adv-bribes (castle)
@@ -2614,15 +2614,15 @@ castle."
           (message (make-text)))
        (cond ((null treasure)
               (record-event events (make-event 'adv-tried 'bribe foe-name))
-              (push-text message "'All I want is your life!'"))
+              (push-text message "~&'All I want is your life!'"))
              (t
               (when (wiz-y-or-n-p
                      (format nil
-                             "I want ~A will you give it too me "
+                             "~&I want ~A will you give it too me "
                              (text-of-creature treasure)))
                 (lose-treasure adv treasure)
                 (record-event events (make-event 'adv-bribed foe-name treasure))
-                (push-text message "OK, just don't tell anyone")
+                (push-text message "~&OK, just don't tell anyone")
                 (when (eq 'vendor foe-name)
                   (setf (cas-vendor-fury castle) nil)))))
              (values events message))))
@@ -2665,7 +2665,7 @@ castle."
         (record-event events
                       (make-event 'adv-ate (foe-creature foe)))
         (push-text message
-                   (format nil "~2&You spend an hour eating ~A~A"
+                   (format nil "~&You spend an hour eating ~A~A"
                            (text-of-foe foe) (random-meal))))
       (when (runestaff-here-p castle)
         (record-event events
@@ -2676,7 +2676,7 @@ castle."
 	  (let ((hoard (random-whole +adversary-hoard-maximum+)))
 	    (join-history events (make-adv-richer adv hoard))
 	    (push-text message
-		       (format nil "~2%You now get his hoard of ~D GP's" hoard)))
+		       (format nil "~2&You now get his hoard of ~D GP's" hoard)))
 	  (progn
 	    (join-history events
 			  (make-history
@@ -2686,7 +2686,7 @@ castle."
 			   (adv-drinks-potion adv 'intelligence)
 			   (adv-drinks-potion adv 'dexterity)))
 	    (push-text message
-		       (format nil "~2%You get all his wares:~{~%A~}"
+		       (format nil "~2&You get all his wares:~{~&A~}"
 			       '("plate armor"
 				 "a sword"
 				 "a strength potion"
@@ -2695,7 +2695,7 @@ castle."
 	    (when (adv-without-item-p adv 'lamp)
 	      (record-event events (outfit-with 'lamp adv))
 	      (push-text message
-			 (format nil "~%A lamp")))))
+			 (format nil "~&A lamp")))))
       (values events message))))
 
 (defun adv-broke-weapon-on-foe-p (events)
@@ -2714,7 +2714,7 @@ castle."
     (when (and (find (foe-creature foe) '(gargoyle dragon))
                (zerop (random 8)))
       (push-text message
-                 (format nil "~%Oh no! Your ~A broke"
+                 (format nil "~&Oh no! Your ~A broke"
                          (text-of-weapon (adv-weapon adv))))
       (join-history events (break-adv-weapon adv)))
     (when foe-alive
@@ -2724,10 +2724,10 @@ castle."
 
 (defparameter *adv-attacks-outcomes*
   (list
-   (list 'adv-strike-missed  nil (format nil "~%  Drat! Missed"))
+   (list 'adv-strike-missed  nil (format nil "~&  Drat! Missed"))
    (list 'adv-strike-hit 'adv-strikes-foe
          (lambda (creature-ref)
-           (format nil "~%  You hit the lousy ~A"
+           (format nil "~&  You hit the lousy ~A"
                    (subseq (text-of-creature creature-ref) 2)))))
   "Possibilities when the adventurer strikes at a foe.")
 
@@ -2749,13 +2749,13 @@ castle."
          (record-event events (make-event 'adv-tried 'unarmed-attack))
          (push-text message
                     (wiz-format-error nil
-                                      "Pounding on ~A won't hurt it~%"
+                                      "Pounding on ~A won't hurt it"
                                       (text-of-creature (foe-creature foe)))))
         ((bound-p adv)
          (record-event events (make-event 'adv-tried 'attack-with-hands-bound))
          (push-text message
                     (wiz-format-error nil
-                                      "You can't beat it to death with a book!!~%")))
+                                      "You can't beat it to death with a book!!")))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (make-adv-strike adv)
@@ -2779,19 +2779,19 @@ castle."
       (cond ((< 0 bound)
              (record-event events (make-event 'foe-unbound))
              (push-text message 
-                        (format nil "The ~A is stuck and can't attack"
+                        (format nil "~&The ~A is stuck and can't attack"
                                 (subseq (foe-text foe) 2))))
             (t
              (record-event events (make-event 'foe-unbound))
-             (push-text message "The web just broke!")))
+             (push-text message "~&The web just broke!")))
       (values
        events
        message))))
 
 (defparameter *foe-attack-outcomes*
   (list
-   (list 'foe-strike-missed nil "~2&  Hah! He missed you~%")
-   (list 'foe-strike-hit 'damage-adv "~2&  Ouch! He hit you~%"))
+   (list 'foe-strike-missed nil "~&  Hah! He missed you")
+   (list 'foe-strike-hit 'damage-adv "~&  Ouch! He hit you"))
   "Outcomes when an adversary attacks.")
 
 (defconstant +adversary-strike-factor+ 6)
@@ -2863,7 +2863,7 @@ castle."
                    (rf adv-rf) (of adv-of)) adv
     (with-output-to-string (message)
       (cond ((eq end 'death)
-             (format message "~|~A"
+             (format message "~&~|~&~A"
                      (make-string *wiz-width*
                                   :initial-element #\*))
              (format message
@@ -2873,7 +2873,7 @@ castle."
                            ((< iq 1) "intelligence")
                            ((< dx 1) "dexterity")
                            (t "life")))
-             (format message "~&When you died you had:~%"))
+             (format message "~&When you died you had:"))
             ((eq end 'exit)`
              (format message
                      "~&You left the castle with~:[out~;~] the Orb of Zot"
@@ -2883,10 +2883,10 @@ castle."
             (format message "~2&A glorious victory!~
                              ~&You also got out with the following:")
             (format message "~2&A less than awe-inspiring defeat.~
-                             ~&When you left the castle you had:~%")))
+                             ~&When you left the castle you had:")))
       (when (not (eq end 'death))
-        (format message "~&Your miserable life!~%"))
-      (format message "~{~@[~A~]~%~}"
+        (format message "~&Your miserable life!"))
+      (format message "~{~@[~&~A~]~}"
               (loop
                  for tr-n in (adv-treasures adv)
                  collect (text-of-creature tr-n)))
@@ -2902,13 +2902,13 @@ castle."
   "Make the fight round prompt."
   (make-prompt-adv-choice
    (with-output-to-string (facing)
-     (format facing "~2&You're facing ~A~%" (foe-text foe))
+     (format facing "~3&You're facing ~A" (foe-text foe))
      (format facing "~&You may attack or retreat")
      (when (foe-bribable-p foe)
        (format facing " or bribe"))
      (when (cast-spells-p adv)
        (format facing " or cast a spell"))
-     (format facing "~2&Your strength is ~D and dexterity is ~D~%"
+     (format facing "~2&Your strength is ~D and dexterity is ~D"
              (adv-st adv) (adv-dx adv)))))
 
 (defun get-adv-fight-action (adv foe)
@@ -3314,7 +3314,7 @@ castle."
 (defun you-are-at (coords &optional (stream nil))
   "Make message 'You are at ...'"
   (format stream
-          "~&You are at ~{(~D,~D) Level ~D~}~%"
+          "~&You are at ~{(~D,~D) Level ~D~}"
           (wiz-coords coords)))
 
 (defun make-level-map (castle level)
@@ -3333,7 +3333,7 @@ castle."
           (setf (elt (elt icon-map y) x)
                 (make-map-icon-adv castle here))))
     (with-output-to-string (level-map)
-      (format level-map "~2&~{~:}" "~&~{~A~}~%" icon-map)))))
+      (format level-map "~2&~{~:}" "~&~{~A~}" icon-map)))))
 
 ;;; FIXME: castle size dependant code
 
@@ -3402,7 +3402,7 @@ castle."
               do (cas-adv-map-room castle near))
            (push-text message
                       (with-output-to-string (text)
-                        (wiz-format text "~2&~{~:}" "~&~3@{ ~A~}~%"
+                        (wiz-format text "~2&~{~:}" "~&~3@{ ~A~}"
                                     (loop
                                        for near in near-coords
                                        collect
@@ -3682,7 +3682,7 @@ into the orb."
           (join-history events outcome-effect))
         (when outcome-text
           (setf outcome-text
-                (format nil "You open the book and~%~A"
+                (format nil "~&You open the book and~%~A"
                         (cond
                           ((eq outcome-name 'flash-trap)
                            (funcall outcome-text (adv-rc adv)))
@@ -3702,12 +3702,12 @@ into the orb."
 (defparameter *open-chest-outcomes*
     (list
      (make-outcome 'bomb-trap
-                   'adv-springs-bomb-trap "KABOOM! It explodes")
+                   'adv-springs-bomb-trap "~&KABOOM! It explodes")
      (make-outcome 'gas-trap
-                   'adv-springs-gas-trap "Gas! You stagger from the room")
+                   'adv-springs-gas-trap "~&Gas! You stagger from the room")
      (make-outcome 'gold-pieces 'make-adv-richer
            (lambda (gps)
-             (format nil "Find ~D gold pieces" gps))))
+             (format nil "~&Find ~D gold pieces" gps))))
   "All the outcomes of opening chests.")
 
 (defconstant +gold-in-chests-maximum+ 1000)
