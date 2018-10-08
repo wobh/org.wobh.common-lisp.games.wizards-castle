@@ -33,7 +33,7 @@ make the game say and do different things. But, now that I type them
 out, it seems more like Power was actually encouraging players to
 experiment in order to figure out how to play the game.
 
-_Wizard's Castle_ is a little primitive to offer the kind of
+_Wizard's Castle_ is a little too primitive to offer the kind of
 combinatorial possibilities of play that a game like _Nethack_ offers,
 but there is potential. This implementation is done to fulfill the
 following goals:
@@ -200,34 +200,34 @@ environment reuses the random state =*R*= to regenerate it.
 *** =MAKE-TEST-ADV=
 
 Make a test adventurer object from a predefined set. Accepts one
-optional symbol arguement.
+keyword symbol arguement.
 
 **** =ADV-NAME=
 
 The set of predefined adventurers is roughly as follows:
 
-- =BLIND-ADEPT= :: A female human fighter: highly capable and skilled,
-                   well armed and armored, but poor, blind.
-- =BOOKWORM=    :: A male hobbit: smart and fast (skilled in
-                   running-away), but weak; poor, unarmed and
-                   unarmored; has a book stuck to his hands.
-- =VALKYRIE=    :: A female dwarf: strong, somewhat graceful and more
-                   brave than smart; well armored but less well armed,
-                   poor and poorly equipped.
-- =BARBARIAN=   :: A male human: strong, agile, but dumb and
-                   forgetful; well-armed, but poorly armored; poor and
-                   poorly equipped.
-- =SORCERESS=   :: A female elf: highly intelligent, somewhat graceful
-                   but weak; no money, poorly armed and armored; has
-                   many flares, and the runestaff but lazy and
-                   lethargic.
-- =TOURIST=     :: A human male: moderate iq, but weak and clumsy;
-                   unarmed, unarmored, no equipment; extremely rich,
-                   but has hole in his wallet (leech).
-- default       :: A human with randomly selected sex: average
-                   abilities and equipment; poor but at least owns a
-                   lamp. This is the character I would always make in
-                   the character setup phase.
+- =:BLIND-ADEPT= :: A female human fighter: highly capable and
+                    skilled, well armed and armored, but poor, blind.
+- =:BOOKWORM=    :: A male hobbit: smart and fast (skilled in
+                    running-away), but weak; poor, unarmed and
+                    unarmored; has a book stuck to his hands.
+- =:VALKYRIE=    :: A female dwarf: strong, somewhat graceful and more
+                    brave than smart; well armored but less well
+                    armed, poor and poorly equipped.
+- =:BARBARIAN=   :: A male human: strong, agile, but dumb and
+                    forgetful; well-armed, but poorly armored; poor
+                    and poorly equipped.
+- =:SORCERESS=   :: A female elf: highly intelligent, somewhat
+                    graceful but weak; no money, poorly armed and
+                    armored; has many flares, and the runestaff but
+                    lazy and lethargic.
+- =:TOURIST=     :: A human male: moderate iq, but weak and clumsy;
+                    unarmed, unarmored, no equipment; extremely rich,
+                    but has hole in his wallet (leech).
+- =:BASIC=       :: A human with randomly selected sex: average
+                    abilities and equipment; poor but at least owns a
+                    lamp. This is the character I would always make in
+                    the character setup phase.
 
 See the source code for their exact specifications.
 *** =SETUP-TEST=
