@@ -2614,6 +2614,7 @@ castle."
 
 (defparameter *bribe-outcomes*
   (list
+   (list 'bribe-requested nil (formatter "~&I want ~A will you give it too me "))
    (list 'bribe-refused nil "~&'All I want is your life!'")
    (list 'bribe-accepted 'foe-accepts-bribe "~&Okay, just don't tell anyone."))
   "Outcomes of bribing adversaries.")
@@ -2622,24 +2623,26 @@ castle."
   "What happens when an adventurer tries to bribe a creature."
   (with-accessors ((adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((treasure (random-elt (adv-treasures adv)))
-          (foe-name (foe-creature foe))
-          (events (make-history))
-          (message (make-text)))
-       (cond ((null treasure)
-              (record-event events (make-event 'adv-tried 'bribe foe-name))
-              (push-text message "~&'All I want is your life!'"))
-             (t
-              (when (wiz-y-or-n-p
-                     (format nil
-                             "~&I want ~A will you give it too me "
-                             (text-of-creature treasure)))
-                (lose-treasure adv treasure)
-                (record-event events (make-event 'adv-bribed foe-name treasure))
-                (push-text message "~&OK, just don't tell anyone")
-                (when (eq 'vendor foe-name)
-                  (setf (cas-vendor-fury castle) nil)))))
-             (values events message))))
+    (flet ((get-text (outcome)
+             (third (find outcome *bribe-outcomes* :key #'first))))
+      (let ((treasure (random-elt (adv-treasures adv)))
+            (foe-name (foe-creature foe))
+            (events (make-history))
+            (message (make-text)))
+        (cond ((null treasure)
+               (record-event events (make-event 'adv-tried 'bribe foe-name))
+               (push-text message (get-text 'bribe-refused)))
+              (t
+               (when (wiz-y-or-n-p
+                      (format nil
+                              (get-text 'bribe-requested)
+                              (text-of-creature treasure)))
+                 (lose-treasure adv treasure)
+                 (record-event events (make-event 'adv-bribed foe-name treasure))
+                 (push-text message (get-text 'bribe-accepted))
+                 (when (eq 'vendor foe-name)
+                   (setf (cas-vendor-fury castle) nil)))))
+        (values events message)))))
 
 ;; (defun make-message-adv-attacks (castle event)
 ;;   (assert (event-kind-p event 'adv-attacks))
