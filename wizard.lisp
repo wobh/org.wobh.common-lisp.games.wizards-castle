@@ -1652,15 +1652,16 @@ limits."
 (defun make-prompt-catalog (stuff item-printer catalog-data)
   (make-prompt-adv-choice
    (with-output-to-string (catalog)
-     (wiz-format catalog
-                 "~2&Here is a list of ~A you can buy (with cost in <>)"
-                 stuff)
-     (wiz-format catalog "~&~{~{~A<~D>~^ ~}~}"
-                 (map 'list (lambda (item)
-                              (list (funcall item-printer (first item))
-                                    (second item)))
-                      catalog-data))
-     (finish-output catalog))))
+     (format catalog
+             "~2&Here is a list of ~A you can buy (with cost in <>)"
+             stuff)
+     (format catalog
+             "~&~{~{~A<~D>~^ ~}~}"
+             (map 'list
+                  (lambda (item)
+                    (list (funcall item-printer (first item))
+                          (second item)))
+                  catalog-data)))))
 
 (defun get-catalog-price (item catalog-data)
   (second (find item catalog-data :key 'first)))
@@ -1736,7 +1737,7 @@ limits."
 
 (defun setup-adventurer ()
   "Make pc avatar"
-  (wiz-format t "~2&All right, bold one")
+  (wiz-format *wiz-out* "~2&All right, bold one")
   (let ((adv (make-adventurer)))
     (choose-race     adv)
     (choose-sex      adv)
