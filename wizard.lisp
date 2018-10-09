@@ -2578,11 +2578,10 @@ castle."
                            'adv-death
                            'foe-death)
                        *death-spell-outcomes*)
-        (ecase outcome-name
-          (adv-death
-           (join-history events (funcall outcome-effect adv)))
-          (foe-death
-           (join-history events (funcall outcome-effect foe))))
+        (join-history events
+                      (ecase outcome-name
+                        (adv-death (funcall outcome-effect adv))
+                        (foe-death (funcall outcome-effect foe))))
         (push-text message
                    (format nil "Death - - - ~A" outcome-text)))
       (values events message))))
