@@ -3327,7 +3327,7 @@ castle."
 
 ;;;; Map
 
-(defun you-are-at (coords &optional (stream nil))
+(defun you-are-at (stream coords)
   "Make message 'You are at ...'"
   (format stream
           "~2&You are at ~{(~D,~D) Level ~D~}"
@@ -3370,9 +3370,10 @@ castle."
                               (make-event 'adv-viewed-map level))
                (push-text message
                           (with-output-to-string (level-map)
-                            (wiz-format level-map
-                                        (make-level-map castle level))
-                            (you-are-at (cas-adv-here castle) level-map))))))
+                            (format level-map
+                                    (make-level-map castle level))
+                            (format level-map
+                                    #'you-are-at (cas-adv-here castle)))))))
       (values events message))))
 
 (defun get-near-coords (castle coords)
@@ -3418,13 +3419,13 @@ castle."
               do (cas-adv-map-room castle near))
            (push-text message
                       (with-output-to-string (text)
-                        (wiz-format text "~2&~{~:}" "~&~3@{ ~A~}"
-                                    (loop
-                                       for near in near-coords
-                                       collect
-                                         (get-castle-creature-icon castle
-                                                                   near)))
-                        (you-are-at (cas-adv-here castle) text))))))
+                        (format text
+                                "~2&~{~:}" "~&~3@{ ~A~}"
+                                (loop
+                                   for near in near-coords
+                                   collect
+                                     (get-castle-creature-icon castle near)))
+                        (format text #'you-are-at (cas-adv-here castle)))))))
       (values events message))))
 
 
@@ -3885,7 +3886,7 @@ into the orb."
   "What does the game report to player when the adventurer enters a room."
   (with-output-to-string (status)
     (unless (blind-p adv)
-      (you-are-at here status))
+      (format status #'you-are-at here))
     (with-accessors ((st adv-st) (iq adv-iq) (dx adv-dx)
                      (fl adv-fl) (gp adv-gp) (lf adv-lf)
                      (wv adv-wv) (av adv-av)) adv
