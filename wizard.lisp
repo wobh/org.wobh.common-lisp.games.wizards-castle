@@ -105,10 +105,9 @@
 
 (defun random-elt (seq &optional (random-state *random-state*))
   "Get random element from sequence."
-  (case (length seq)
-    (0 nil)
-    (1 (elt seq 0))
-    (t (elt seq (random (length seq) random-state)))))
+  (let ((seq-len (length seq)))
+    (unless (zerop seq-len)
+      (elt seq (random seq-len random-state)))))
 
 (defun random-whole (limit &optional (random-state *random-state*))
   "Return random integer n, 0 < n <= `limit'."
