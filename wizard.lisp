@@ -2432,6 +2432,14 @@ castle."
 
 ;;;; Combat
 
+(defun foe-name-chopped (foe-text)
+  (subseq foe-text 2))
+
+(defun foe-text-sought (foe-text)
+  (subseq foe-text (position #\Space foe-text)))
+
+(defparameter *foe-name-finder* #'foe-name-chopped)
+
 (defstruct
     (adversary
       (:conc-name foe-)
@@ -2439,10 +2447,12 @@ castle."
                     (creature
                      &aux
                      (text (text-of-creature creature))
+                     (name (funcall *foe-name-finder* text))
                      (strike-damage (calc-adversary-strike-damage creature))
                      (hit-points (calc-adversary-hit-points creature)))))
   (creature nil)    ; creature
-  (text "")
+  (text "")         ; "a creature"
+  (name "")         ; "creature"
   (strike-damage 0) ; q1
   (hit-points 0)    ; q2
   (first-turn t)    ; q3
@@ -2729,9 +2739,10 @@ castle."
   (list
    (list 'adv-strike-missed  nil (format nil "~&  Drat! Missed"))
    (list 'adv-strike-hit 'adv-strikes-foe
-         (lambda (creature-ref)
-           (format nil "~&  You hit the lousy ~A"
-                   (subseq (text-of-creature creature-ref) 2)))))
+         (lambda (stream foe)
+           (format stream
+                   "~&  You hit the lousy ~A"
+                   (foe-name foe)))))
   "Possibilities when the adventurer strikes at a foe.")
 
 (defun make-adv-strike (adv)
@@ -2753,7 +2764,7 @@ castle."
          (push-text message
                     (wiz-format-error nil
                                       "Pounding on ~A won't hurt it"
-                                      (text-of-creature (foe-creature foe)))))
+                                      (foe-name foe))))
         ((bound-p adv)
          (record-event events (make-event 'adv-tried 'attack-with-hands-bound))
          (push-text message
@@ -2764,7 +2775,7 @@ castle."
              (make-adv-strike adv)
            (cond
              ((eq outcome-name 'adv-strike-hit)
-              (push-text message (funcall outcome-text (foe-creature foe)))
+              (push-text message (format nil outcome-text foe))
               (multiple-value-bind (strike-effects strike-message)
                   (funcall outcome-effect adv foe)
                 (join-history events strike-effects)
@@ -2782,8 +2793,9 @@ castle."
       (cond ((< 0 bound)
              (record-event events (make-event 'foe-unbound))
              (push-text message 
-                        (format nil "~&The ~A is stuck and can't attack"
-                                (subseq (foe-text foe) 2))))
+                        (format nil
+                                "~&The ~A is stuck and can't attack"
+                                (foe-name foe))))
             (t
              (record-event events (make-event 'foe-unbound))
              (push-text message "~&The web just broke!")))
@@ -2824,8 +2836,9 @@ castle."
           (destructuring-bind (outcome-name outcome-effect outcome-text)
               (make-foe-strike adv)
             (push-text message
-                       (format nil "~2&The ~A attacks"
-                               (subseq (foe-text foe) 2)))
+                       (format nil
+                               "~2&The ~A attacks"
+                               (foe-name foe)))
             (cond ((eq outcome-name 'foe-strike-hit)
                    (join-history events
                                  (funcall outcome-effect adv
