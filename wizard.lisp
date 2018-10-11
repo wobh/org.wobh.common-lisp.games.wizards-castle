@@ -329,10 +329,6 @@ order and values."
   "Write a formatted error message to STREAM."
   (wiz-format stream "~2&** ~?" string args))
 
-(defun wiz-read-line (&optional (stream *wiz-qio*))
-  "Read a line of player input."
-  (read-line stream))
-
 (defun wiz-read-char (&optional (stream *wiz-qio*))
   "Read the upcased first character from whatever entered."
   (char-upcase (read-char stream)))
@@ -4081,7 +4077,7 @@ into the orb."
 
 (defun main-read (&optional (stream *wiz-qio*))
   "The reader for the main input."
-  (with-input-from-string (str (wiz-read-line stream))
+  (with-input-from-string (str (read-line stream))
     (let ((i (read-char str nil))
           (j (peek-char nil str nil)))
       (string-upcase
