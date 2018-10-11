@@ -318,7 +318,7 @@ order and values."
 
 (defparameter *wiz-width* 64)
 (defparameter *wiz-out* *standard-output*)
-(defparameter *wiz-err* *query-io*)
+(defparameter *wiz-err* *standard-output*)
 
 (defun wiz-format (stream str &rest args)
   "Format a string for output in wizard's castle."
