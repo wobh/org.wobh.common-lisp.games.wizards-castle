@@ -319,7 +319,6 @@ order and values."
 (defparameter *wiz-width* 64)
 (defparameter *wiz-out* *standard-output*)
 (defparameter *wiz-err* *query-io*)
-(defparameter *wiz-qio* *query-io*)
 
 (defun wiz-format (stream str &rest args)
   "Format a string for output in wizard's castle."
@@ -329,11 +328,11 @@ order and values."
   "Write a formatted error message to STREAM."
   (wiz-format stream "~2&** ~?" string args))
 
-(defun wiz-read-char (&optional (stream *wiz-qio*))
+(defun wiz-read-char (&optional (stream *standard-input*))
   "Read the upcased first character from whatever entered."
   (char-upcase (read-char stream)))
 
-(defun wiz-read-n (&optional (stream *wiz-qio*))
+(defun wiz-read-n (&optional (stream *standard-input*))
   "Read a number from whatever entered."
   (parse-integer (read-line stream) :junk-allowed t))
 
@@ -355,8 +354,8 @@ order and values."
 
 (defmacro with-player-input
     ((var prompt &key
-          (readf #'wiz-read-char) (istream *wiz-qio*)
-          (writef #'wiz-format)   (ostream *wiz-qio*))
+          (readf #'wiz-read-char) (istream *standard-input*)
+          (writef #'wiz-format)   (ostream *standard-output*))
      &body body)
   "Read input to var and do something with it or set var to nil if a
 different input is needed."
@@ -4075,7 +4074,7 @@ into the orb."
                      "Stupid ~A that wasn't a valid command"
                      (adv-race (cas-adventurer castle)))))
 
-(defun main-read (&optional (stream *wiz-qio*))
+(defun main-read (&optional (stream *standard-input*))
   "The reader for the main input."
   (with-input-from-string (str (read-line stream))
     (let ((i (read-char str nil))
