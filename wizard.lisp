@@ -756,11 +756,6 @@ returns INPUT-ERROR."
           (character (third creature)))
         creature)))
 
-;; (creature-name (creature-ref)
-(defun name-of-creature (creature-ref)
-  "Get the creature symbol."
-  (get-creature-data creature-ref 'symbol))
-
 ;; (defun creature-value (creature-ref)
 (defun value-of-creature (creature-ref)
   "Get the creature number."
@@ -4496,8 +4491,8 @@ passed in must not also have an adventurer already in it."
                        (lethargic-p *a*)
                        (take-adv-treasure *a* 'ruby-red)
                        (lethargic-p *a*)))
-          () "While this adventurer has ~A, their lethargy should be cured: ~S"
-          (name-of-creature 'ruby-red) *a*))
+          () "While this adventurer has ~A, their lethargy should be cured: ~name"
+          (text-of-creature 'ruby-red) *a*))
 
 (let ((*a* (make-test-adv :blind-adept)))
   (assert (blind-p *a*)
@@ -4521,7 +4516,7 @@ passed in must not also have an adventurer already in it."
                        (take-adv-treasure *a* 'opal-eye)
                        (blind-p *a*)))
           () "When this adventurer gains ~A, it's blindness should be cured: ~S"
-          (name-of-creature 'opal-eye) *a*)
+          (text-of-creature 'opal-eye) *a*)
   (assert (adv-initiative-p *a*)
           () "Cured of blindness, this adventurer should always have initiative: ~S"
           *a*))
