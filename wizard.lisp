@@ -759,17 +759,21 @@ returns INPUT-ERROR."
 ;; (defun creature-value (creature-ref)
 (defun value-of-creature (creature-ref)
   "Get the creature number."
-  (get-creature-data creature-ref 'number))
+  (position creature-ref *creature-data* :key #'first))
 
 ;; (creature-text (creature-ref)
 (defun text-of-creature (creature-ref)
   "Get the creature text."
-  (get-creature-data creature-ref 'string))
+  (let ((creature-data (find creature-ref *creature-data* :key #'first)))
+    (assert (consp creature-data))
+    (second creature-data)))
 
 ;; (creature-icon (creature-ref)
 (defun icon-of-creature (creature-ref)
   "Get the creature map icon."
-  (string (get-creature-data creature-ref 'character)))
+  (let ((creature-data (find creature-ref *creature-data* :key #'first)))
+    (assert (consp creature-data))
+    (string (third creature-data))))
 
 (defun icon-of-unmapped ()
   "Get the icon for a unmapped room."
@@ -1815,15 +1819,13 @@ limits."
   (history         ())
   )
 
-(defun get-castle-creature (castle room-ref &optional data-type)
+(defun get-castle-creature (castle room-ref)
   "Return the contents of a castle room based on reference. Reference
 may be an index or list of coordinates."
   (with-accessors ((rooms cas-rooms)) castle
-    (let ((creature
-           (etypecase room-ref
-             (integer (row-major-aref rooms room-ref))
-             (list    (apply #'mref rooms room-ref)))))
-      (get-creature-data creature (or data-type 'symbol)))))
+    (etypecase room-ref
+      (integer (row-major-aref rooms room-ref))
+      (list    (apply #'mref rooms room-ref)))))
 
 (defun set-castle-creature (castle room-ref creature)
   "Set creature in castle room"
@@ -1838,16 +1840,16 @@ may be an index or list of coordinates."
 (defun castle-creature-p (castle room-ref creature-ref)
   "Return true if the creature in room is creature expected."
   (eq creature-ref
-      (get-castle-creature castle room-ref (type-of creature-ref))))
+      (get-castle-creature castle room-ref)))
 
 (defun get-castle-creature-text (castle room-ref)
   "Get castle creature text."
-  (get-castle-creature castle room-ref 'string))
+  (text-of-creature (get-castle-creature castle room-ref)))
 ;; [wc 2012-02-03] FIXME: no one actually calls this.
 
 (defun get-castle-creature-icon (castle room-ref)
   "Get castle creature icon."
-  (get-castle-creature castle room-ref 'character))
+  (icon-of-creature (get-castle-creature castle room-ref)))
 
 (defun clear-castle-room (castle room-ref)
   "Make empty room."
