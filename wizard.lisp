@@ -739,22 +739,12 @@ returns INPUT-ERROR."
   "Is the given symbol a creature?"
   (find creature (subseq *creature-data* 1 34) :key 'first))
 
-(defun get-creature-data (creature-ref &optional data-type)
+;; (defun creature-data (creature-ref)
+(defun get-creature-data (creature-ref)
   "Return the requested data about the creature."
-  (let ((creature
-         (etypecase creature-ref
-           (symbol (find creature-ref *creature-data* :key 'first))
-           ((integer 1 33) (elt *creature-data* creature-ref))
-           (string (find creature-ref *creature-data* :key 'second
-                         :test 'equal)))))
-    (if data-type
-        (ecase data-type
-          (list creature)
-          (number (position creature *creature-data*)) 
-          (symbol (first creature))
-          (string (second creature))
-          (character (third creature)))
-        creature)))
+  (let ((creature-data (find creature-ref *creature-data* :key #'first)))
+    (assert (consp creature-data))
+    creature-data))
 
 ;; (defun creature-value (creature-ref)
 (defun value-of-creature (creature-ref)
@@ -764,20 +754,16 @@ returns INPUT-ERROR."
 ;; (creature-text (creature-ref)
 (defun text-of-creature (creature-ref)
   "Get the creature text."
-  (let ((creature-data (find creature-ref *creature-data* :key #'first)))
-    (assert (consp creature-data))
-    (second creature-data)))
+  (second (get-creature-data creature-ref)))
 
 ;; (creature-icon (creature-ref)
 (defun icon-of-creature (creature-ref)
   "Get the creature map icon."
-  (let ((creature-data (find creature-ref *creature-data* :key #'first)))
-    (assert (consp creature-data))
-    (string (third creature-data))))
+  (string (third (get-creature-data creature-ref))))
 
 (defun icon-of-unmapped ()
   "Get the icon for a unmapped room."
-  (string (third (first *creature-data*))))
+  (icon-of-creature 'x))
 
 
 ;;;; Locations and creatures in castle Zot.
