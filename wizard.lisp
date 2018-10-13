@@ -2426,8 +2426,8 @@ castle."
 (defun foe-name-chopped (foe-text)
   (subseq foe-text 2))
 
-(defun foe-text-sought (foe-text)
-  (subseq foe-text (position #\Space foe-text)))
+(defun foe-text-trimmed (foe-text)
+  (string-trim "an " foe-text))
 
 (defparameter *foe-name-finder* #'foe-name-chopped)
 
