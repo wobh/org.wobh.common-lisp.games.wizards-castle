@@ -608,13 +608,13 @@ returns INPUT-ERROR."
 
 (defparameter *intro-text-dos*
   (format nil
-          "~2&Many cycles ago, in the kingdom of N'DIC, the gnomic~%~
-              wizard ZOT forged his great ORB of power. He soon vanished~%~
-              utterly, leaving behind his vast subterranean castle~%~
-              filled with esurient MONSTERS, fabulous TREASURES, and~%~
-              the incredible ORB of ZOT. From that time hence, many~%~
-              a bold youth has ventured into the WIZARD'S CASTLE. As~%~
-              of yet, NONE has ever emerged victoriously! BEWARE!!~2%")
+          "~2&Many cycles ago, in the kingdom of N'DIC, the gnomic~
+            ~&wizard ZOT forged his great ORB of power. He soon vanished~
+            ~&utterly, leaving behind his vast subterranean castle~
+            ~&filled with esurient MONSTERS, fabulous TREASURES, and~
+            ~&the incredible ORB of ZOT. From that time hence, many~
+            ~&a bold youth has ventured into the WIZARD'S CASTLE. As~
+            ~&of yet, NONE has ever emerged victoriously! BEWARE!!~2%")
   "This intro is a slightly modified version of the article's introduction.")
 
 (defparameter *wiz-intro* nil
