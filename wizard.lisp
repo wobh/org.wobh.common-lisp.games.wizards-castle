@@ -3535,9 +3535,10 @@ castle."
   "Crystal Orbs can tell you where stuff is or lie to you about what's
 there. This info could be mapped.")
 
-(defun make-message-creature-at (creature coords)
-  (format nil "~A at ~{(~D,~D) Level ~D~}"
-          (text-of-creature creature)
+(defun make-message-creature-at (stream creature coords)
+  (format stream
+          "~A at ~{(~D,~D) Level ~D~}"
+          creature
           (wiz-coords coords)))
 
 (defun gaze-mapper (adv coords creature)
@@ -3545,9 +3546,11 @@ there. This info could be mapped.")
   (labels ((gaze-map-naive ()
              (adv-map-room adv coords creature))
            (gaze-map-ask ()
-             (when (wiz-y-or-n-p
-                    (format nil "Do you wish to map ~A "
-                            (make-message-creature-at creature coords)))
+             (when (wiz-y-or-n-p (format nil
+                                         "Do you wish to map ~A "
+                                         (make-message-creature-at nil
+                                                                   creature
+                                                                   coords)))
                (adv-map-room adv coords creature)))
            (gaze-map-smart ()
              (unless (adv-room-mapped-p adv coords)
@@ -3565,21 +3568,79 @@ there. This info could be mapped.")
 
 (defparameter *gaze-crystal-orb-outcomes*
   (list
-   (make-outcome 'heap 'make-adv-weaker "You see yourself in a bloody heap.")
-   (make-outcome 'room 'gaze-mapper (lambda (creature-ref room-coords)
-                              (format nil "You see ~A"
-                                      (make-message-creature-at
-                                       creature-ref room-coords))))
-    (make-outcome 'orb-of-zot nil (lambda (room-coords)
-                            (format nil "You see ~A"
-                                    (make-message-creature-at
-                                     'orb-of-zot room-coords))))
-    (make-outcome 'drink nil (lambda (monster-ref)
-                       (format nil
-                               "yourself drinking from a pool and becoming ~A"
-                               (text-of-creature monster-ref))))
-    (make-outcome 'soap nil "a soap opera rerun")
-    )
+   (make-outcome 'heap
+                 (lambda (castle)
+                   (let ((events
+                          (make-history
+                           (make-event 'adv-used
+                                       'crystal-orb
+                                       :saw
+                                       'adv-in-bloody-heap))))
+                     (join-history events
+                                   (make-adv-weaker (cas-adventurer castle)
+                                                    (random-whole +orb-damage-maximum+)))))
+                 "yourself in a bloody heap.")
+   (make-outcome 'room
+                 (lambda (castle)
+                   (let* ((coords (castle-room-random castle))
+                          (creature (get-castle-creature castle coords))
+                          (events (make-history
+                                   (make-event 'adv-used
+                                               'crystal-orb
+                                               :saw
+                                               creature
+                                               :at
+                                               coords))))
+                     (when *gaze-mapper*
+                       (join-history events
+                                     (gaze-mapper (cas-adventurer castle)
+                                                  coords
+                                                  creature)))
+                     events))
+                 (lambda (stream events)
+                   (destructuring-bind (&rest _ &key saw at &allow-other-keys)
+                       (oldest-event events)
+                     (declare (ignore _))
+                     (make-message-creature-at stream
+                                               (text-of-creature saw)
+                                               at))))
+   (make-outcome 'orb-of-zot
+                 (lambda (castle)
+                   (make-history
+                    (make-event 'adv-used
+                                'crystal-orb
+                                :saw
+                                'orb-of-zot
+                                :at
+                                (random-elt (list (cas-loc-orb castle)
+                                                  (castle-room-random castle))))))
+                 (lambda (stream events)
+                   (make-message-creature-at stream
+                                             "the Orb of Zot"
+                                             (value-of-event (oldest-event events)))))
+   (make-outcome 'drink
+                 (lambda (castle)
+                   (declare (ignore castle))
+                   (make-history
+                    (make-event 'adv-used
+                                'crystal-orb
+                                :saw
+                                'self-drinking-from-pool
+                                :becoming
+                                (random-monster))))
+                 (lambda (stream events)
+                   (format stream
+                           "yourself drinking from a pool and becoming ~A"
+                           (text-of-creature (value-of-event (oldest-event events))))))
+   (make-outcome 'soap
+                 (lambda (castle)
+                   (declare (ignore castle))
+                   (make-history
+                    (make-event 'adv-used
+                                'crystal-orb
+                                :saw
+                                'soap-opera)))
+                 "a soap opera rerun"))
   "The visions in the crystal orb.")
 
 (defconstant +orb-damage-maximum+ 2)
@@ -3605,37 +3666,12 @@ into the orb."
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *gaze-crystal-orb-outcomes*)
-           (record-event events (make-event 'adv-used 'crystal-orb))
-           (when outcome-effect
-             (setf outcome-effect
-                   (ecase outcome-name
-                     (heap
-                      (funcall outcome-effect
-                               adv
-                               (random-whole +orb-damage-maximum+)))
-                     (room
-                      (let* ((coords (castle-room-random castle))
-                             (creature (get-castle-creature castle coords)))
-                        (when *gaze-mapper*
-                          (funcall outcome-effect adv coords creature))))))
-             (join-history events outcome-effect))
-           (when outcome-text
-             (let ((effect (latest-event events)))
-               (setf outcome-text
-                     (format nil "You see ~A"
-                             (case outcome-name
-                               (drink
-                                (funcall outcome-text (random-monster)))
-                               (room
-                                (destructuring-bind (coords creature)
-                                    (value-of-event effect 'adv-mapped)
-                                  (funcall outcome-text coords creature)))
-                               (orb-of-zot
-                                (funcall outcome-text 
-                                         (random-elt (list (cas-loc-orb castle)
-                                                           (castle-room-random castle)))))
-                               (t outcome-text))))
-               (push-text message outcome-text))))))
+           (declare (ignore outcome-name))
+           (join-history events (funcall outcome-effect castle))
+           (push-text message (format nil
+                                      "You see ~@?"
+                                      outcome-text
+                                      events)))))
       (values events message))))
 
 
