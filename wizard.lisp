@@ -1446,12 +1446,12 @@ limits."
   (make-history (make-event 'adv-lost treasure)))
 
 (defun bind-adv-hands (adv item)
-  (setf (adv-bf adv) t)
-  (make-history (make-event 'adv-bound item)))
+  (setf (adv-bf adv) item)
+  adv)
 
-(defun make-adv-blind (adv blinder)
+(defun make-adv-blind (adv)
   (setf (adv-bl adv) t)
-  (make-history (make-event 'adv-blinded blinder)))
+  adv)
 
 (defun break-adv-weapon (adv)
   (setf (adv-wv adv) 0)
@@ -2232,11 +2232,13 @@ castle."
               (random-whole +trap-bomb-damage-maximum+)))
 
 
-(defun adv-springs-glue-trap (adv item)
-  (bind-adv-hands adv item))
+(defun adv-springs-glue-trap (castle item)
+  (bind-adv-hands (cas-adventurer castle) item)
+  (make-history (make-event 'adv-bound :to item :by 'glue-trap)))
 
-(defun adv-springs-flash-trap (adv)
-  (make-adv-blind adv 'flash))
+(defun adv-springs-flash-trap (castle item)
+  (make-adv-blind (cas-adventurer castle))
+  (make-history (make-event 'adv-blinded :by 'flash-trap :on item)))
 
 (defun adv-reads-strength-manual (adv)
   (make-adv-stronger adv +adv-rank-max+))
@@ -3679,20 +3681,32 @@ into the orb."
 
 (defparameter *open-book-outcomes*
   (list
-   (make-outcome 'flash-trap 'adv-springs-flash-trap
-                 (lambda (race-ref)
-                   (format nil "FLASH! Oh no! You are now a blind ~A"
-                           (text-of-race race-ref))))
-   (make-outcome 'poetry   nil "its another volume of Zot's Poetry! - Yeech!")
-   (make-outcome 'magazine nil
-                 (lambda (race-ref)
-                   (format nil "its an old copy of Play~A"
-                           (text-of-race race-ref))))
-   (make-outcome 'dexterity-manual 'adv-reads-dexterity-manual "dexterity")
-   (make-outcome 'strength-manual  'adv-reads-strength-manual "strength")
-   (make-outcome 'glue-trap 'adv-springs-glue-trap
-                 (format nil "the book sticks to your hands -~&~
-                              Now you can't draw your weapon")))
+   (make-outcome 'flash-trap
+                 'adv-springs-flash-trap
+                 (lambda (stream castle)
+                   (format stream
+                           "FLASH! Oh no! You are now a blind ~A"
+                           (adv-race (cas-adventurer castle)))))
+   (make-outcome 'poetry
+                 nil
+                 "its another volume of Zot's Poetry! - Yeech!")
+   (make-outcome 'magazine
+                 nil
+                 (lambda (stream)
+                   (format stream "its an old copy of Play~A"
+                           (text-of-race (random-race)))))
+   (make-outcome 'dexterity-manual
+                 'adv-reads-dexterity-manual
+                 "dexterity")
+   (make-outcome 'strength-manual
+                 'adv-reads-strength-manual
+                 "strength")
+   (make-outcome 'glue-trap
+                 'adv-springs-glue-trap
+                 (lambda (stream)
+                   (format stream
+                           "the book sticks to your hands -~&~
+                            Now you can't draw your weapon"))))
   "All the outcomes of opening books")
 
 (defun adv-opens-book (castle)
@@ -3709,8 +3723,8 @@ into the orb."
         (when outcome-effect
           (setf outcome-effect
                 (cond
-                  ((eq outcome-name 'glue-trap)
-                   (funcall outcome-effect adv 'book))
+                  ((member outcome-name '(glue-trap flash-trap))
+                   (funcall outcome-effect castle 'book))
                   (t
                    (funcall outcome-effect adv))))
           (join-history events outcome-effect))
@@ -3719,14 +3733,12 @@ into the orb."
                 (format nil "~&You open the book and~&~A"
                         (cond
                           ((eq outcome-name 'flash-trap)
-                           (funcall outcome-text (adv-rc adv)))
+                           (format nil outcome-text castle))
                           ((find outcome-name
                                  '(dexterity-manual strength-manual))
                            (format nil
                                    "it's a manual of ~A" outcome-text))
-                          ((eq outcome-name 'magazine)
-                           (funcall outcome-text (random-race)))
-                          (t outcome-text))))
+                          (t (format nil outcome-text)))))
           (push-text message outcome-text)))
       (values events message))))
 
@@ -3797,9 +3809,9 @@ into the orb."
             (book  (adv-opens-book castle))
             (otherwise (adv-tried-wrong-room castle 'open here)))
         (clear-castle-room castle here)
-        (join-history events (cas-adv-map-here castle))
-        (values
          (join-history events open-events)
+        (values
+         (join-history events (cas-adv-map-here castle))
          (push-text message open-message))))))
 
 
