@@ -1317,7 +1317,7 @@ limits."
 (defun adv-map-room (adv room-ref creature)
   "Tags a room as mapped."
   (setf (get-adv-map-icon adv room-ref) (icon-of-creature creature))
-  (make-history (make-event 'adv-mapped creature room-ref)))
+  (make-history (make-event 'adv-mapped creature :at room-ref)))
 
 (defun adv-unmap-room (adv room-ref)
   "Tags a room as unmapped."
@@ -3381,8 +3381,7 @@ castle."
          (decf-inv (adv-fl adv))
          (let ((near-coords (get-near-coords castle here)))
            (record-events events
-                          (make-event 'adv-used 'flare)
-                          (make-event 'adv-mapped near-coords))
+                          (make-event 'adv-used 'flare :coords near-coords))
            (loop
               for near in near-coords
               do (cas-adv-map-room castle near))
@@ -3438,7 +3437,7 @@ castle."
                     (cas-adv-map-near castle direction)
                     (record-events events
                                    (make-event 'adv-used 'lamp there)
-                                   (make-event 'adv-mapped there creature))
+                                   (make-event 'adv-mapped creature :at there))
                     (push-text message
                                (with-output-to-string (text)
                                  (format text "~2&The lamp shines into ~
