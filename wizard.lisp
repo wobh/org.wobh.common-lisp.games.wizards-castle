@@ -3560,10 +3560,8 @@ there. This info could be mapped.")
                  (lambda (castle)
                    (let ((events
                           (make-history
-                           (make-event 'adv-used
-                                       'crystal-orb
-                                       :saw
-                                       'adv-in-bloody-heap))))
+                           (make-event 'adv-used 'crystal-orb
+                                       :saw 'adv-in-bloody-heap))))
                      (join-history events
                                    (make-adv-weaker (cas-adventurer castle)
                                                     (random-whole +orb-damage-maximum+)))))
@@ -3573,12 +3571,9 @@ there. This info could be mapped.")
                    (let* ((coords (castle-room-random castle))
                           (creature (get-castle-creature castle coords))
                           (events (make-history
-                                   (make-event 'adv-used
-                                               'crystal-orb
-                                               :saw
-                                               creature
-                                               :at
-                                               coords))))
+                                   (make-event 'adv-used 'crystal-orb
+                                               :saw creature
+                                               :at coords))))
                      (when *gaze-mapper*
                        (join-history events
                                      (gaze-mapper (cas-adventurer castle)
@@ -3595,13 +3590,10 @@ there. This info could be mapped.")
    (make-outcome 'orb-of-zot
                  (lambda (castle)
                    (make-history
-                    (make-event 'adv-used
-                                'crystal-orb
-                                :saw
-                                'orb-of-zot
-                                :at
-                                (random-elt (list (cas-loc-orb castle)
-                                                  (castle-room-random castle))))))
+                    (make-event 'adv-used 'crystal-orb
+                                :saw 'orb-of-zot
+                                :at (random-elt (list (cas-loc-orb castle)
+                                                      (castle-room-random castle))))))
                  (lambda (stream events)
                    (make-message-creature-at stream
                                              "the Orb of Zot"
@@ -3610,12 +3602,9 @@ there. This info could be mapped.")
                  (lambda (castle)
                    (declare (ignore castle))
                    (make-history
-                    (make-event 'adv-used
-                                'crystal-orb
-                                :saw
-                                'self-drinking-from-pool
-                                :becoming
-                                (random-monster))))
+                    (make-event 'adv-used 'crystal-orb
+                                :saw 'self-drinking-from-pool
+                                :becoming (random-monster))))
                  (lambda (stream events)
                    (format stream
                            "yourself drinking from a pool and becoming ~A"
@@ -3624,10 +3613,8 @@ there. This info could be mapped.")
                  (lambda (castle)
                    (declare (ignore castle))
                    (make-history
-                    (make-event 'adv-used
-                                'crystal-orb
-                                :saw
-                                'soap-opera)))
+                    (make-event 'adv-used 'crystal-orb
+                                :saw 'soap-opera)))
                  "a soap opera rerun"))
   "The visions in the crystal orb.")
 
