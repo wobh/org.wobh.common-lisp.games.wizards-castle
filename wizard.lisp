@@ -444,6 +444,7 @@ returns INPUT-ERROR."
     adv-wielded
     adv-armor-damaged adv-weapon-broke adv-armor-destroyed
     adv-changed-race adv-changed-sex
+    trap-springs
     chest-expoded
     adv-left-castle
     adv-slain
@@ -2231,21 +2232,6 @@ castle."
   (damage-adv adv
               (random-whole +trap-bomb-damage-maximum+)))
 
-
-(defun adv-springs-glue-trap (castle item)
-  (bind-adv-hands (cas-adventurer castle) item)
-  (make-history (make-event 'adv-bound :to item :by 'glue-trap)))
-
-(defun adv-springs-flash-trap (castle item)
-  (make-adv-blind (cas-adventurer castle))
-  (make-history (make-event 'adv-blinded :by 'flash-trap :on item)))
-
-(defun adv-reads-strength-manual (adv)
-  (make-adv-stronger adv +adv-rank-max+))
-
-(defun adv-reads-dexterity-manual (adv)
-  (make-adv-nimbler adv +adv-rank-max+))
-
 (defconstant +vendor-potion-efficacy-maximum+ 6)
 
 (defun adv-drinks-potion (adv potion)
@@ -3682,30 +3668,63 @@ into the orb."
 (defparameter *open-book-outcomes*
   (list
    (make-outcome 'flash-trap
-                 'adv-springs-flash-trap
+                 (lambda (castle)
+                   (make-adv-blind (cas-adventurer castle))
+                   (make-history
+                    (make-event 'adv-opened 'book
+                                :and 'adv-sprung-trap)
+                    (make-event 'trap-sprang 'flash
+                                :and 'adv-blinded)))
                  (lambda (stream castle)
                    (format stream
-                           "FLASH! Oh no! You are now a blind ~A"
+                           "~&FLASH! Oh no! You are now a blind ~A"
                            (adv-race (cas-adventurer castle)))))
    (make-outcome 'poetry
-                 nil
-                 "its another volume of Zot's Poetry! - Yeech!")
+                 (lambda (castle)
+                   (declare (ignore castle))
+                   (make-history
+                    (make-event 'adv-opened 'book
+                                :reads 'poetry)))
+                 "~&its another volume of Zot's Poetry! - Yeech!")
    (make-outcome 'magazine
-                 nil
-                 (lambda (stream)
-                   (format stream "its an old copy of Play~A"
-                           (text-of-race (random-race)))))
-   (make-outcome 'dexterity-manual
-                 'adv-reads-dexterity-manual
-                 "dexterity")
-   (make-outcome 'strength-manual
-                 'adv-reads-strength-manual
-                 "strength")
-   (make-outcome 'glue-trap
-                 'adv-springs-glue-trap
+                 (lambda (castle)
+                   (declare (ignore castle))
+                   (make-history
+                    (make-event 'adv-opened 'book
+                                :reads 'magazine)))
                  (lambda (stream)
                    (format stream
-                           "the book sticks to your hands -~&~
+                           "~&its an old copy of Play~A"
+                           (text-of-race (random-race)))))
+   (make-outcome 'dexterity-manual
+                 (lambda (castle)
+                   (make-adv-stronger (cas-adventurer castle)
+                                      +adv-rank-max+)
+                   (make-history
+                    (make-event 'adv-opened 'book
+                                :reads 'dexterity-manual)))
+                 "~&it's a manual of dexterity")
+   (make-outcome 'strength-manual
+                 (lambda (castle)
+                   (make-adv-nimbler (cas-adventurer castle)
+                                     +adv-rank-max+)
+                   (make-history
+                    (make-event 'adv-opened 'book
+                                :reads 'strength-manual)))
+                 "~&it's a manual of strength")
+   (make-outcome 'glue-trap
+                 (lambda (castle)
+                   (bind-adv-hands (cas-adventurer castle)
+                                   'book)
+                   (make-history
+                    (make-event 'adv-opened 'book
+                                :and 'adv-sprung-trap)
+                    (make-event 'trap-sprang 'glue
+                                :and 'adv-bound
+                                :to 'book)))
+                 (lambda (stream)
+                   (format stream
+                           "~&the book sticks to your hands -~&~
                             Now you can't draw your weapon"))))
   "All the outcomes of opening books")
 
@@ -3719,25 +3738,16 @@ into the orb."
       ;; effect on some of the events.
       (destructuring-bind (outcome-name outcome-effect outcome-text)
           (random-elt *open-book-outcomes*)
-        (record-events events (make-event 'adv-opened 'book))
         (when outcome-effect
           (setf outcome-effect
-                (cond
-                  ((member outcome-name '(glue-trap flash-trap))
-                   (funcall outcome-effect castle 'book))
-                  (t
-                   (funcall outcome-effect adv))))
+                (funcall outcome-effect castle))
           (join-history events outcome-effect))
         (when outcome-text
           (setf outcome-text
-                (format nil "~&You open the book and~&~A"
+                (format nil "~&You open the book and ~A"
                         (cond
                           ((eq outcome-name 'flash-trap)
                            (format nil outcome-text castle))
-                          ((find outcome-name
-                                 '(dexterity-manual strength-manual))
-                           (format nil
-                                   "it's a manual of ~A" outcome-text))
                           (t (format nil outcome-text)))))
           (push-text message outcome-text)))
       (values events message))))
