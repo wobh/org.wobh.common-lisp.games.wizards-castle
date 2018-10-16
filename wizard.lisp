@@ -444,7 +444,7 @@ returns INPUT-ERROR."
     adv-wielded
     adv-armor-damaged adv-weapon-broke adv-armor-destroyed
     adv-changed-race adv-changed-sex
-    trap-springs
+    trap-sprang
     chest-expoded
     adv-left-castle
     adv-slain
@@ -3659,7 +3659,7 @@ into the orb."
                    (make-adv-blind (cas-adventurer castle))
                    (make-history
                     (make-event 'adv-opened 'book
-                                :and 'adv-sprung-trap)
+                                :and 'trap-sprang)
                     (make-event 'trap-sprang 'flash
                                 :and 'adv-blinded)))
                  (lambda (stream castle)
@@ -3705,7 +3705,7 @@ into the orb."
                                    'book)
                    (make-history
                     (make-event 'adv-opened 'book
-                                :and 'adv-sprung-trap)
+                                :and 'trap-sprang)
                     (make-event 'trap-sprang 'glue
                                 :and 'adv-bound
                                 :to 'book)))
