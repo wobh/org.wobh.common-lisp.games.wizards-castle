@@ -443,7 +443,7 @@ returns INPUT-ERROR."
     adv-donned adv-doffed
     adv-wielded
     adv-armor-damaged adv-weapon-broke adv-armor-destroyed
-    adv-changed-race adv-changed-sex
+    adv-changed
     trap-sprang
     chest-expoded
     adv-left-castle
@@ -1413,14 +1413,6 @@ limits."
     (unless (adv-alive-p adv)
       (record-event events (make-event 'adv-slain)))
     events))
-
-(defun change-adv-race (adv new-race)
-  (set-adv-race (adv-rc adv) new-race)
-  (make-history (make-event 'adv-changed-race new-race)))
-
-(defun change-adv-sex (adv new-sex)
-  (set-adv-sex (adv-sx adv) new-sex)
-  (make-history (make-event 'adv-changed-sex new-sex)))
 
 (defun make-adv-richer (adv delta)
   (incf-inv (adv-gp adv) delta)
@@ -3458,12 +3450,43 @@ castle."
    (make-outcome 'dumber      'make-adv-dumber   "dumber")
    (make-outcome 'nimbler     'make-adv-nimbler  "nimbler")
    (make-outcome 'clumsier    'make-adv-clumsier "clumsier")
-   (make-outcome 'change-race 'change-adv-race
-         (lambda (race-ref)
-           (format nil "become a ~A" (text-of-race race-ref))))
-   (make-outcome 'change-sex   'change-adv-sex
-         (lambda (sex-ref)
-           (format nil "turn into a ~A" (text-of-sex sex-ref)))))
+   (make-outcome 'change-race
+                 (lambda (castle)
+                   (let* ((adv (cas-adventurer castle))
+                          (adv-race (adv-rc adv))
+                          (new-race (random-elt
+                                     (remove adv-race *races*))))
+                     (set-adv-race (adv-rc adv) new-race)
+                     (make-history (make-event 'adv-changed 'race
+                                               :from adv-race
+                                               :to new-race))))
+                 (lambda (stream events)
+                   (destructuring-bind (event-name event-kind &key from to)
+                       (oldest-event events)
+                     (declare (ignore from))
+                     (assert (equal '(adv-changed race)
+                                    (list event-name event-kind)))
+                     (format stream
+                            "become a ~A"
+                            (text-of-race to)))))
+   (make-outcome 'change-sex
+                 (lambda (castle)
+                   (let* ((adv (cas-adventurer castle))
+                          (adv-sex (adv-sx adv))
+                          (new-sex (random-elt
+                                    (remove adv-sex *sexes*))))
+                     (set-adv-sex (adv-sx adv) new-sex)
+                     (make-history (make-event 'adv-changed 'sex
+                                               :from adv-sex
+                                               :to new-sex))))
+                 (lambda (stream events)
+                   (destructuring-bind (event-name event-kind &key from to)
+                       (oldest-event events)
+                     (declare (ignore from))
+                     (assert (equal '(adv-changed sex)
+                                    (list event-name event-kind)))
+                     (format stream
+                             "turn into a ~A" to)))))
   "All of the drink outcomes.")
 
 (defconstant +pool-effect-maximum+ 3)
@@ -3483,36 +3506,28 @@ castle."
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *drink-pool-outcomes*)
-           (record-event events (make-event 'adv-drank 'pool))
            (when outcome-effect
              (setf outcome-effect
-                   (cond
-                     ((eq outcome-name 'change-race)
-                      (funcall outcome-effect
-                               adv (random-elt
-                                    (remove (adv-rc adv) *races*))))
-                     ((eq outcome-name 'change-sex)
-                      (funcall outcome-effect
-                               adv (random-elt
-                                    (remove (adv-rc adv) *sexes*))))
-                     (t (funcall outcome-effect
-                                 adv
-                                 (random-whole +pool-effect-maximum+)))))
+                   (cond ((member outcome-name '(change-race change-sex))
+                          (funcall outcome-effect castle))
+                         (t (funcall outcome-effect
+                                     adv
+                                     (random-whole +pool-effect-maximum+)))))
+             (record-event events
+                           (make-event 'adv-drank 'pool
+                                       :and (name-of-event (latest-event outcome-effect))))
              (join-history events outcome-effect))
            (when outcome-text
-             (let ((effect (latest-event events)))
-               (setf outcome-text
-                     (cond ((eq outcome-name 'change-race)
-                            (funcall outcome-text
-                                     (value-of-event effect)))
-                           ((eq outcome-name 'change-sex)
-                            (funcall outcome-text
-                                     (value-of-event effect)))
-                           (t (format nil "feel ~A"
-                                      outcome-text))))
-               (push-text message
-                          (format nil "You take a drink and ~A"
-                                  outcome-text)))))))
+             (setf outcome-text
+                   (cond ((member outcome-name '(change-race change-sex))
+                          (format nil outcome-text outcome-effect))
+                         (t (format nil
+                                    "feel ~A"
+                                    outcome-text))))
+             (push-text message
+                        (format nil
+                                "You take a drink and ~A"
+                                outcome-text))))))
         (values events message))))
 
 
