@@ -1416,7 +1416,7 @@ limits."
 
 (defun make-adv-richer (adv delta)
   (incf-inv (adv-gp adv) delta)
-  (make-history (make-event 'adv-gained 'gold-pieces delta)))
+  adv)
 
 (defun make-adv-poorer (adv delta)
   (decf-inv (adv-gp adv) delta)
@@ -2220,8 +2220,8 @@ castle."
 
 (defconstant +trap-bomb-damage-maximum+ 6)
 
-(defun adv-springs-bomb-trap (adv)
-  (damage-adv adv
+(defun adv-springs-bomb-trap (castle)
+  (damage-adv (cas-adventurer castle)
               (random-whole +trap-bomb-damage-maximum+)))
 
 (defconstant +vendor-potion-efficacy-maximum+ 6)
@@ -2317,7 +2317,10 @@ castle."
     (let ((gps (random-whole +gold-in-rooms-maximum+))
           (events (make-history)))
       (clear-castle-room castle here)
-      (join-history events (make-adv-richer adv gps))
+      (make-adv-richer adv gps)
+      (join-history events (make-history
+                            (make-event 'adv-gained 'gold-pieces
+                                        :by gps)))
       (join-history events (cas-adv-map-here castle))
       (values events
               (make-message-report-inv castle 'gold-pieces)))))
@@ -2648,7 +2651,11 @@ castle."
         (push-text message "~2&Great Zot! You've found the Runestaff"))
       (if (monster-p (foe-creature foe))
 	  (let ((hoard (random-whole +adversary-hoard-maximum+)))
-	    (join-history events (make-adv-richer adv hoard))
+            (make-adv-richer adv hoard)
+	    (join-history events
+                          (make-history
+                           (make-event 'adv-gained 'gold-pieces
+                                       :by hoard)))
 	    (push-text message
 		       (format nil "~2&You now get his hoard of ~D GP's" hoard)))
 	  (progn
@@ -3003,7 +3010,10 @@ castle."
 (defun sell-treasure (adv treasure price)
   (let ((events (make-history)))
     (join-history events (take-adv-treasure adv treasure))
-    (join-history events (make-adv-richer adv price))))
+    (make-adv-richer adv price)
+    (join-history events (make-history
+                          (make-event 'adv-gained 'gold-pieces
+                                      :by price)))))
 
 (defun sell-treasures-to-vendor (adv)
   (with-accessors ((gp adv-gp)) adv
@@ -3759,12 +3769,25 @@ into the orb."
 (defparameter *open-chest-outcomes*
     (list
      (make-outcome 'bomb-trap
-                   'adv-springs-bomb-trap "KABOOM! It explodes")
+                   'adv-springs-bomb-trap
+                   "~&KABOOM! It explodes")
      (make-outcome 'gas-trap
-                   'adv-springs-gas-trap "Gas! You stagger from the room")
-     (make-outcome 'gold-pieces 'make-adv-richer
-           (lambda (gps)
-             (format nil "Find ~D gold pieces" gps))))
+                   'adv-springs-gas-trap
+                   "~&Gas! You stagger from the room")
+     (make-outcome 'gold-pieces
+                   (lambda (castle)
+                     (let ((adv (cas-adventurer castle))
+                           (gps (random-whole +gold-in-chests-maximum+)))
+                       (make-adv-richer adv gps)
+                       (make-history
+                        (make-event 'adv-gained 'gold-pieces
+                                    :by gps))))
+                   (lambda (stream events)
+                     (destructuring-bind (action object &key by)
+                         (oldest-event events)
+                       (assert (equal '(adv-gained gold-pieces)
+                                      (list action object)))
+                       (format stream "~&Find ~D gold pieces" by)))))
   "All the outcomes of opening chests.")
 
 (defconstant +gold-in-chests-maximum+ 1000)
@@ -3779,29 +3802,20 @@ into the orb."
           (get-outcome (random-elt '(bomb-trap gas-trap
                                      gold-pieces gold-pieces))
                        *open-chest-outcomes*)
-        (record-event events (make-event 'adv-opened 'chest))
+        (declare (ignore outcome-name))
         (when outcome-effect
           (setf outcome-effect
-                (case outcome-name
-                  (gold-pieces (funcall outcome-effect
-                                        adv
-                                        (random-whole +gold-in-chests-maximum+)))
-                  (bomb-trap (funcall outcome-effect
-                                      adv))
-                  (gas-trap (funcall outcome-effect castle))))
-          (when outcome-effect
-            (join-history events outcome-effect)))
+                (funcall outcome-effect castle))
+          (record-event events (make-event 'adv-opened 'chest
+                                           :and (name-of-event
+                                                 (oldest-event outcome-effect))))
+          (join-history events outcome-effect))
         (when outcome-text
           (setf outcome-text
-                (format nil "You open the chest and~&~A"
-                        (etypecase outcome-text
-                          (string outcome-text)
-                          (function
-                           (if (eq outcome-name 'gold-pieces)
-                               (funcall outcome-text
-                                        (value-of-event
-                                         (latest-event events)))
-                               (funcall outcome-text))))))
+                (format nil
+                        "You open the chest and~@?"
+                        outcome-text
+                        outcome-effect))
           (push-text message outcome-text)))
       (values events message))))
 
