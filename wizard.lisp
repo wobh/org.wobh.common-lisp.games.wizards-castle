@@ -2858,7 +2858,7 @@ castle."
                            ((< dx 1) "dexterity")
                            (t "life")))
              (format message "~&When you died you had:"))
-            ((eq end 'exit)`
+            ((eq end 'exit)
              (format message
                      "~&You left the castle with~:[out~;~] the Orb of Zot"
                      of)))
