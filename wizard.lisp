@@ -4463,7 +4463,7 @@ passed in must not also have an adventurer already in it."
 ;;    with delta = -1
 ;;    for ranking in '(adv-st adv-iq adv-dx)
 ;;    do
-;;      (let ((adv (make-test-adv)))
+;;      (let ((adv (make-test-adv :basic)))
 ;;        (assert (adv-alive-p adv))
 ;;        (set-adv-rank-min adv ranking)
 ;;        (assert (null (adv-alive-p adv)))
