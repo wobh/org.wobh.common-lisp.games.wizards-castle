@@ -4027,15 +4027,17 @@ into the orb."
   (list
    (make-outcome 'adv-stepped-on nil "stepped on a frog")
    (make-outcome 'adv-heard      nil
-                 (lambda ()
-                   (format nil "hear ~A"
+                 (lambda (stream)
+                   (format stream
+                           "hear ~A"
                            (random-elt '("a scream" "footsteps"
                                          "a wumpus" "thunder")))))
    (make-outcome 'adv-sneezed    nil "sneezed")
    (make-outcome 'adv-saw        nil "see a bat fly by")
    (make-outcome 'adv-smelled    nil
-                 (lambda ()
-                   (format nil "smell ~A frying"
+                 (lambda (stream)
+                   (format stream
+                           "smell ~A frying"
                            (text-of-creature (random-monster)))))
    (make-outcome 'adv-felt       nil "feel like you are being watched")
    (make-outcome 'game-announced nil "are playing Wizard's Castle"))
@@ -4079,7 +4081,7 @@ into the orb."
          do (apply-curse castle curse))
       (with-output-to-string (message)
 	(when (zerop (random 5))
-	  (format message "~2&You ~A"
+	  (format message "~2&You ~@?"
                   (text-of-outcome
                    (random-elt 
                     (if (blind-p adv)
