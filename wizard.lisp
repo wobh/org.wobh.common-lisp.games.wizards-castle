@@ -4075,34 +4075,33 @@ into the orb."
   "Every turn."
   (with-accessors ((adv cas-adventurer)
                    (history cas-history)) castle
-    (with-accessors ((cr adv-cr)) adv
-      (loop
-         for curse in cr
-         do (apply-curse castle curse))
+    (loop
+       for curse in (adv-cr adv)
+       do (apply-curse castle curse))
+    (let ((healed-sight (cure-adv-blindness adv))
+          (hand-freed (unbind-adv-hand adv)))
+      (join-history history healed-sight)
+      (join-history history hand-freed)
       (with-output-to-string (message)
-	(when (zerop (random 5))
-	  (format message "~2&You ~@?"
-                  (text-of-outcome
-                   (random-elt 
-                    (if (blind-p adv)
-                        ;; When blind, you step on things more.
-                        (substitute
-                         (get-outcome 'adv-stepped-on *minor-event-outcomes*)
-                         (get-outcome 'adv-sees *minor-event-outcomes*)
-                         *minor-event-outcomes*)
-                        *minor-event-outcomes*)))))
-        (let ((healed-sight (cure-adv-blindness adv)))
-          (when healed-sight
-            (join-history history healed-sight)
-            (format message
-                    "~&~A cures your blindness"
-                    (text-of-creature (value-of-event (latest-event history))))))
-        (let ((hand-freed (unbind-adv-hand adv)))
-          (when hand-freed
-            (join-history history hand-freed)
-            (format message
-                    "~&~A dissolves the book"
-                    (text-of-creature (value-of-event (latest-event history))))))))))
+        (when (zerop (random 5))
+          (let ((minor-events (if (blind-p adv)
+                                  ;; When blind, you step on things more.
+                                  (substitute
+                                   (get-outcome 'adv-stepped-on *minor-event-outcomes*)
+                                   (get-outcome 'adv-sees *minor-event-outcomes*)
+                                   *minor-event-outcomes*)
+                                  *minor-event-outcomes*)))
+	    (format message
+                    "~2&You ~@?"
+                    (text-of-outcome (random-elt minor-events)))))
+        (when healed-sight
+          (format message
+                  "~&~A cures your blindness"
+                  (text-of-creature (value-of-event (latest-event history)))))
+        (when hand-freed
+          (format message
+                  "~&~A dissolves the book"
+                  (text-of-creature (value-of-event (latest-event history)))))))))
 
 
 ;;;; Game
