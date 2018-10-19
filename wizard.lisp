@@ -4354,6 +4354,18 @@ passed in must not also have an adventurer already in it."
              (getf *adventurers*
                    adv-name))))
 
+(defun castle-find (castle item)
+  "Returns coordinates where `item' can be found."
+  (loop
+     with rooms = (cas-rooms castle)
+     with room-count = (array-total-size rooms)
+     for i from 0 below room-count
+     until (eql item (row-major-aref rooms i))
+     finally
+       (return
+         (unless (= i room-count)
+           (array-index-row-major rooms i)))))
+
 (defun map-all-rooms (&key (adv *a*) (castle *z*))
   "Maps all the rooms in a castle."
   (assert (typep castle 'castle))
