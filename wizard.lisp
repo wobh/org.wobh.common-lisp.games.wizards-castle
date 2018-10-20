@@ -3198,22 +3198,22 @@ castle."
 
 (defparameter *help-text-dos*
   (format nil
-          "~&*** WIZARD'S CASTLE COMMAND AND INFORMATION SUMMARY ***~2%~
-             The following commands are available :~2%~
-             Help     North    South    East     West     Up~%~
-             Down     DRink    Map      Flare    Lamp     Open~%~
-             Gaze     Teleport Quit~2%~
-             The contents of rooms are as follows :~2%~
-             . = Empty Room      B = Book            C = Chest~%~
-             D = Stairs Down     E = Entrance/Exit   F = Flares~%~
-             G = Gold Pieces     M = Monsters        O = Crystal Orb~%~
-             P = Magic Pool      S = Sinkhole        T = Treasure~%~
-             U = Stairs Up       V = Vendor          W = Warp/ORB OF ZOT~2%~
-             The benefits of having treasures are :~2%~
-             RUBY READ  - Avoid LETHARGY     PALE PEARL - Avoid LEECH~%~
-             GREEN GEM  - Avoid FORGETTING   OPAL EYE   - Cures BLINDNESS~%~
-             BLUE FLAME - Dissolves BOOKS    NORN STONE - No Benefit~%~
-             PALANTIR   - No Benefit         SILMARIL   - No Benefit")
+          "~&*** WIZARD'S CASTLE COMMAND AND INFORMATION SUMMARY ***~
+          ~2&The following commands are available :~
+          ~2&Help     North    South    East     West     Up~
+           ~&Down     DRink    Map      Flare    Lamp     Open~
+           ~&Gaze     Teleport Quit~
+           ~&The contents of rooms are as follows :~
+          ~2&. = Empty Room      B = Book            C = Chest~
+           ~&D = Stairs Down     E = Entrance/Exit   F = Flares~
+           ~&G = Gold Pieces     M = Monsters        O = Crystal Orb~
+           ~&P = Magic Pool      S = Sinkhole        T = Treasure~
+           ~&U = Stairs Up       V = Vendor          W = Warp/ORB OF ZOT~
+          ~2&The benefits of having treasures are :~
+          ~2&RUBY READ  - Avoid LETHARGY     PALE PEARL - Avoid LEECH~
+           ~&GREEN GEM  - Avoid FORGETTING   OPAL EYE   - Cures BLINDNESS~
+           ~&BLUE FLAME - Dissolves BOOKS    NORN STONE - No Benefit~
+           ~&PALANTIR   - No Benefit         SILMARIL   - No Benefit")
   "Some help documentation")
 
 (defparameter *wiz-help* nil)
