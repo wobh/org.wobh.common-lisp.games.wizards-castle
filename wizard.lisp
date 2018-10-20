@@ -210,63 +210,6 @@
      collect index))
 
 
-;;;; Directions and vectors in Castle Zot
-
-(defparameter *directions*
-  '((down  (1 0 0))
-    (up    (-1 0 0))
-    (south (0 1 0))
-    (north (0 -1 0))
-    (east  (0 0 1))
-    (west  (0 0 -1))))
-
-(defun direction-p (symbol)
-  (find symbol *directions* :key #'first))
-
-(defun name-of-vector (vector)
-  (first (find vector *directions* :key #'second)))
-
-(defun vector-of-direction (direction)
-  (assert (direction-p direction))
-  (second (find direction *directions* :key #'first)))
-
-(defun map-manifold-vectors (function manifold &rest vectors)
-  "Map function over manifold vectors, modulus dimensions of the manifold."
-  (mapcar #'mod (apply #'mapcar function vectors)
-          (array-dimensions manifold)))
-
-;;; The original coordinate system reversed what I would call the X
-;;; and Y axes and also counted up from 1.
-
-;;; I judge the interest of coherence outweighs fidelity in this
-;;; case. We will count from zero and use "normal" x and y
-;;; internally. We'll translate into zot coords for the user interface.
-
-;;; NOTE:
-;;; (aref array-3d x y z)
-;;; (array-row-major-index array-3d z y x)
-
-(defparameter *cas-coords* :zot
-  "What style to display castle coordinates in.")
-
-(defun wiz-coords (coords)
-  "Arrange coordinates in the order and value expected."
-  (ecase *cas-coords*
-    (:array (reverse coords))
-    (:zot (map 'list #'1+
-               (list (second coords) (third coords) (first coords))))))
-
-(defun unwiz-coords (wizd-coords)
-  "Arrange coordinates from original game order and values to internal
-order and values."
-  (ecase *cas-coords*
-    (:array (reverse wizd-coords))
-    (:zot (map 'list #'1-
-               (list (third wizd-coords)
-                     (first wizd-coords)
-                     (second wizd-coords))))))
-
-
 ;;;; TODO mimic display output?
 
 ;;;  - http://oldcomputers.net/ 
@@ -765,6 +708,63 @@ returns INPUT-ERROR."
 (defun icon-of-unmapped ()
   "Get the icon for a unmapped room."
   (icon-of-creature 'x))
+
+
+;;;; Directions and vectors in Castle Zot
+
+(defparameter *directions*
+  '((down  (1 0 0))
+    (up    (-1 0 0))
+    (south (0 1 0))
+    (north (0 -1 0))
+    (east  (0 0 1))
+    (west  (0 0 -1))))
+
+(defun direction-p (symbol)
+  (find symbol *directions* :key #'first))
+
+(defun name-of-vector (vector)
+  (first (find vector *directions* :key #'second)))
+
+(defun vector-of-direction (direction)
+  (assert (direction-p direction))
+  (second (find direction *directions* :key #'first)))
+
+(defun map-manifold-vectors (function manifold &rest vectors)
+  "Map function over manifold vectors, modulus dimensions of the manifold."
+  (mapcar #'mod (apply #'mapcar function vectors)
+          (array-dimensions manifold)))
+
+;;; The original coordinate system reversed what I would call the X
+;;; and Y axes and also counted up from 1.
+
+;;; I judge the interest of coherence outweighs fidelity in this
+;;; case. We will count from zero and use "normal" x and y
+;;; internally. We'll translate into zot coords for the user interface.
+
+;;; NOTE:
+;;; (aref array-3d x y z)
+;;; (array-row-major-index array-3d z y x)
+
+(defparameter *cas-coords* :zot
+  "What style to display castle coordinates in.")
+
+(defun wiz-coords (coords)
+  "Arrange coordinates in the order and value expected."
+  (ecase *cas-coords*
+    (:array (reverse coords))
+    (:zot (map 'list #'1+
+               (list (second coords) (third coords) (first coords))))))
+
+(defun unwiz-coords (wizd-coords)
+  "Arrange coordinates from original game order and values to internal
+order and values."
+  (ecase *cas-coords*
+    (:array (reverse wizd-coords))
+    (:zot (map 'list #'1-
+               (list (third wizd-coords)
+                     (first wizd-coords)
+                     (second wizd-coords))))))
 
 
 ;;;; Locations and creatures in castle Zot.
