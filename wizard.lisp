@@ -1374,52 +1374,62 @@ limits."
 
 (defun make-adv-stronger (adv delta)
   (incf-adv-rank (adv-st adv) delta)
-  (make-history (make-event 'adv-gained 'strength delta)))
+  (make-history
+   (make-event 'adv-gained 'strength :by delta)))
 
 (defun make-adv-weaker (adv delta)
   (decf-adv-rank (adv-st adv) delta)
-  (let ((events (make-history (make-event 'adv-lost 'strength delta))))
+  (let ((events (make-history
+                 (make-event 'adv-lost 'strength :by delta))))
     (unless (adv-alive-p adv)
-      (record-event events (make-event 'adv-slain)))
+      (record-event events (make-event 'adv-slain :by 'weakness)))
     events))
 
 (defun make-adv-smarter (adv delta)
   (incf-adv-rank (adv-iq adv) delta)
-  (make-history (make-event 'adv-gained 'intelligence delta)))
+  (make-history
+   (make-event 'adv-gained 'intelligence :by delta)))
 
 (defun make-adv-dumber (adv delta)
   (decf-adv-rank (adv-iq adv) delta)
-  (let ((events (make-history (make-event 'adv-lost 'intelligence delta))))
+  (let ((events (make-history
+                 (make-event 'adv-lost 'intelligence :by delta))))
     (unless (adv-alive-p adv)
-      (record-event events (make-event 'adv-slain)))
+      (record-event events (make-event 'adv-slain :by 'dumbness)))
     events))
 
 (defun make-adv-nimbler (adv delta)
   (incf-adv-rank (adv-dx adv) delta)
-  (make-history (make-event 'adv-gained 'dexterity delta)))
+  (make-history
+   (make-event 'adv-gained 'dexterity :by delta)))
 
 (defun make-adv-clumsier (adv delta)
   (decf-adv-rank (adv-dx adv) delta)
-  (let ((events (make-history (make-event 'adv-lost 'dexterity delta))))
+  (let ((events (make-history
+                 (make-event 'adv-lost 'dexterity :by delta))))
     (unless (adv-alive-p adv)
-      (record-event events (make-event 'adv-slain)))
+      (record-event events (make-event 'adv-slain :by 'clumsiness)))
     events))
 
 (defun make-adv-richer (adv delta)
   (incf-inv (adv-gp adv) delta)
-  adv)
+  (make-history
+   (make-event 'adv-gained 'gold-pieces :by delta)))
 
 (defun make-adv-poorer (adv delta)
   (decf-inv (adv-gp adv) delta)
-  (make-history (make-event 'adv-lost 'gold-pieces delta)))
+  (make-history
+   (make-event 'adv-lost 'gold-pieces :by delta)))
 
 (defun give-adv-flares (adv delta)
   (incf-inv (adv-fl adv) delta)
-  (make-history (make-event 'adv-gained 'flares delta)))
+  (make-history
+   (make-event 'adv-gained 'flares :by delta)))
 
 (defun take-adv-flares (adv delta)
   (decf-inv (adv-fl adv) delta)
-  (make-history (make-event 'adv-lost 'flares delta)))
+  (make-history
+   (make-event 'adv-lost 'flares :by delta)))
 
 (defun give-adv-treasure (adv treasure)
   (gain-treasure adv treasure)
@@ -2308,10 +2318,7 @@ castle."
     (let ((gps (random-whole +gold-in-rooms-maximum+))
           (events (make-history)))
       (clear-castle-room castle here)
-      (make-adv-richer adv gps)
-      (join-history events (make-history
-                            (make-event 'adv-gained 'gold-pieces
-                                        :by gps)))
+      (join-history events (make-adv-richer adv gps))
       (join-history events (cas-adv-map-here castle))
       (values events
               (make-message-report-inv castle 'gold-pieces)))))
@@ -4501,9 +4508,9 @@ passed in must not also have an adventurer already in it."
   (assert (null (cast-spells-p *a*)) ()
           "This adventurer should not be able to cast spells: ~S" *a*)
   (assert (equal '(nil
-                   ((adv-gained intelligence 5))
+                   ((adv-gained intelligence :by 5))
                    t
-                   ((adv-lost intelligence 2))
+                   ((adv-lost intelligence :by 2))
                    nil)
                  (list (cast-spells-p *a*)
                        (make-adv-smarter *a* 5)
@@ -4515,9 +4522,9 @@ passed in must not also have an adventurer already in it."
   (assert (cast-spells-p *a*) ()
           "This adventurer should be able to cast spells: ~S" *a*)
   (assert (equal '(t
-                   ((adv-lost intelligence 5))
+                   ((adv-lost intelligence :by 5))
                    nil
-                   ((adv-gained intelligence 2))
+                   ((adv-gained intelligence :by 2))
                    t)
                  (list (cast-spells-p *a*)
                        (make-adv-dumber *a* 5)
