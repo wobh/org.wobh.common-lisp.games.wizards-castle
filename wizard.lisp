@@ -4357,6 +4357,12 @@ passed in must not also have an adventurer already in it."
          (unless (= i room-count)
            (array-index-row-major rooms i)))))
 
+(defun how-convenient (castle item &optional (coords '(0 0 4)))
+  "Moves item east of the entrance"
+  (with-accessors ((rooms cas-rooms)) castle
+    (rotatef (apply #'aref rooms coords)
+             (apply #'aref rooms (castle-find castle item)))))
+
 (defun map-all-rooms (&key (adv *a*) (castle *z*))
   "Maps all the rooms in a castle."
   (assert (typep castle 'castle))
