@@ -3578,6 +3578,8 @@ there. This info could be mapped.")
                         (:smart (gaze-map-smart))
                         (:skeptic (gaze-map-skeptic)))))))
 
+(defconstant +orb-damage-maximum+ 2)
+
 (defparameter *gaze-crystal-orb-outcomes*
   (list
    (make-outcome 'heap
@@ -3641,8 +3643,6 @@ there. This info could be mapped.")
                                 :saw 'soap-opera)))
                  "a soap opera rerun"))
   "The visions in the crystal orb.")
-
-(defconstant +orb-damage-maximum+ 2)
 
 (defun adv-uses-crystal-orb (castle)
   "Return events and message of what happens when the adventurer gazes
@@ -3766,6 +3766,8 @@ into the orb."
 
 ;;;; Chest
 
+(defconstant +gold-in-chests-maximum+ 1000)
+
 (defparameter *open-chest-outcomes*
     (list
      (make-outcome 'bomb-trap
@@ -3789,8 +3791,6 @@ into the orb."
                                       (list action object)))
                        (format stream "~&Find ~D gold pieces" by)))))
   "All the outcomes of opening chests.")
-
-(defconstant +gold-in-chests-maximum+ 1000)
 
 (defun adv-opens-chest (castle)
   "Return events and messages when adventurer opens a chest."
