@@ -279,15 +279,6 @@
   "Read a number from whatever entered."
   (parse-integer (read-line stream) :junk-allowed t))
 
-(defun wiz-read-coord (axis)
-  "Read a coordinate."
-  (let ((coord (wiz-read-n)))
-    (list
-     (intern (symbol-name axis) 'keyword)
-     (ecase *cas-coords*
-       (zot   (1- coord))
-       (array coord)))))
-
 (defun make-prompt-adv-choice (&optional intro)
   "Make a prompt with 'Your choice' at the end."
   (let ((prompt "Your choice "))
