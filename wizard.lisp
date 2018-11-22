@@ -2274,13 +2274,8 @@ castle."
       (symbol   (apply (symbol-function effect-ref) args))
       (function (apply effect-ref args)))))
 
-(defun text-of-outcome (outcome &rest args)
-  (let ((text-ref (third outcome)))
-    (etypecase text-ref
-      (null     nil)
-      (string   text-ref)
-      (symbol   (apply (symbol-function text-ref) args))
-      (function (apply text-ref args)))))
+(defun text-of-outcome (outcome)
+  (third outcome))
 
 (defun make-outcome-text (outcome-name outcomes &rest args)
   (apply #'text-of-outcome (get-outcome outcome-name outcomes) args))
@@ -4025,8 +4020,7 @@ into the orb."
   (list
    (make-outcome 'adv-stepped-on nil "stepped on a frog")
    (make-outcome 'adv-heard      nil
-                 (lambda (stream &rest args)
-                   (declare (ignore args))
+                 (lambda (stream)
                    (format stream
                            "hear ~A"
                            (random-elt '("a scream" "footsteps"
@@ -4034,8 +4028,7 @@ into the orb."
    (make-outcome 'adv-sneezed    nil "sneezed")
    (make-outcome 'adv-saw        nil "see a bat fly by")
    (make-outcome 'adv-smelled    nil
-                 (lambda (stream args)
-                   (declare (ignore args))
+                 (lambda (stream)
                    (format stream
                            "smell ~A frying"
                            (text-of-creature (random-monster)))))
