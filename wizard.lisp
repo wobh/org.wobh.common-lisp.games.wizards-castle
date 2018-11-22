@@ -2254,43 +2254,14 @@ castle."
 (defun get-outcome (outcome-name outcomes)
   (find outcome-name outcomes :key 'name-of-outcome))
 
-;;; None of the following are used:
-
-;;; - `make-outcome-effect'
-;;; - `make-outcome-text'
-
-;;; And consequently, neither are their support functions which they
-;;; are the sole callers of:
-
-;;; - `effect-of-outcome'
-;;; - `text-of-outcome'
-
-;;; This whole section looks like an incomplete refactoring.
-
-(defun effect-of-outcome (outcome &rest args)
-  (let ((effect-ref (second outcome)))
-    (etypecase effect-ref
-      (null     nil)
-      (symbol   (apply (symbol-function effect-ref) args))
-      (function (apply effect-ref args)))))
+(defun effect-of-outcome (outcome)
+  (second outcome))
 
 (defun text-of-outcome (outcome)
   (third outcome))
 
-(defun make-outcome-text (outcome-name outcomes &rest args)
-  (apply #'text-of-outcome (get-outcome outcome-name outcomes) args))
-
-(defun make-outcome-effect (outcome-name outcomes &rest args)
-  (apply #'effect-of-outcome (get-outcome outcome-name outcomes) args))
-
-
-;;; FIXME
-
 (defun type-of-outcome (outcome)
   (first outcome))
-
-(defun type-p-outcome (outcome type-ref)
-  (eq type-ref (type-of-outcome outcome)))
 
 
 ;;;; Enter room
