@@ -4025,7 +4025,8 @@ into the orb."
   (list
    (make-outcome 'adv-stepped-on nil "stepped on a frog")
    (make-outcome 'adv-heard      nil
-                 (lambda (stream)
+                 (lambda (stream &rest args)
+                   (declare (ignore args))
                    (format stream
                            "hear ~A"
                            (random-elt '("a scream" "footsteps"
@@ -4033,7 +4034,8 @@ into the orb."
    (make-outcome 'adv-sneezed    nil "sneezed")
    (make-outcome 'adv-saw        nil "see a bat fly by")
    (make-outcome 'adv-smelled    nil
-                 (lambda (stream)
+                 (lambda (stream args)
+                   (declare (ignore args))
                    (format stream
                            "smell ~A frying"
                            (text-of-creature (random-monster)))))
