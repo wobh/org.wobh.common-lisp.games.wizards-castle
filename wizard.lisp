@@ -2836,18 +2836,14 @@ castle."
                              ~&You also got out with the following:")
             (format message "~2&A less than awe-inspiring defeat.~
                              ~&When you left the castle you had:")))
-      (when (not (eq end 'death))
-        (format message "~&Your miserable life!"))
-      (format message "~{~@[~&~A~]~}"
-              (loop
-                 for tr-n in (adv-treasures adv)
-                 collect (text-of-creature tr-n)))
+      (format message "~@[~&Your miserable life!~]" (adv-alive-p adv))
+      (format message "~{~@[~&~A~]~}" (mapcar #'text-of-creature (adv-treasures adv)))
       (format message "~&~A" (text-of-weapon wv))
       (format message "~&~A" (text-of-armor av))
-      (when lf (format message "~&a lamp"))
+      (format message "~@[~&a lamp~]" lf)
       (format message "~&~D flares" fl)
       (format message "~&~D GP's" gp)
-      (when rf (format message "~&the Runestaff"))
+      (format message "~@[~&the Runestaff~]" rf)
       (format message "~&and it took you ~D turns!" turns))))
 
 (defun make-prompt-fight (adv foe)
