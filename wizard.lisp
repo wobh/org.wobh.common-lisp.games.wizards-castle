@@ -541,42 +541,98 @@ returns INPUT-ERROR."
 
 ;;;; Show title screen
 
+(defparameter *wiz-title-plain*
+  "THE WIZARD'S CASTLE")
+
+(defparameter *wiz-title-fancy*
+  (format nil "* * * ~A * * *" *wiz-title-plain*))
+
+(defparameter *wiz-title*
+  *wiz-title-plain*)
+
+(defparameter *wiz-copyright-power*
+  "Copyright (C) 1980 by Joseph R Power")
+
+(defparameter *wiz-copyright*
+  *wiz-copyright-power*)
+
+(defparameter *wiz-revision-power*
+  "Last Revised - 04/12/80")
+
+(defparameter *wiz-revision-ohare*
+  "Last Revised - 07/09/80  12:30 AM")
+
+(defparameter *wiz-revision*
+  *wiz-revision-power*)
+
+(defparameter *wiz-adaptation-ohare*
+  "Converted to PET by - John O'Hare")
+
+(defparameter *wiz-adaptation*
+  nil)
+
 (defparameter *intro-text-dos*
   (format nil
-          "~2&Many cycles ago, in the kingdom of N'DIC, the gnomic~
-            ~&wizard ZOT forged his great ORB of power. He soon vanished~
-            ~&utterly, leaving behind his vast subterranean castle~
-            ~&filled with esurient MONSTERS, fabulous TREASURES, and~
-            ~&the incredible ORB of ZOT. From that time hence, many~
-            ~&a bold youth has ventured into the WIZARD'S CASTLE. As~
-            ~&of yet, NONE has ever emerged victoriously! BEWARE!!~2%")
+          "Many cycles ago, in the kingdom of N'DIC, the gnomic~
+         ~&wizard ZOT forged his great ORB of power. He soon vanished~
+         ~&utterly, leaving behind his vast subterranean castle~
+         ~&filled with esurient MONSTERS, fabulous TREASURES, and~
+         ~&the incredible ORB of ZOT. From that time hence, many~
+         ~&a bold youth has ventured into the WIZARD'S CASTLE. As~
+         ~&of yet, NONE has ever emerged victoriously! BEWARE!!~2%")
   "This intro is a slightly modified version of the article's introduction.")
+
+(defparameter *intro-text-ohare*
+  (format nil
+          "codes:~
+         ~@{~&~A=~A~20T~A=~A~}"
+          #\. "an empty room"
+          #\e "the entrance"
+          #\u "stairs going up"
+          #\d "stairs going down"
+          #\p "a pool"
+          #\c "a chest"
+          #\g "gold pieces"
+          #\f "flares"
+          #\w "a warp"
+          #\s "a sinkhole"
+          #\o "a crystal orb"
+          #\b "a book"
+          #\v "vendor"
+          #\m "any monster"
+          #\t "any treasure"
+          #\? "unexplored")
+  )
 
 (defparameter *wiz-intro* nil
   "Original game does not print an into like some later ones.")
 
-(defun launch (&optional intro)
-  (write-line (string #\page))
-  (write-line "Creating Arrays")
-  (when intro
-    (wiz-format *wiz-out* intro)))
-
-(defun make-message-title (&optional (width *wiz-width*))
+(defun make-message-splash (&key
+                              (width *wiz-width*)
+                              (title *wiz-title*)
+                              (copyright *wiz-copyright*)
+                              (revision *wiz-revision*)
+                              (adaptation *wiz-adaptation*)
+                              (introduction *wiz-intro*))
   "Print title screen"
   (let ((stars (make-string width :initial-element #\*))
-        (title "THE WIZARD'S CASTLE"))
+         (indent (1- (floor (- width (length title)) 2))))
     (with-output-to-string (message)
       (format message "~&~|~&")
       (format message "~&~A" stars)
-      (format message "~2&~VT~A"
-              (1- (floor (- width (length title)) 2)) title)
-      (format message "~2&~A"  stars)
-      (format message "~2&~A"
-              "Copyright 1980 (C) 1980 by Joseph R Power")
-      (format message "~2&~A~2%"  "Last Revised - 04/12/80"))))
+      (format message "~2&~VT~A" indent title)
+      (format message "~2&~A" stars)
+      (format message "~@[~2&~A~]" copyright)
+      (format message "~@[~2&~A~]" revision)
+      (format message "~@[~2&~A~]" adaptation)
+      (format message "~@[~2&~A~]" introduction))))
 
 ;; FIXME what should I do about form-feed (CHR$(12)? clear screen CLS?
 ;; Seems likely the revision date here means 1980-04-12
+
+(defun launch ()
+  (wiz-format *wiz-out* "~A" (make-message-splash)))
+
 
 ;;; TODO: filter list by contents of another list
 
@@ -2074,13 +2130,16 @@ castle."
 ;;                                         (pop random-empty-rooms))
 ;;                  creatures)))))
 
-(defun setup-castle (&optional (silent nil))
+(defparameter *wiz-setup-verbosity* t)
+
+(defun setup-castle (&optional (setup-verbosity *wiz-setup-verbosity*))
   "Place stuff in castle"
   (let* ((castle (make-castle))
          (height (castle-height (cas-rooms castle)))
+         (silent (not setup-verbosity))
          (lvl-mt (loop for level from 0 below height
-                    collect (shuffle (list-empty-room-indices castle level)))))
-    (unless silent (wiz-format *wiz-out* "Please be patient - "))
+                       collect (shuffle (list-empty-room-indices castle level)))))
+    (unless silent (wiz-format *wiz-out* "~2&Please be patient - "))
     ;; Place entrance (2)
     (with-accessors ((rooms cas-rooms)
                      (orb cas-loc-orb)
@@ -3366,6 +3425,7 @@ castle."
 
 ;;;; Lamp
 
+
 ;; TODO: Unlike most actions, input errors when using the lamp cycle
 ;; back to the main loop. This could be fixed.
 
@@ -4202,15 +4262,11 @@ into the orb."
 (defun sleep-of-death (&optional (duration *that-sleep-of-death*))
   (sleep duration))
 
-(defun main (&key (adventurer nil) (castle nil)
-               (intro nil) (help nil))
+(defun main (&key (adventurer nil) (castle nil))
   "The main game loop. If an adventurer is passed in, a castle also
 passed in must not also have an adventurer already in it."
   ;; (setf *random-state* (make-random-state t))
-  (launch intro)
-  (wiz-format *wiz-out* (make-message-title))
-  (when help
-    (setf *wiz-help* help))
+  (launch)
   (loop
      with play-again = nil
      with main-input = (setup-main-input)
@@ -4247,11 +4303,23 @@ passed in must not also have an adventurer already in it."
      until (null play-again)))
 
 (defun play-ohare (&rest args &key &allow-other-keys)
-  (let ((*curse-notify* t))
+  (let ((*curse-notify* t)
+        (*wiz-title* *wiz-title-plain*)
+        (*wiz-copyright* *wiz-copyright-power*)
+        (*wiz-revision* *wiz-revision-ohare*)
+        (*wiz-adaptation* *wiz-adaptation-ohare*)
+        (*wiz-intro* *intro-text-ohare*))
     (apply #'main args)))
 
 (defun play-stetson (&rest args &key &allow-other-keys)
-  (apply #'main :intro *intro-text-dos* :help *help-text-dos* args))
+  (let ((*wiz-title* *wiz-title-fancy*)
+        (*wiz-copyright* nil)
+        (*wiz-revision* nil)
+        (*wiz-adaptation* nil)
+        (*wiz-intro* *intro-text-dos*)
+        (*wiz-setup-verbosity* nil)
+        (*wiz-help* *help-text-dos*))
+    (apply #'main args)))
           
 ;;; TODO: figure out lisp getopts.
 
@@ -4367,7 +4435,6 @@ passed in must not also have an adventurer already in it."
                (gaze-map *gaze-mapper*)
                (cas-coords *cas-coords*)
                (sleep-of-death 1)
-               (intro nil) (help nil)
                ;; (play-again *play-again*)
                (random-state (make-random-state *r*)))
   "Run a test game."
@@ -4381,8 +4448,7 @@ passed in must not also have an adventurer already in it."
          ;; (*wiz-intro* intro)
          ;; (*wiz-help* help)
          )
-    (main :castle castle :adventurer adventurer
-          :help help :intro intro)
+    (main :castle castle :adventurer adventurer)
     (when last-castle castle)))
 
 (defun test-eval (wiz-form &key (castle *z*) (history 'castle))
