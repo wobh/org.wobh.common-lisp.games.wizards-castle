@@ -987,7 +987,7 @@ treasure arguments."
         equip)))
 
 (defparameter *armor*
-  '((no-armor  "nothing")
+  '((no-armor  "no armor")
     (leather   "leather")
     (chainmail "chainmail")
     (plate     "plate"))
@@ -997,14 +997,16 @@ treasure arguments."
   (get-equip-data armor-ref *armor* 'number))
 
 (defun text-of-armor (armor-ref)
-  (get-equip-data armor-ref *armor* 'string))
+  (if (eq 'nothing armor-ref)
+      "nothing"
+      (get-equip-data armor-ref *armor* 'string)))
 
 (defun armor-p (item)
   "Is the item armor?"
   (find item *armor* :key 'first))
 
 (defparameter *weapons*
-  '((no-weapon "nothing")
+  '((no-weapon "no weapon")
     (dagger    "dagger")
     (mace      "mace")
     (sword     "sword"))
@@ -1014,7 +1016,9 @@ treasure arguments."
   (get-equip-data weapon-ref *weapons* 'number))
 
 (defun text-of-weapon (weapon-ref)
-  (get-equip-data weapon-ref *weapons* 'string))
+  (if (eq 'nothing weapon-ref)
+      "nothing"
+      (get-equip-data weapon-ref *weapons* 'string)))
 
 (defun weapon-p (item)
   "Is the item a weapon?"
@@ -1643,7 +1647,7 @@ limits."
 (defun buy-armor (adv)
   "The adventurer may buy some armor."
   (with-accessors ((race adv-race) (gp adv-gp)) adv
-    (let* ((catalog '((no-armor 0) (leather 10) (chainmail 20) (plate 30)))
+    (let* ((catalog '((nothing 0) (leather 10) (chainmail 20) (plate 30)))
            (prompt (make-prompt-catalog "armor" #'text-of-armor catalog)))
       (wiz-format *wiz-out* "~&~|~2&Ok ~A, you have ~D gold pieces (GP's)"
                   race gp)
@@ -1668,7 +1672,7 @@ limits."
 (defun buy-weapon (adv)
   "The adventurer may buy a weapon."
   (with-accessors ((race adv-race) (gp adv-gp)) adv
-    (let* ((catalog '((no-weapon 0) (dagger 10) (mace 20) (sword 30)))
+    (let* ((catalog '((nothing 0) (dagger 10) (mace 20) (sword 30)))
            (prompt (make-prompt-catalog "weapon" #'text-of-weapon catalog)))
       (wiz-format *wiz-out*  "~&~|~2&Ok, bold ~A, you have ~D GP's left"
                   race gp)
@@ -2998,7 +3002,7 @@ castle."
   (remove-if (lambda (price) (< gp price)) catalog :key 'second))
 
 (defparameter *vendor-armor-catalog*
-  '((no-armor 0) (leather 1250) (chainmail 1500) (plate 2000))
+  '((nothing 0) (leather 1250) (chainmail 1500) (plate 2000))
   "Armor and prices available at vendors.")
 
 (defun buy-armor-from-vendor (adv)
@@ -3037,7 +3041,7 @@ castle."
                                           "Don't be silly. Choose a selection"))))))))))
 
 (defparameter *vendor-weapons-catalog*
-  '((no-weapon 0) (dagger 1250) (mace 1500) (sword 2000))
+  '((nothing 0) (dagger 1250) (mace 1500) (sword 2000))
   "Weapons and prices available at vendors.")
 
 (defun buy-weapon-from-vendor (adv)
