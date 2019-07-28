@@ -50,12 +50,12 @@ other editions of the game.
 * How to play
 
 Currently, this game runs in a Common Lisp REPL. Run the REPL, load
-the package and run the =MAIN= function.
+the package and run the =PLAY= function.
 
 #+BEGIN_EXAMPLE
 CL-USER> (load "wizard.lisp")
 WIZARD
-CL-USER> (WIZARD:MAIN)
+CL-USER> (wizard:play)
 #+END_EXAMPLE
 
 If you wish to experiment, or for play-testing:
@@ -73,7 +73,7 @@ with a few shortcuts to skip the castle and adventurer setup phases.
 #+BEGIN_EXAMPLE
 WIZARD> (setup-test)
 [... output elided ...]
-WIZARD (test)
+WIZARD (play-test)
 #+END_EXAMPLE
 
 See the section "Testing symbols and functions" for more information
@@ -84,10 +84,10 @@ that instead of =WIZARD= in these examples.
 
 * Exported symbols, functions and their options
 
-** =MAIN=
+** =PLAY=
 
-=MAIN= plays the game. With no arguments it defaults to the game as
-originally coded. The following keyword options to MAIN are available:
+=PLAY= plays the game with defaults to the game as originally
+coded. The following keyword options to =PLAY= are available:
 
 *** =:ADVENTURER (or adventurer-object Nil)=
 
@@ -103,30 +103,9 @@ castle setup phase. If the castle object already has a
 =CAS-ADVENTURER= object defined, the game will use that, if not, the
 game will proceed with the adventurer setup.
 
-*** =:INTRO (or string Nil)=
-
-Provide some text to print at the introduction of the game, as in the
-MSDOS version. The MSDOS intro text is provided in =+INTRO-TEXT-DOS+=.
-
-*** =:HELP (or string Nil)=
-
-Provide some text for the =HELP= option as in the MSDOS version. The
-MSDOS help text is provided in =+HELP-TEXT-DOS+=.
-
-*** =:LAST-CASTLE (or T Nil)=
-
-If =T=, =MAIN= returns the whole castle object. If =Nil=, =MAIN=
-returns only =CAS-HISTORY=.
-
 ** =PLAY-OHARE=
 
-Play the Commodore PET game as adapted by John O'Hare. Right now it
-just turns on =*CURSE-NOTIFY*= as below:
-
-#+BEGIN_SRC lisp
-(let ((*curse-notify* T))
-  (main))
-#+END_SRC
+Play the Commodore PET game as adapted by John O'Hare.
 
 The curse notice text is bound to =*CURSE-NOTICE-OHARE*=.
 
@@ -135,11 +114,7 @@ line length in this edition.
 
 ** =PLAY-STETSON=
 
-Play the MSDOS game as adapted by J.T. Stetson. Basically this:
-
-#+BEGIN_EXAMPLE
-(main :intro *intro-text-dos* :help *help-text-dos*)
-#+END_EXAMPLE
+Play the MSDOS game as adapted by J.T. Stetson.
 
 ** New features
    
@@ -197,10 +172,10 @@ deep copies of the testing environment's castle object, the testing
 environment reuses the random state =*R*= to regenerate it.
 
 
-*** =MAKE-TEST-ADV=
+*** =MAKE-TEST-ADV (symbol)=
 
 Make a test adventurer object from a predefined set. Accepts one
-keyword symbol arguement.
+keyword symbol argument.
 
 **** =ADV-NAME=
 
@@ -241,7 +216,7 @@ and =*Z*= may be passed or =MAIN= or used in =TEST= for playing.
 Maps all the rooms in a given castle. Of course, =CAS-ADVENTURER= must
 be defined.
 
-*** =TEST=
+*** =PLAY-TEST=
 
 Play a testing game with a resuable random-state. The equivalent of
 the following:

@@ -72,10 +72,10 @@
 (defpackage #:wizards-castle
   (:nicknames #:wizard #:zot)
   (:use #:cl)
-  (:export #:main #:play-ohare #:play-stetson)
+  (:export #:play #:play-ohare #:play-stetson)
   (:export #:*help-text-dos* #:*intro-text-dos*)
   (:export #:setup-adventurer #:setup-castle) ; FIXME: reconsider exporting these
-  (:export #:test #:make-test-adv #:setup-test)
+  (:export #:play-test #:make-test-adv #:setup-test)
   (:export #:*r* #:*a* #:*z*)
   (:documentation "Joseph Power's _Wizard's Castle_"))
 
@@ -579,7 +579,7 @@ returns INPUT-ERROR."
          ~&filled with esurient MONSTERS, fabulous TREASURES, and~
          ~&the incredible ORB of ZOT. From that time hence, many~
          ~&a bold youth has ventured into the WIZARD'S CASTLE. As~
-         ~&of yet, NONE has ever emerged victoriously! BEWARE!!~2%")
+         ~&of yet, NONE has ever emerged victoriously! BEWARE!!")
   "This intro is a slightly modified version of the article's introduction.")
 
 (defparameter *intro-text-ohare*
@@ -607,7 +607,7 @@ returns INPUT-ERROR."
 (defparameter *wiz-intro* nil
   "Original game does not print an into like some later ones.")
 
-(defun make-message-splash (&key
+(defun make-message-launch (&key
                               (width *wiz-width*)
                               (title *wiz-title*)
                               (copyright *wiz-copyright*)
@@ -616,7 +616,7 @@ returns INPUT-ERROR."
                               (introduction *wiz-intro*))
   "Print title screen"
   (let ((stars (make-string width :initial-element #\*))
-         (indent (1- (floor (- width (length title)) 2))))
+        (indent (1- (floor (- width (length title)) 2))))
     (with-output-to-string (message)
       (format message "~&~|~&")
       (format message "~&~A" stars)
@@ -625,13 +625,14 @@ returns INPUT-ERROR."
       (format message "~@[~2&~A~]" copyright)
       (format message "~@[~2&~A~]" revision)
       (format message "~@[~2&~A~]" adaptation)
-      (format message "~@[~2&~A~]" introduction))))
+      (format message "~@[~2&~A~]" introduction)
+      (format message "~%"))))
 
 ;; FIXME what should I do about form-feed (CHR$(12)? clear screen CLS?
 ;; Seems likely the revision date here means 1980-04-12
 
 (defun launch ()
-  (wiz-format *wiz-out* "~A" (make-message-splash)))
+  (wiz-format *wiz-out* "~A" (make-message-launch)))
 
 
 ;;; TODO: filter list by contents of another list
@@ -1771,7 +1772,7 @@ limits."
 
 (defun setup-adventurer ()
   "Make pc avatar"
-  (wiz-format *wiz-out* "~2&All right, bold one")
+  (wiz-format *wiz-out* "~&~|~2&All right, bold one")
   (let ((adv (make-adventurer)))
     (choose-race     adv)
     (choose-sex      adv)
@@ -2237,7 +2238,7 @@ castle."
             (setf (get-castle-creature castle loc-orb) 'warp
                   orb (array-index-row-major (cas-rooms castle) loc-orb)))
           (unless silent (wiz-format *wiz-out* "tle"))))
-      (unless silent (wiz-format *wiz-out* "~2%"))
+      (unless silent (wiz-format *wiz-out* "~%"))
       castle)))
 
 
@@ -4039,7 +4040,7 @@ into the orb."
     (join-history events
                     (send-adv *entrance*))
     (push-text message
-               (format nil "~&~|~&Ok ~A, you enter the castle and begin."
+               (format nil "~&~|~2&Ok ~A, you enter the castle and begin."
                        (adv-race (cas-adventurer castle))))
     (values events message)))
 
@@ -4266,7 +4267,6 @@ into the orb."
   "The main game loop. If an adventurer is passed in, a castle also
 passed in must not also have an adventurer already in it."
   ;; (setf *random-state* (make-random-state t))
-  (launch)
   (loop
      with play-again = nil
      with main-input = (setup-main-input)
@@ -4302,6 +4302,10 @@ passed in must not also have an adventurer already in it."
          (setf adventurer nil castle nil))
      until (null play-again)))
 
+(defun play (&rest args &key &allow-other-keys)
+  (launch)
+  (apply #'main args))
+
 (defun play-ohare (&rest args &key &allow-other-keys)
   (let ((*curse-notify* t)
         (*wiz-title* *wiz-title-plain*)
@@ -4309,6 +4313,7 @@ passed in must not also have an adventurer already in it."
         (*wiz-revision* *wiz-revision-ohare*)
         (*wiz-adaptation* *wiz-adaptation-ohare*)
         (*wiz-intro* *intro-text-ohare*))
+    (launch)
     (apply #'main args)))
 
 (defun play-stetson (&rest args &key &allow-other-keys)
@@ -4319,6 +4324,7 @@ passed in must not also have an adventurer already in it."
         (*wiz-intro* *intro-text-dos*)
         (*wiz-setup-verbosity* nil)
         (*wiz-help* *help-text-dos*))
+    (launch)
     (apply #'main args)))
           
 ;;; TODO: figure out lisp getopts.
@@ -4429,7 +4435,7 @@ passed in must not also have an adventurer already in it."
 ;;;; [wc 2013-01-31] TODO: come up with an error handler that does
 ;;;; something useful for reporting problems for play testers.
 
-(defun test (&key (adventurer *a*) (castle *z*) (last-castle t)
+(defun play-test (&key (adventurer *a*) (castle *z*) (last-castle t)
                (forget-type *forgetfulness*)
                (curse-notify *curse-notify*)
                (gaze-map *gaze-mapper*)
@@ -4448,6 +4454,7 @@ passed in must not also have an adventurer already in it."
          ;; (*wiz-intro* intro)
          ;; (*wiz-help* help)
          )
+    (launch)
     (main :castle castle :adventurer adventurer)
     (when last-castle castle)))
 
