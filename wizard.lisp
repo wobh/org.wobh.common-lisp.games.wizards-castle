@@ -3706,62 +3706,83 @@ into the orb."
    (make-outcome 'flash-trap
                  (lambda (castle)
                    (make-adv-blind (cas-adventurer castle))
-                   (make-history
-                    (make-event 'adv-opened 'book
-                                :and 'trap-sprang)
-                    (make-event 'trap-sprang 'flash
-                                :and 'adv-blinded)))
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-opened 'book
+                                              :and 'trap-sprang)
+                                  (make-event 'trap-sprang 'flash
+                                              :and 'adv-blinded))))
                  (lambda (stream castle)
-                   (format stream
-                           "~&FLASH! Oh no! You are now a blind ~A"
-                           (adv-race (cas-adventurer castle)))))
+                   (when (equal (latest-event (cas-history castle))
+                                (make-event 'trap-sprang 'flash :and 'adv-blinded))
+                     (format stream
+                             "~&FLASH! Oh no! You are now a blind ~A"
+                             (adv-race (cas-adventurer castle))))))
    (make-outcome 'poetry
                  (lambda (castle)
-                   (declare (ignore castle))
-                   (make-history
-                    (make-event 'adv-opened 'book
-                                :reads 'poetry)))
-                 "~&its another volume of Zot's Poetry! - Yeech!")
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-opened 'book
+                                              :reads 'poetry))))
+                 (lambda (stream castle)
+                   (when (equal (latest-event (cas-history castle))
+                                (make-event 'adv-opened 'book :reads 'poetry))
+                       (format stream
+                               "~&its another volume of Zot's Poetry! - Yeech!"))))
    (make-outcome 'magazine
                  (lambda (castle)
-                   (declare (ignore castle))
-                   (make-history
-                    (make-event 'adv-opened 'book
-                                :reads 'magazine)))
-                 (lambda (stream)
-                   (format stream
-                           "~&its an old copy of Play~A"
-                           (text-of-race (random-race)))))
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-opened 'book
+                                              :reads 'magazine))))
+                 (lambda (stream castle)
+                   (when (equal (latest-event (cas-history castle))
+                                (make-event 'adv-opened 'book :reads 'magazine))
+                     (format stream
+                             "~&its an old copy of Play~A"
+                             (text-of-race (random-race))))))
    (make-outcome 'dexterity-manual
                  (lambda (castle)
                    (make-adv-stronger (cas-adventurer castle)
                                       +adv-rank-max+)
-                   (make-history
-                    (make-event 'adv-opened 'book
-                                :reads 'dexterity-manual)))
-                 "~&it's a manual of dexterity")
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-opened 'book
+                                              :reads 'dexterity-manual))))
+                 (lambda (stream castle)
+                   (break "~S" (cas-history castle))
+                   (make-adv-nimbler (cas-adventurer castle)
+                                      +adv-rank-max+)
+                   (when (equal (latest-event (cas-history castle))
+                                (make-event 'adv-opened 'book :reads 'dexterity-manual))
+                     (format stream "~&it's a manual of dexterity"))))
    (make-outcome 'strength-manual
                  (lambda (castle)
-                   (make-adv-nimbler (cas-adventurer castle)
-                                     +adv-rank-max+)
-                   (make-history
-                    (make-event 'adv-opened 'book
-                                :reads 'strength-manual)))
-                 "~&it's a manual of strength")
+                   (make-adv-nimbler (cas-adventurer castle) +adv-rank-max+)
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-opened 'book
+                                              :reads 'strength-manual))))
+                 (lambda (stream castle)
+                   (when (equal (latest-event (cas-history castle))
+                                (make-event 'adv-opened 'book :reads 'strength-manual))
+                     (format stream "~&it's a manual of strength"))))
    (make-outcome 'glue-trap
                  (lambda (castle)
-                   (bind-adv-hands (cas-adventurer castle)
-                                   'book)
-                   (make-history
-                    (make-event 'adv-opened 'book
-                                :and 'trap-sprang)
-                    (make-event 'trap-sprang 'glue
-                                :and 'adv-bound
-                                :to 'book)))
-                 (lambda (stream)
-                   (format stream
-                           "~&the book sticks to your hands -~&~
-                            Now you can't draw your weapon"))))
+                   (bind-adv-hands (cas-adventurer castle) 'book)
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-opened 'book
+                                              :and 'trap-sprang)
+                                  (make-event 'trap-sprang 'glue
+                                              :and 'adv-bound
+                                              :to 'book))))
+                 (lambda (stream castle)
+                   (when (equal (latest-event (cas-history castle))
+                                (make-event 'trap-sprang 'glue :and 'adv-bound :to 'book))
+                     (format stream
+                             "~&the book sticks to your hands -~&~
+                                Now you can't draw your weapon")))))
   "All the outcomes of opening books")
 
 (defun adv-opens-book (castle)
@@ -3774,19 +3795,18 @@ into the orb."
       ;; effect on some of the events.
       (destructuring-bind (outcome-name outcome-effect outcome-text)
           (random-elt *open-book-outcomes*)
+        (declare (ignorable outcome-name))
         (when outcome-effect
           (setf outcome-effect
                 (funcall outcome-effect castle))
           (join-history events outcome-effect))
         (when outcome-text
           (setf outcome-text
-                (format nil "~&You open the book and ~A"
-                        (cond
-                          ((eq outcome-name 'flash-trap)
-                           (format nil outcome-text castle))
-                          (t (format nil outcome-text)))))
+                (format nil
+                        "~&You open the book and ~@?"
+                        outcome-text castle))
           (push-text message outcome-text)))
-      (values events message))))
+      (values nil message))))
 
 
 ;;;; Chest
