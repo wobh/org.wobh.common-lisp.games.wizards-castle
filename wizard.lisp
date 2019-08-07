@@ -411,12 +411,14 @@ returns INPUT-ERROR."
   (first event))
 
 ;;(defun event-name-p (event name-ref)
-(defun event-kind-p (event event-check)
+(defun event-kind-p (event-check event)
   "Check that an event has a particular properties."
   (assert (event-p event))
   (etypecase event-check
-    (symbol (find event-check event))
-    (list   (search event-check event))))
+    (symbol (eql event-check (first event)))
+    (list   (let ((index (mismatch event event-check)))
+              (or (null index)
+                  (< 0 index))))))
 
 (defun data-of-event (event &optional data-ref)
   "Get data about event."
@@ -469,38 +471,37 @@ returns INPUT-ERROR."
   "Count the number of turns in history." 
   (count-if #'event-p history :key 'first))
 
-(defun events-since (event history)
+(defun events-since (event-check history)
   "History since event."
-  (assert (event-p event))
-  (let* ((test (etypecase event
-                 (symbol #'equal)
-                 (list   #'event-kind-p)))
-         (last (position event history :key #'name-of-event :test test)))
-    (when (typep last '(integer 0))
-      (subseq history 0 (1+ last)))))
+  (assert (event-p event-check))
+  (let ((index (position event-check history :test #'event-kind-p)))
+    (when (typep index '(integer 0))
+      (butlast history (1+ index)))))
 
-(defun find-event (event history)
+(defun find-event (event-check history)
   "Search history for event."
-  (find-if (lambda (this-event) (event-kind-p this-event event))
-         history))
+  (flet ((event-check-p (event)
+           (event-kind-p event-check event)))
+    (find-if #'event-check-p history)))
 
 (defun latest-event (history)
   "Last event in history."
   (first history))
 
-(defun latest-event-p (history event-check)
+(defun latest-event-p (event-check history)
   "Is the latest event in history the kind of event expected?"
   (if (null history)
       nil
-      (event-kind-p (latest-event history) event-check)))
+      (event-kind-p event-check (latest-event history))))
 
 (defun oldest-event (history)
   "First event in history."
   (first (last history)))
 
-(defun oldest-event-p (history event-check)
+;; FIXME: no one calls this
+(defun oldest-event-p (event-check history)
   "Is the oldest event in history the kind of event expected?"
-  (event-kind-p (oldest-event history) event-check))
+  (event-kind-p event-check (oldest-event history)))
 
 (defun latest-creature-found (history)
   "What creature has been most recently found."
@@ -2644,7 +2645,7 @@ castle."
 ;;                    (subseq creature-text 2))))))
 
 ;; (defun make-message-weapon-broke (castle event)
-;;   (assert (event-kind-p event 'adv-weapon-broke))
+;;   (assert (event-kind-p 'adv-weapon-broke event))
 ;;   (format nil "Oh no! Your ~A broke"
 ;;        (text-of-weapon (adv-wv (cas-adventurer castle)))))
 
@@ -2712,7 +2713,7 @@ castle."
   (find-event 'adv-broke-weapon events))
 
 (defun foe-slain-p (events)
-  (latest-event-p events 'foe-slain))
+  (latest-event-p 'foe-slain events))
 
 (defun adv-strikes-foe (adv foe)
   (let ((events (make-history))
@@ -2840,7 +2841,7 @@ castle."
                                  (funcall outcome-effect adv
                                           (foe-strike-damage foe)))
                    (push-text message outcome-text)
-                   (when (latest-event-p events 'adv-armor-destroyed)
+                   (when (latest-event-p 'adv-armor-destroyed events)
                      (push-text message
                                 "~&Your armor is destroyed - good luck")))
                   (t (push-text message outcome-text)))))
@@ -2976,7 +2977,7 @@ castle."
               (when (foe-alive-p foe)
                 (setf fight-form 'foe-attacks)))
              (adv-bribes
-              (unless (latest-event-p events 'adv-bribes)
+              (unless (latest-event-p 'adv-bribes events)
                 (setf fight-form 'foe-attacks)))
              (adv-casts-spell
               (when (foe-alive-p foe)
@@ -2987,7 +2988,7 @@ castle."
               (when (adv-alive-p adv)
                 (setf fight-form (get-adv-fight-action adv foe)))))
          until (fight-end-p events))
-      (when (latest-event-p events 'foe-slain)
+      (when (latest-event-p 'foe-slain events)
         (multiple-value-bind (victory-events victory-message)
             (adv-slays-adversary castle)
           (join-history events victory-events)
@@ -3709,12 +3710,12 @@ into the orb."
                    (join-history (cas-history castle)
                                  (make-history
                                   (make-event 'adv-opened 'book
-                                              :and 'trap-sprang)
+                                              :and '(trap-sprang flash))
                                   (make-event 'trap-sprang 'flash
                                               :and 'adv-blinded))))
                  (lambda (stream castle)
-                   (when (equal (latest-event (cas-history castle))
-                                (make-event 'trap-sprang 'flash :and 'adv-blinded))
+                   (when (latest-event-p (make-event 'trap-sprang 'flash :and 'adv-blinded)
+                                         (cas-history castle))
                      (format stream
                              "~&FLASH! Oh no! You are now a blind ~A"
                              (adv-race (cas-adventurer castle))))))
@@ -3725,8 +3726,8 @@ into the orb."
                                   (make-event 'adv-opened 'book
                                               :reads 'poetry))))
                  (lambda (stream castle)
-                   (when (equal (latest-event (cas-history castle))
-                                (make-event 'adv-opened 'book :reads 'poetry))
+                   (when (latest-event-p (make-event 'adv-opened 'book :reads 'poetry)
+                                       (cas-history castle))
                        (format stream
                                "~&its another volume of Zot's Poetry! - Yeech!"))))
    (make-outcome 'magazine
@@ -3736,8 +3737,8 @@ into the orb."
                                   (make-event 'adv-opened 'book
                                               :reads 'magazine))))
                  (lambda (stream castle)
-                   (when (equal (latest-event (cas-history castle))
-                                (make-event 'adv-opened 'book :reads 'magazine))
+                   (when (latest-event-p (make-event 'adv-opened 'book :reads 'magazine)
+                                         (cas-history castle))
                      (format stream
                              "~&its an old copy of Play~A"
                              (text-of-race (random-race))))))
@@ -3753,8 +3754,8 @@ into the orb."
                    (break "~S" (cas-history castle))
                    (make-adv-nimbler (cas-adventurer castle)
                                       +adv-rank-max+)
-                   (when (equal (latest-event (cas-history castle))
-                                (make-event 'adv-opened 'book :reads 'dexterity-manual))
+                   (when (latest-event-p (make-event 'adv-opened 'book :reads 'dexterity-manual)
+                                         (cas-history castle))
                      (format stream "~&it's a manual of dexterity"))))
    (make-outcome 'strength-manual
                  (lambda (castle)
@@ -3764,8 +3765,8 @@ into the orb."
                                   (make-event 'adv-opened 'book
                                               :reads 'strength-manual))))
                  (lambda (stream castle)
-                   (when (equal (latest-event (cas-history castle))
-                                (make-event 'adv-opened 'book :reads 'strength-manual))
+                   (when (latest-event-p (make-event 'adv-opened 'book :reads 'strength-manual)
+                                         (cas-history castle))
                      (format stream "~&it's a manual of strength"))))
    (make-outcome 'glue-trap
                  (lambda (castle)
@@ -3773,13 +3774,13 @@ into the orb."
                    (join-history (cas-history castle)
                                  (make-history
                                   (make-event 'adv-opened 'book
-                                              :and 'trap-sprang)
+                                              :and '(trap-sprang glue))
                                   (make-event 'trap-sprang 'glue
                                               :and 'adv-bound
                                               :to 'book))))
                  (lambda (stream castle)
-                   (when (equal (latest-event (cas-history castle))
-                                (make-event 'trap-sprang 'glue :and 'adv-bound :to 'book))
+                   (when (latest-event-p (make-event 'trap-sprang 'glue :and 'adv-bound :to 'book)
+                                         (cas-history castle))
                      (format stream
                              "~&the book sticks to your hands -~&~
                                 Now you can't draw your weapon")))))
@@ -3816,25 +3817,45 @@ into the orb."
 (defparameter *open-chest-outcomes*
     (list
      (make-outcome 'bomb-trap
-                   'adv-springs-bomb-trap
-                   "~&KABOOM! It explodes")
+                   (lambda (castle)
+                     (join-history (cas-history castle)
+                                   (make-history
+                                    (make-event 'adv-opened 'chest
+                                                :and '(trap-sprang bomb))
+                                    (make-event 'trap-sprang 'bomb)))
+                     (adv-springs-bomb-trap castle))
+                   (lambda (stream castle)
+                     (when (latest-event-p (make-event 'trap-sprang 'bomb)
+                                           (cas-history castle))
+                       (format stream
+                               "~&KABOOM! It explodes"))))
      (make-outcome 'gas-trap
-                   'adv-springs-gas-trap
-                   "~&Gas! You stagger from the room")
+                   (lambda (castle)
+                     (join-history (cas-history castle)
+                                   (make-history
+                                    (make-event 'adv-opened 'chest
+                                                :and '(trap-sprang gas))))
+                     (adv-springs-gas-trap castle))
+                   (lambda (stream castle)
+                     (when (latest-event-p (make-event 'adv-staggered)
+                                           (cas-history castle))
+                       (format stream
+                               "~&Gas! You stagger from the room"))))
      (make-outcome 'gold-pieces
                    (lambda (castle)
                      (let ((adv (cas-adventurer castle))
                            (gps (random-whole +gold-in-chests-maximum+)))
-                       (make-adv-richer adv gps)
-                       (make-history
-                        (make-event 'adv-gained 'gold-pieces
-                                    :by gps))))
-                   (lambda (stream events)
-                     (destructuring-bind (action object &key by)
-                         (oldest-event events)
-                       (assert (equal '(adv-gained gold-pieces)
-                                      (list action object)))
-                       (format stream "~&Find ~D gold pieces" by)))))
+                       (join-history (cas-history castle)
+                                     (make-adv-richer adv gps))))
+                   (lambda (stream castle)
+                     (when (latest-event-p (make-event 'adv-gained 'gold-pieces)
+                                           (cas-history castle))
+                       (destructuring-bind (action object &key by)
+                           (latest-event (cas-history castle))
+                         (declare (ignorable action object))
+                         (format stream
+                                 "~&Find ~D gold pieces"
+                                 by))))))
   "All the outcomes of opening chests.")
 
 (defun adv-opens-chest (castle)
@@ -3851,18 +3872,14 @@ into the orb."
         (when outcome-effect
           (setf outcome-effect
                 (funcall outcome-effect castle))
-          (record-event events (make-event 'adv-opened 'chest
-                                           :and (name-of-event
-                                                 (oldest-event outcome-effect))))
           (join-history events outcome-effect))
         (when outcome-text
           (setf outcome-text
                 (format nil
                         "You open the chest and~@?"
-                        outcome-text
-                        outcome-effect))
+                        outcome-text castle))
           (push-text message outcome-text)))
-      (values events message))))
+      (values nil message))))
 
 
 ;;;; Open something
@@ -4162,7 +4179,7 @@ into the orb."
                   (if (wiz-y-or-n-p "Do you really want to quit ")
                       (make-event 'player-quit-game)
                       (make-event 'player-error 'quit-canceled)))
-    (unless (event-kind-p (latest-event events) 'player-quit-game)
+    (unless (latest-event-p 'player-quit-game events)
       (push-text message
                  (wiz-format-error nil
                                    "Then don't say that you do")))
@@ -4224,7 +4241,7 @@ into the orb."
              (wiz-format *wiz-out* message)))
          (cond ((eq (first wiz-form) 'adv-enters-room)
                 (setf wiz-form (make-wiz-form 'adv-finds-creature)))
-               ((latest-event-p history 'adv-entered-room)
+               ((latest-event-p 'adv-entered-room history)
                 (setf wiz-form (make-wiz-form 'adv-enters-room)))
                (t (setf wiz-form nil)))
        until (null wiz-form)))
@@ -4494,7 +4511,7 @@ passed in must not also have an adventurer already in it."
              (wiz-format *wiz-out* message)))
          (cond ((eq (first wiz-form) 'adv-enters-room)
                 (setf wiz-form (make-wiz-form 'adv-finds-creature)))
-               ((latest-event-p history 'adv-entered-room)
+               ((latest-event-p 'adv-entered-room history)
                 (setf wiz-form (make-wiz-form 'adv-enters-room)))
                (t (setf wiz-form nil)))
        until (null wiz-form)
