@@ -1545,8 +1545,6 @@ limits."
 ;; 2820 IF AH < 0 THEN AH=0 : AV=0 : PRINT : PRINT "YOUR ARMOR IS DESTROYED - GOOD LUCK"
 ;; 2830 ST=ST-Q : RETURN
 
-;; (list :adv-armor-destroyed "Your armor is destroyed - good luck")
-
 (defun outfit-with (item adv)
   "Outfit the adventure with the equipment."
   (assert (typep adv 'adventurer))
@@ -2281,14 +2279,28 @@ castle."
                   (move-adv castle
                             (random-elt '(north east west south))))))
 
+(defconstant +trap-gas-disorientation-time+ 20)
+
 (defun adv-springs-gas-trap (castle)
-  (make-adv-stagger castle 20))
+  (record-event (cas-history castle)
+                (make-event 'trap-sprang 'gas))
+  (lambda (castle)
+    (make-adv-stagger castle
+                      +trap-gas-disorientation-time+)))
 
 (defconstant +trap-bomb-damage-maximum+ 6)
 
 (defun adv-springs-bomb-trap (castle)
-  (damage-adv (cas-adventurer castle)
-              (random-whole +trap-bomb-damage-maximum+)))
+  (record-event (cas-history castle)
+                (make-event 'trap-sprang 'bomb))
+  (lambda (castle)
+    (damage-adv (cas-adventurer castle)
+                (random-whole +trap-bomb-damage-maximum+))))
+
+(defun message-adv-armor-destroyed (stream castle)
+  (when (latest-event-p (make-event 'adv-armor-destroyed)
+                        (cas-history castle))
+    (format stream "~&Your armor is destroyed - good luck")))
 
 (defconstant +vendor-potion-efficacy-maximum+ 6)
 
@@ -2843,7 +2855,7 @@ castle."
                    (push-text message outcome-text)
                    (when (latest-event-p 'adv-armor-destroyed events)
                      (push-text message
-                                "~&Your armor is destroyed - good luck")))
+                                (format nil #'message-adv-armor-destroyed castle))))
                   (t (push-text message outcome-text)))))
       ;; FIXME [wc 2013-01-29]: maybe use TAGBODY instead of (WHEN
       ;; ...) (UNLESS ...)
