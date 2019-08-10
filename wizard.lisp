@@ -4312,18 +4312,16 @@ into the orb."
 (defun sleep-of-death (&optional (duration *that-sleep-of-death*))
   (sleep duration))
 
-(defun main (&key (adventurer nil) (castle nil))
+(defun main (&key (adventurer (setup-adventurer)) (castle (setup-castle)))
   "The main game loop. If an adventurer is passed in, a castle also
 passed in must not also have an adventurer already in it."
   ;; (setf *random-state* (make-random-state t))
   (loop
      with play-again = nil
      with main-input = (setup-main-input)
-     with castle = (or castle (setup-castle))
      for message = (main-eval castle
-                              (make-wiz-form
-                               'adv-enters-castle
-                               (or adventurer (setup-adventurer))))
+                              (make-wiz-form 'adv-enters-castle
+                                             adventurer))
      do
        (with-accessors ((adv cas-adventurer)
                         (history cas-history)) castle
