@@ -4420,6 +4420,12 @@ passed in must not also have an adventurer already in it."
                   :cr (leech)))
   "Test adventurers")
 
+(defparameter *test-adventurer-names*
+  (list* :basic
+         (remove-if-not #'keywordp
+                        *adventurers*))
+  "Adventurer names")
+
 (defun make-basic-adv ()
   (apply #'make-adventurer
          (list :rc 'human
@@ -4433,6 +4439,7 @@ passed in must not also have an adventurer already in it."
 
 (defun make-test-adv (adv-name)
   "Make one of several pre-generated characters."
+  (assert (find adv-name *test-adventurer-names*))
   (if (eql adv-name :basic)
       (make-basic-adv)
       (apply #'make-adventurer
