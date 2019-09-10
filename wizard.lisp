@@ -3725,7 +3725,8 @@ into the orb."
                                   (make-event 'adv-opened 'book
                                               :and '(trap-sprang flash))
                                   (make-event 'trap-sprang 'flash
-                                              :and 'adv-blinded))))
+                                              :and 'adv-blinded)))
+                   castle)
                  (lambda (stream castle)
                    (when (latest-event-p (make-event 'trap-sprang 'flash :and 'adv-blinded)
                                          (cas-history castle))
