@@ -4693,3 +4693,30 @@ passed in must not also have an adventurer already in it."
   (assert (adv-initiative-p *a*)
           () "Cured of blindness, this adventurer should always have initiative: ~S"
           *a*))
+
+(let ((*z* (setup-castle nil)))
+  (assert (null (cas-history *z*))
+          ((cas-history *z*))
+          "Castle should have empty history: ~S"
+          (cas-history *z*))
+  (assert (null (cas-adventurer *z*))
+          ((cas-adventurer *z*))
+          "Castle should have no adventurer: ~S"
+          (cas-adventurer *z*)))
+
+(let ((*a* (make-test-adv :basic))
+      (*z* (setup-castle nil)))
+  (main-eval *z* (list 'adv-enters-castle *a*))
+  (assert (equal (cas-history *z*)
+                 (make-history (make-event 'adv-ate 'last-meal)
+                               (make-event 'adv-entered-castle)
+                               (make-event 'adv-entered-room *entrance*)
+                               (make-event 'adv-found 'entrance)
+                               (make-event 'adv-mapped 'entrance :at *entrance*)))
+          ((cas-history *z*))
+          "Castle should have some history: ~S"
+          (cas-history *z*))
+  (assert (equalp *a* (cas-adventurer *z*))
+          ((cas-adventurer *z*))
+          "Castle should have an adventurer: ~S"
+          (cas-adventurer *z*)))
