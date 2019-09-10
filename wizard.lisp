@@ -3804,8 +3804,7 @@ into the orb."
   "Return events and message of what happens when the adventurer opens a book."
   (with-accessors ((adv cas-adventurer)
                    (here cas-adv-here)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+    (let ((message (make-text)))
       ;; TODO [wc 2013-01-29] Seems like BLIND-P ought to have an
       ;; effect on some of the events.
       (destructuring-bind (outcome-name outcome-effect outcome-text)
@@ -3813,14 +3812,13 @@ into the orb."
         (declare (ignorable outcome-name))
         (when outcome-effect
           (setf outcome-effect
-                (funcall outcome-effect castle))
-          (join-history events outcome-effect))
+                (funcall outcome-effect castle)))
         (when outcome-text
-          (setf outcome-text
-                (format nil
-                        "~&You open the book and ~@?"
-                        outcome-text castle))
-          (push-text message outcome-text)))
+          (push-text message
+                     (format nil
+                             "~&You open the book and ~@?"
+                             outcome-text
+                             castle))))
       (values nil message))))
 
 
@@ -3835,9 +3833,8 @@ into the orb."
                      (join-history (cas-history castle)
                                    (make-history
                                     (make-event 'adv-opened 'chest
-                                                :and '(trap-sprang bomb))
-                                    (make-event 'trap-sprang 'bomb)))
-                     (adv-springs-bomb-trap castle))
+                                                :and '(trap-sprang bomb))))
+                     #'adv-springs-bomb-trap)
                    (lambda (stream castle)
                      (when (latest-event-p (make-event 'trap-sprang 'bomb)
                                            (cas-history castle))
@@ -3849,9 +3846,9 @@ into the orb."
                                    (make-history
                                     (make-event 'adv-opened 'chest
                                                 :and '(trap-sprang gas))))
-                     (adv-springs-gas-trap castle))
+                     #'adv-springs-gas-trap)
                    (lambda (stream castle)
-                     (when (latest-event-p (make-event 'adv-staggered)
+                     (when (latest-event-p (make-event 'trap-sprang 'gas)
                                            (cas-history castle))
                        (format stream
                                "~&Gas! You stagger from the room"))))
@@ -3860,7 +3857,8 @@ into the orb."
                      (let ((adv (cas-adventurer castle))
                            (gps (random-whole +gold-in-chests-maximum+)))
                        (join-history (cas-history castle)
-                                     (make-adv-richer adv gps))))
+                                     (make-adv-richer adv gps)))
+                     castle)
                    (lambda (stream castle)
                      (when (latest-event-p (make-event 'adv-gained 'gold-pieces)
                                            (cas-history castle))
@@ -3876,8 +3874,7 @@ into the orb."
   "Return events and messages when adventurer opens a chest."
   (with-accessors ((adv cas-adventurer)
                    (here cas-adv-here)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+    (let ((message (make-text)))
       (destructuring-bind (outcome-name outcome-effect outcome-text)
           (get-outcome (random-elt '(bomb-trap gas-trap
                                      gold-pieces gold-pieces))
@@ -3885,14 +3882,16 @@ into the orb."
         (declare (ignore outcome-name))
         (when outcome-effect
           (setf outcome-effect
-                (funcall outcome-effect castle))
-          (join-history events outcome-effect))
+                (funcall outcome-effect castle)))
         (when outcome-text
           (setf outcome-text
                 (format nil
                         "You open the chest and~@?"
                         outcome-text castle))
-          (push-text message outcome-text)))
+          (push-text message outcome-text))
+        (etypecase outcome-effect
+          (function (funcall outcome-effect castle))
+          (castle t)))
       (values nil message))))
 
 
