@@ -4088,9 +4088,10 @@ into the orb."
                    (make-event 'adv-ate 'last-meal)
                    (make-event 'adv-entered-castle))
     (join-history events
-                    (send-adv *entrance*))
+                  (send-adv *entrance*))
     (push-text message
-               (format nil "~&~|~2&Ok ~A, you enter the castle and begin."
+               (format nil
+                       "~&~|~2&Ok ~A, you enter the castle and begin."
                        (adv-race (cas-adventurer castle))))
     (values events message)))
 
