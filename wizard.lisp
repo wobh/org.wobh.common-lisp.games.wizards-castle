@@ -2343,10 +2343,11 @@ castle."
 
 ;;;; Enter room
 
-(defun make-message-report-inv (castle inv)
-  "Make message for letting to "
+(defun make-message-report-inv (stream castle inv)
+  "Make message for inventories"
   (with-accessors ((adv cas-adventurer)) castle
-    (format nil "~2&You have ~D"
+    (format stream
+            "~2&You have ~D"
             (ecase inv
               (gold-pieces (adv-gp adv))
               (flares      (adv-fl adv))))))
@@ -2364,7 +2365,7 @@ castle."
       (join-history events (make-adv-richer adv gps))
       (join-history events (cas-adv-map-here castle))
       (values events
-              (make-message-report-inv castle 'gold-pieces)))))
+              (make-message-report-inv nil castle 'gold-pieces)))))
 
 (defconstant +flares-in-rooms-maximum+ 5)
 
@@ -2379,7 +2380,7 @@ castle."
       (join-history events (give-adv-flares adv flares))
       (join-history events (cas-adv-map-here castle))
       (values events
-              (make-message-report-inv castle 'flares)))))
+              (make-message-report-inv nil castle 'flares)))))
 
 (defun adv-finds-treasure (castle)
   "What happens when an adventurer finds treasure."
