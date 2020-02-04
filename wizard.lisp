@@ -1587,7 +1587,7 @@ limits."
   (with-accessors ((bl adv-bl)) adv
     (when (and bl (has-treasure-p adv 'opal-eye))
       (setf bl nil)
-      (make-history (make-event 'adv-cured 'sight-restored 'opal-eye)))))
+      (make-history (make-event 'adv-cured 'sight-restored :with 'opal-eye)))))
 
 (defun unbind-adv-hand (adv)
   (with-accessors ((bf adv-bf)) adv
