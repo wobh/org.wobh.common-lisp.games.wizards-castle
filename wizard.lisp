@@ -946,17 +946,11 @@ order and values."
   (assert (treasure-p treasure))
   (position treasure *treasures*))
 
-(defun treasure-lessp (t1 &rest ts)
-  "Is the index of the first treasure argument less than the rest of
-treasure arguments."
-  (apply #'<
-         (loop
-            for tr in (list* t1 ts)
-            collect (value-of-treasure tr))))
-
 (defun sort-treasure-list (treasure-list)
   "Sort the given treasure list."
-  (sort treasure-list #'treasure-lessp))
+  (sort treasure-list
+        #'<
+        :key #'value-of-treasure))
 
 (defun type-of-creature (creature)
   "Return the type of creature given."
