@@ -4699,7 +4699,8 @@ passed in must not also have an adventurer already in it."
           (cas-adventurer *z*)))
 
 (let ((*a* (make-test-adv :basic))
-      (*z* (setup-castle nil)))
+      (*z* (setup-castle nil))
+      (*wiz-out* nil))
   (main-eval *z* (list 'adv-enters-castle *a*))
   (assert (equal (cas-history *z*)
                  (make-history (make-event 'adv-ate 'last-meal)
