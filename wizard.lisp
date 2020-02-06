@@ -1587,7 +1587,7 @@ limits."
   (with-accessors ((bf adv-bf)) adv
     (when (and bf (has-treasure-p adv 'blue-flame))
       (setf bf nil)
-      (make-history (make-event 'adv-unbound 'book-burnt 'blue-flame)))))
+      (make-history (make-event 'adv-unbound 'book-burnt :with 'blue-flame)))))
 
 
 
@@ -4672,7 +4672,7 @@ passed in must not also have an adventurer already in it."
   ;; occur until `begin-turn'.
   (assert (equal '(t
                    ((adv-gained opal-eye))
-                   ((adv-cured sight-restored opal-eye))
+                   ((adv-cured sight-restored :with opal-eye))
                    nil
                    ((adv-lost opal-eye))
                    nil)
@@ -4687,6 +4687,26 @@ passed in must not also have an adventurer already in it."
   (assert (adv-initiative-p *a*)
           () "Cured of blindness, this adventurer should always have initiative: ~S"
           *a*))
+
+(let ((*a* (make-test-adv :bookworm)))
+  (assert (bound-p *a*)
+          () "This adventurer should be bound: ~S" *a*)
+  (assert (= +adv-rank-max+ (adv-dx *a*))
+          () "This adventurer should have surpassing dexterity: ~S" *a*)
+  (assert (= +adv-rank-max+ (adv-iq *a*))
+          () "This adventurer should have surpassing intelligence: ~S" *a*)
+  (assert (equal '(t
+                   ((adv-gained blue-flame))
+                   ((adv-unbound book-burnt :with blue-flame))
+                   nil
+                   ((adv-lost blue-flame))
+                   nil)
+                 (list (bound-p *a*)
+                       (give-adv-treasure *a* 'blue-flame)
+                       (unbind-adv-hand *a*)
+                       (bound-p *a*)
+                       (take-adv-treasure *a* 'blue-flame)
+                       (bound-p *a*)))))
 
 (let ((*z* (setup-castle nil)))
   (assert (null (cas-history *z*))
