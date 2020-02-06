@@ -2530,7 +2530,8 @@ castle."
           (join-history events (damage-foe foe damage))
           (push-text message
                      (format nil
-                             "~&  It does ~D points of damage." damage)))))))
+                             "~&  It does ~D points of damage." damage))))
+      (values events message))))
 
 ;; 2540 if o$<>"f" then ...
 ;; print"death - - - ";:ifiq<15+fna(4)thenprint"yours";iq=0goto2840
