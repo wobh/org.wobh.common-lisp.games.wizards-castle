@@ -3640,13 +3640,15 @@ there. This info could be mapped.")
                                                   coords
                                                   creature)))
                      events))
-                 (lambda (stream events)
-                   (destructuring-bind (&rest _ &key saw at &allow-other-keys)
-                       (oldest-event events)
-                     (declare (ignore _))
-                     (make-message-creature-at stream
-                                               (text-of-creature saw)
-                                               at))))
+                 (lambda (stream castle)
+                   (when (latest-event-p (make-event 'adv-used 'crystal-orb :saw)
+                                         (cas-history castle))
+                     (destructuring-bind (&rest _ &key saw at &allow-other-keys)
+                         (latest-event (cas-history castle))
+                       (declare (ignore _))
+                       (make-message-creature-at stream
+                                                 (text-of-creature saw)
+                                                 at)))))
    (make-outcome 'orb-of-zot
                  (lambda (castle)
                    (make-history
@@ -3654,10 +3656,14 @@ there. This info could be mapped.")
                                 :saw 'orb-of-zot
                                 :at (random-elt (list (cas-loc-orb castle)
                                                       (castle-room-random castle))))))
-                 (lambda (stream events)
-                   (make-message-creature-at stream
-                                             "the Orb of Zot"
-                                             (value-of-event (oldest-event events)))))
+                 (lambda (stream castle)
+                   (when (latest-event-p (make-event 'adv-used 'crystal-orb :saw 'orb-of-zot)
+                                         (cas-history castle))
+                     (make-message-creature-at stream
+                                               "the Orb of Zot"
+                                               (value-of-event
+                                                (latest-event
+                                                 (cas-history castle)))))))
    (make-outcome 'drink
                  (lambda (castle)
                    (declare (ignore castle))
@@ -3665,10 +3671,15 @@ there. This info could be mapped.")
                     (make-event 'adv-used 'crystal-orb
                                 :saw 'self-drinking-from-pool
                                 :becoming (random-monster))))
-                 (lambda (stream events)
-                   (format stream
-                           "yourself drinking from a pool and becoming ~A"
-                           (text-of-creature (value-of-event (oldest-event events))))))
+                 (lambda (stream castle)
+                   (when (latest-event-p (make-event 'adv-used 'crystal-orb :saw 'self-drinking-from-pool)
+                                         (cas-history castle))
+                     (format stream
+                             "yourself drinking from a pool and becoming ~A"
+                             (text-of-creature
+                              (value-of-event
+                               (latest-event
+                                (cas-history castle))))))))
    (make-outcome 'soap
                  (lambda (castle)
                    (declare (ignore castle))
@@ -3704,7 +3715,7 @@ into the orb."
            (push-text message (format nil
                                       "You see ~@?"
                                       outcome-text
-                                      events)))))
+                                      castle)))))
       (values events message))))
 
 
