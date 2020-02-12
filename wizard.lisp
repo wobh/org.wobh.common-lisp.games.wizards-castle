@@ -418,7 +418,7 @@ returns INPUT-ERROR."
     (symbol (eql event-check (first event)))
     (list   (let ((index (mismatch event event-check)))
               (or (null index)
-                  (< 0 index))))))
+                  (= index (length event-check)))))))
 
 (defun data-of-event (event &optional data-ref)
   "Get data about event."
@@ -476,7 +476,7 @@ returns INPUT-ERROR."
   (assert (event-p event-check))
   (let ((index (position event-check history :test #'event-kind-p)))
     (when (typep index '(integer 0))
-      (butlast history (1+ index)))))
+      (butlast history (- (length history) (1+ index))))))
 
 (defun find-event (event-check history)
   "Search history for event."
