@@ -3584,7 +3584,7 @@ there. This info could be mapped.")
 (defun make-message-creature-at (stream creature coords)
   (format stream
           "~A at ~{(~D,~D) Level ~D~}"
-          creature
+          (text-of-creature creature)
           (wiz-coords coords)))
 
 (defun gaze-mapper (adv coords creature)
@@ -3647,7 +3647,7 @@ there. This info could be mapped.")
                          (latest-event (cas-history castle))
                        (declare (ignore _))
                        (make-message-creature-at stream
-                                                 (text-of-creature saw)
+                                                 saw
                                                  at)))))
    (make-outcome 'orb-of-zot
                  (lambda (castle)
@@ -3657,10 +3657,11 @@ there. This info could be mapped.")
                                 :at (random-elt (list (cas-loc-orb castle)
                                                       (castle-room-random castle))))))
                  (lambda (stream castle)
-                   (when (latest-event-p (make-event 'adv-used 'crystal-orb :saw 'orb-of-zot)
+                   (when (latest-event-p (make-event 'adv-used 'crystal-orb
+                                                     :saw 'orb-of-zot)
                                          (cas-history castle))
                      (make-message-creature-at stream
-                                               "the Orb of Zot"
+                                               'orb-of-zot
                                                (value-of-event
                                                 (latest-event
                                                  (cas-history castle)))))))
@@ -3672,7 +3673,8 @@ there. This info could be mapped.")
                                 :saw 'self-drinking-from-pool
                                 :becoming (random-monster))))
                  (lambda (stream castle)
-                   (when (latest-event-p (make-event 'adv-used 'crystal-orb :saw 'self-drinking-from-pool)
+                   (when (latest-event-p (make-event 'adv-used 'crystal-orb
+                                                     :saw 'self-drinking-from-pool)
                                          (cas-history castle))
                      (format stream
                              "yourself drinking from a pool and becoming ~A"
