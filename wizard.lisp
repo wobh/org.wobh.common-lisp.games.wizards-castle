@@ -3264,11 +3264,14 @@ castle."
 
 (defparameter *without-item-outcomes*
   (list
-   (make-outcome 'flares nil "Hey bright one, you're out of flares")
-   (make-outcome 'lamp   nil (lambda (stream castle)
-                               (format stream "You don't have a lamp ~A"
-                                       (text-of-race (adv-rc (cas-adventurer castle))))))
-   (make-outcome 'runestaff nil "You can't teleport without the runestaff"))
+   (cons 'flares
+         "Hey bright one, you're out of flares")
+   (cons 'lamp
+         (lambda (stream castle)
+           (format stream "You don't have a lamp ~A"
+                   (text-of-race (adv-rc (cas-adventurer castle))))))
+   (cons 'runestaff
+         "You can't teleport without the runestaff"))
   "Messages when the adventurer tries something without the necessary item.")
 
 ;; (defun get-message (message-key messages)
@@ -3276,28 +3279,26 @@ castle."
 
 (defun adv-tried-without-item (castle item)
   "What happens when the adventurer tries to use something they don't have?"
-  (let ((events (make-history))
-        (message (make-text)))
-    (destructuring-bind (outcome-name outcome-effect outcome-text)
-        (get-outcome item *without-item-outcomes*)
-      (record-event events
-                    (make-event 'adv-tried outcome-name))
-      (when outcome-effect
-        (join-history events (funcall outcome-effect)))
-      (when outcome-text
-        (push-text message
-                   (wiz-format-error nil outcome-text castle))))
-    (values events message)))
+  (destructuring-bind (outcome-name outcome-text)
+      (assoc item *without-item-outcomes*)
+    (record-event (cas-history castle)
+                  (make-event 'adv-tried :no outcome-name))
+    (when outcome-text
+      (wiz-format-error nil outcome-text castle))))
 
 (defparameter *wrong-room-outcomes*
   (list
-   (make-outcome 'gaze  nil "No orb - no gaze")
-   (make-outcome 'open  nil "The only thing you opened was your big mouth")
-   (make-outcome 'drink nil "If you want a drink find a pool")
-   (make-outcome 'use-stairs nil (lambda (stream castle room-needed)
-                                   (format stream "Oh ~A, no ~A in here"
-                                           (text-of-race (adv-race (cas-adventurer castle)))
-                                           (text-of-creature room-needed)))))
+   (cons 'gaze
+         "No orb - no gaze")
+   (cons 'open
+         "The only thing you opened was your big mouth")
+   (cons 'drink
+         "If you want a drink find a pool")
+   (cons 'use-stairs
+         (lambda (stream castle room-needed)
+           (format stream "Oh ~A, no ~A in here"
+                   (text-of-race (adv-race (cas-adventurer castle)))
+                   (text-of-creature room-needed)))))
   "Messages when the adventure tries something in the wrong room.")
 
 (defun wrong-room-p (castle coords creature)
@@ -3306,25 +3307,19 @@ castle."
 
 (defun adv-tried-wrong-room (castle action coords &rest args)
   "What happens when the adventurer does something in the wrong room?"
-  (let ((events (make-history))
-        (message (make-text)))
-    (destructuring-bind (outcome-name outcome-effect outcome-text)
-        (get-outcome action *wrong-room-outcomes*)
-      (record-event events
-                    (make-event 'adv-tried outcome-name coords
-                                (get-castle-creature castle coords)))
-      (when outcome-effect
-        (join-history events (funcall outcome-effect)))
-      (when outcome-text
-        (push-text message
-                   (wiz-format-error nil outcome-text castle (first args)))))
-    (values events message)))
+  (destructuring-bind (outcome-name outcome-text)
+      (assoc action *wrong-room-outcomes*)
+    (record-event (cas-history castle)
+                  (make-event 'adv-tried outcome-name coords
+                              (get-castle-creature castle coords)))
+    (when outcome-text
+      (wiz-format-error nil outcome-text castle (first args)))))
 
 (defun adv-tried-blind (castle action)
   "Return events and message when the adventurer tries something when blind."
   (assert (find action '(use-crystal-orb use-lamp use-flare view-map)))
   (values
-   (make-history (make-event 'adv-tried action 'blind))
+   (record-event (cas-history castle) (make-event 'adv-tried action 'blind))
    (wiz-format-error nil "You can't see anything, dumb ~A"
                      (adv-race (cas-adventurer castle)))))
 
@@ -3618,28 +3613,34 @@ there. This info could be mapped.")
   (list
    (make-outcome 'heap
                  (lambda (castle)
-                   (let ((events
-                          (make-history
-                           (make-event 'adv-used 'crystal-orb
-                                       :saw 'adv-in-bloody-heap))))
-                     (join-history events
-                                   (make-adv-weaker (cas-adventurer castle)
-                                                    (random-whole +orb-damage-maximum+)))))
-                 "yourself in a bloody heap.")
+                   (join-history (cas-history castle)
+                                 (apply #'make-history
+                                        (make-event 'adv-used 'crystal-orb
+                                                    :saw 'adv-in-bloody-heap)
+                                        (make-adv-weaker (cas-adventurer castle)
+                                                         (random-whole +orb-damage-maximum+))))
+                   castle)
+                 (lambda (stream castle)
+                   (when (> 4
+                            (length (events-since (make-event 'adv-used 'crystal-orb
+                                                              :saw 'adv-in-bloody-heap)
+                                                  (cas-history castle))))
+                     (format stream "yourself in a bloody heap."))))
    (make-outcome 'room
                  (lambda (castle)
                    (let* ((coords (castle-room-random castle))
-                          (creature (get-castle-creature castle coords))
-                          (events (make-history
-                                   (make-event 'adv-used 'crystal-orb
-                                               :saw creature
-                                               :at coords))))
+                          (creature (get-castle-creature castle coords)))
+                     (join-history (cas-history castle)
+                                   (make-history
+                                    (make-event 'adv-used 'crystal-orb
+                                                :saw creature
+                                                :at coords)))
                      (when *gaze-mapper*
-                       (join-history events
+                       (join-history (cas-history castle)
                                      (gaze-mapper (cas-adventurer castle)
                                                   coords
-                                                  creature)))
-                     events))
+                                                  creature))))
+                   castle)
                  (lambda (stream castle)
                    (when (latest-event-p (make-event 'adv-used 'crystal-orb :saw)
                                          (cas-history castle))
@@ -3651,11 +3652,13 @@ there. This info could be mapped.")
                                                  at)))))
    (make-outcome 'orb-of-zot
                  (lambda (castle)
-                   (make-history
-                    (make-event 'adv-used 'crystal-orb
-                                :saw 'orb-of-zot
-                                :at (random-elt (list (cas-loc-orb castle)
-                                                      (castle-room-random castle))))))
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-used 'crystal-orb
+                                              :saw 'orb-of-zot
+                                              :at (random-elt (list (cas-loc-orb castle)
+                                                                    (castle-room-random castle))))))
+                   castle)
                  (lambda (stream castle)
                    (when (latest-event-p (make-event 'adv-used 'crystal-orb
                                                      :saw 'orb-of-zot)
@@ -3667,11 +3670,12 @@ there. This info could be mapped.")
                                                  (cas-history castle)))))))
    (make-outcome 'drink
                  (lambda (castle)
-                   (declare (ignore castle))
-                   (make-history
-                    (make-event 'adv-used 'crystal-orb
-                                :saw 'self-drinking-from-pool
-                                :becoming (random-monster))))
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-used 'crystal-orb
+                                              :saw 'self-drinking-from-pool
+                                              :becoming (random-monster))))
+                   castle)
                  (lambda (stream castle)
                    (when (latest-event-p (make-event 'adv-used 'crystal-orb
                                                      :saw 'self-drinking-from-pool)
@@ -3684,10 +3688,11 @@ there. This info could be mapped.")
                                 (cas-history castle))))))))
    (make-outcome 'soap
                  (lambda (castle)
-                   (declare (ignore castle))
-                   (make-history
-                    (make-event 'adv-used 'crystal-orb
-                                :saw 'soap-opera)))
+                   (join-history (cas-history castle)
+                                 (make-history
+                                  (make-event 'adv-used 'crystal-orb
+                                              :saw 'soap-opera)))
+                   castle)
                  "a soap opera rerun"))
   "The visions in the crystal orb.")
 
@@ -3696,29 +3701,24 @@ there. This info could be mapped.")
 into the orb."
   (with-accessors ((adv cas-adventurer)
                    (here cas-adv-here)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+    (let ((message (make-text)))
       (cond
         ((blind-p (cas-adventurer castle))
-         (multiple-value-bind (blind-events blind-message)
-             (adv-tried-blind castle 'use-crystal-orb)
-           (join-history events blind-events)
-           (push-text message blind-message)))
+         (adv-tried-blind castle 'use-crystal-orb))
         ((wrong-room-p castle here 'crystal-orb)
-         (multiple-value-bind (wrong-room-events wrong-room-message)
-             (adv-tried-wrong-room castle 'gaze here)
-           (join-history events wrong-room-events)
-           (push-text message wrong-room-message)))
+         (adv-tried-wrong-room castle 'gaze here))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *gaze-crystal-orb-outcomes*)
            (declare (ignore outcome-name))
-           (join-history events (funcall outcome-effect castle))
+           (when outcome-effect
+             (setf outcome-effect
+                   (funcall outcome-effect castle)))
            (push-text message (format nil
                                       "You see ~@?"
                                       outcome-text
                                       castle)))))
-      (values events message))))
+      (values nil message))))
 
 
 ;;;; Book
