@@ -113,6 +113,10 @@
   "Return random integer n, 0 < n <= `limit'."
   (1+ (random limit random-state)))
 
+(defun random-range (min max &optional (random-state *random-state*))
+  "Return random interger n `min' <= n <= `max'."
+  (+ min (random (- max min) random-state)))
+
 (defun nshuffle (seq &optional (random-state *random-state*))
   "Destructively Knuth shuffle a sequence."
   (let ((len (length seq)))
@@ -2513,42 +2517,51 @@ castle."
 ;; 2520 if o$<>"w" then 2540
 ;; 2530 st=st-1 : wc=fna(8)+1 : on 1 - (st < 1) goto 2690,2840
 
-(defun tangle-adversary (foe &optional (turns (+ 2 (random 8))))
-  (incf (foe-enwebbed foe) turns)
-  (make-history (make-event 'foe-bound 'web turns)))
+(defparameter *web-spell-turn-minimum*  2)
+(defparameter *web-spell-turn-maximum* 10)
 
 (defun adv-casts-spell-web (castle)
   "The adventurer casts a web spell to entangle adversary."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((events (make-history)))
-      (record-event events (make-event 'adv-cast-spell 'web))
-      (join-history events (make-adv-weaker adv 1))
-      (unless (adv-alive-p adv)
-        (join-history events (tangle-adversary foe))))))
+
+    (let ((turns (random-range *web-spell-turn-minimum*
+                               *web-spell-turn-maximum*)))
+      (record-event history (make-event 'adv-cast-spell 'web))
+      (join-history history (make-adv-weaker adv 1))
+      (incf (foe-enwebbed foe) turns)
+      (record-event history (make-event 'foe-bound 'web turns))))
+  castle)
 
 ;; 2540 if o$<>"f" then 2580
 ;; 2550 q=fna(7)+fna(7):st=st-1:iq=iq-1:if(iq<1)or(st<1)then2840
 ;; 2560 print"  It does ";q;"points of damage.":print
 ;; 2570 q2=q2-q:goto 2410
 
+(defparameter *fireball-spell-damage-factor* 7)
+
 (defun adv-casts-spell-fireball (castle)
   "The adventure casts a fireball spell on the adversary."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((damage (+ 2 (random 7) (random 7)))
-          (events (make-history))
+    (let ((damage (+ (random *fireball-spell-damage-factor*)
+                     (random *fireball-spell-damage-factor*)))
           (message (make-text)))
-      (record-event events (make-event 'adv-cast-spell 'fireball damage))
-      (join-history events (make-adv-weaker adv 1))
-      (unless (adv-alive-p adv)
-        (join-history events (make-adv-dumber adv 1))
-        (unless (adv-alive-p adv)
-          (join-history events (damage-foe foe damage))
-          (push-text message
-                     (format nil
-                             "~&  It does ~D points of damage." damage))))
-      (values events message))))
+      (record-event history
+                    (make-event 'adv-cast-spell
+                                'fireball
+                                damage))
+      (join-history history (make-adv-weaker adv 1))
+      (when (adv-alive-p adv)
+        (join-history history (make-adv-dumber adv 1)))
+      (when (adv-alive-p adv)
+        (join-history history (damage-foe foe damage))
+        (push-text message
+                   (format nil
+                           "~&  It does ~D points of damage." damage)))
+      (values castle message))))
 
 ;; 2540 if o$<>"f" then ...
 ;; print"death - - - ";:ifiq<15+fna(4)thenprint"yours";iq=0goto2840
@@ -2580,11 +2593,11 @@ castle."
 
 (defun adv-casts-spell-death (castle)
   "The adventurer casts a death spell."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((events (make-history))
-          (message (make-text)))
-      (record-events (cas-history castle)
+    (let ((message (make-text)))
+      (record-events history
                      (make-event 'adv-cast-spell 'death))
       (destructuring-bind (outcome-name outcome-effect outcome-text)
           (get-outcome (if (< (adv-iq adv)
@@ -2593,13 +2606,13 @@ castle."
                            'adv-death
                            'foe-death)
                        *death-spell-outcomes*)
-        (join-history events
+        (join-history history
                       (ecase outcome-name
                         (adv-death (funcall outcome-effect adv))
                         (foe-death (funcall outcome-effect foe))))
         (push-text message
                    (format nil "Death - - - ~A" outcome-text)))
-      (values events message))))
+      (values castle message))))
 
 (defun choose-spell ()
   "Adventurer chooses a spell to cast."
@@ -2994,7 +3007,8 @@ castle."
          do
            (multiple-value-bind (action-events action-message)
                (funcall fight-form castle)
-             (join-history events action-events)
+             (unless (castle-p action-events)
+               (join-history events action-events))
              (when action-message
                (wiz-format *wiz-out* action-message)))
            (ecase fight-form
