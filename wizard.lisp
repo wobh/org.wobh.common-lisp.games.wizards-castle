@@ -161,7 +161,8 @@
   (when (apply #'mrray-in-bounds-p array subscripts)
     (setf (apply #'aref array
                  (map-into subscripts #'mod subscripts
-                           (array-dimensions array))) value))
+                           (array-dimensions array)))
+          value))
   ;; FIXME: (maybe) I'm using MAP-INTO instead of MAPCAR so that it
   ;; will give an error when given too many subscripts as well as too
   ;; few.
@@ -197,12 +198,14 @@
 (defun array-index-row-major (array index)
   "Turn a row-major-index back into subcripts for the array."
   (row-major-aref array index) ; trigger error if index out of range
-  (reduce
-   #'(lambda (dim x)
-       (nconc
-        (multiple-value-list (truncate (car x) dim))
-        (cdr x)))
-   (cdr (array-dimensions array)) :initial-value (list index) :from-end t))
+  (flet ((trunconc (elt acc)
+           (nconc
+            (multiple-value-list (truncate (car acc) elt))
+            (cdr acc))))
+    (reduce #'trunconc
+            (cdr (array-dimensions array))
+            :initial-value (list index)
+            :from-end t)))
 
 ;;; array filter
 
@@ -2284,15 +2287,14 @@ castle."
     (join-history events (send-adv coords))))
 
 (defun make-adv-stagger (castle turns)
-  (let ((events (make-history)))
-    (join-history events
-                  ;; (apply #'make-history ...
-                  (loop
-                     repeat turns
-                     collect (make-event 'adv-staggered)))
-    (join-history events
-                  (move-adv castle
-                            (random-elt '(north east west south))))))
+  (join-history (cas-history castle)
+                ;; (apply #'make-history ...
+                (loop
+                  repeat turns
+                  collect (make-event 'adv-staggered)))
+  (join-history (cas-history castle)
+                (move-adv castle
+                          (random-elt '(north east west south)))))
 
 (defconstant +trap-gas-disorientation-time+ 20)
 
@@ -2561,55 +2563,55 @@ castle."
         (push-text message
                    (format nil
                            "~&  It does ~D points of damage." damage)))
+      (unless (foe-alive-p foe)
+        (record-event history (make-event 'foe-slain (foe-creature foe))))
       (values castle message))))
 
 ;; 2540 if o$<>"f" then ...
 ;; print"death - - - ";:ifiq<15+fna(4)thenprint"yours";iq=0goto2840
 ;; print"his":printq2=0:goto2420
 
+(defun make-adv-dead (castle)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)) castle
+    (join-history history
+                  (make-adv-dumber adv (adv-iq adv)))
+    (record-event history (make-event 'adv-slain 'death-spell)))
+  castle)
+
+(defun make-foe-dead (castle)
+  (with-accessors ((history cas-history)
+                   (foe latest-foe)) castle
+    (join-history history (damage-foe foe (foe-hit-points foe)))
+    (record-event history (make-event 'foe-slain 'death-spell)))
+  castle)
+
 (defparameter *death-spell-outcomes*
   (list
    (make-outcome 'adv-death 'make-adv-dead "yours")
    (make-outcome 'foe-death 'make-foe-dead "his"))
   "Outcomes of the death spell.")
-
-(defun make-adv-dead (adv)
-  (let ((history (make-adv-dumber adv (adv-iq adv))))
-    (record-event history (make-event 'adv-slain 'death-spell))))
-
-(defun make-foe-dead (foe)
-  (let ((history (damage-foe foe (foe-hit-points foe))))
-    (record-event history (make-event 'foe-slain 'death-spell))))
   
-;; (defun make-message-cast-death (castle event)
-;;   (assert (event-kind-p event '(adv-cast-spell death)))
-;;   (format nil  "Death - - - ~A"
-;;           (if (adv-alive-p (cas-adventurer castle))
-;;               "his"
-;;               "yours")))
-
 (defconstant +magic-user-iq-minimum+ 15)
 (defconstant +death-spell-iq-factor-range+ 4)
 
 (defun adv-casts-spell-death (castle)
   "The adventurer casts a death spell."
   (with-accessors ((history cas-history)
-                   (adv cas-adventurer)
-                   (foe latest-foe)) castle
-    (let ((message (make-text)))
-      (record-events history
-                     (make-event 'adv-cast-spell 'death))
-      (destructuring-bind (outcome-name outcome-effect outcome-text)
-          (get-outcome (if (< (adv-iq adv)
+                   (adv cas-adventurer)) castle
+    (let ((message (make-text))
+          (outcome (if (< (adv-iq adv)
                               (+ +magic-user-iq-minimum+
                                  (random-whole +death-spell-iq-factor-range+)))
                            'adv-death
-                           'foe-death)
+                           'foe-death)))
+      (record-events history
+                     (make-event 'adv-cast-spell 'death))
+      (destructuring-bind (_ outcome-effect outcome-text)
+          (get-outcome outcome
                        *death-spell-outcomes*)
-        (join-history history
-                      (ecase outcome-name
-                        (adv-death (funcall outcome-effect adv))
-                        (foe-death (funcall outcome-effect foe))))
+        (declare (ignore _))
+        (funcall outcome-effect castle)
         (push-text message
                    (format nil "Death - - - ~A" outcome-text)))
       (values castle message))))
@@ -2631,7 +2633,8 @@ castle."
                    (foe latest-foe)) castle
     (if (or (cast-spells-p adv) (foe-enwebbed-p foe))
         (funcall (symbol-function (choose-spell)) castle)
-        (wiz-format-error nil "You can't cast a spell now!"))))
+        (values castle
+                (wiz-format-error nil "You can't cast a spell now!")))))
 
 ;; Powers, 1980; 2500--2600
 
@@ -2648,16 +2651,16 @@ castle."
 
 (defun adv-bribes (castle)
   "What happens when an adventurer tries to bribe a creature."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)) castle
     (flet ((get-text (outcome)
              (third (find outcome *bribe-outcomes* :key #'first))))
       (let ((treasure (random-elt (adv-treasures adv)))
             (foe-name (foe-creature foe))
-            (events (make-history))
             (message (make-text)))
         (cond ((null treasure)
-               (record-event events (make-event 'adv-tried 'bribe foe-name))
+               (record-event history (make-event 'adv-tried 'bribe foe-name))
                (push-text message (get-text 'bribe-refused)))
               (t
                (when (wiz-y-or-n-p
@@ -2665,11 +2668,11 @@ castle."
                               (get-text 'bribe-requested)
                               (text-of-creature treasure)))
                  (lose-treasure adv treasure)
-                 (record-event events (make-event 'adv-bribed foe-name treasure))
+                 (record-event history (make-event 'adv-bribed foe-name treasure))
                  (push-text message (get-text 'bribe-accepted))
                  (when (eq 'vendor foe-name)
                    (setf (cas-vendor-fury castle) nil)))))
-        (values events message)))))
+        (values castle message)))))
 
 ;; (defun make-message-adv-attacks (castle event)
 ;;   (assert (event-kind-p event 'adv-attacks))
@@ -2695,38 +2698,38 @@ castle."
 
 (defun adv-slays-adversary (castle)
   "What happens when the adventurer kills a creature."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (here cas-adv-here)
                    (foe latest-foe)) castle
     (assert (not (foe-alive-p foe)))
-    (let ((events (make-history))
-          (message (make-text)))
+    (let ((message (make-text)))
       (push-text message (format nil "~2&~A lies dead at your feet"
                                  (text-of-foe foe)))
       (clear-castle-room castle here)
-      (join-history events (cas-adv-map-here castle))
+      (join-history history (cas-adv-map-here castle))
       (when (and (adv-hungry-p castle) (monster-p (foe-creature foe)))
-        (record-event events
+        (record-event history
                       (make-event 'adv-ate (foe-creature foe)))
         (push-text message
                    (format nil "~&You spend an hour eating ~A~A"
                            (text-of-foe foe) (random-meal))))
       (when (runestaff-here-p castle)
-        (record-event events
+        (record-event history
                       (make-event 'adv-found 'runestuff))
         (outfit-with 'runestaff adv)
         (push-text message "~2&Great Zot! You've found the Runestaff"))
       (if (monster-p (foe-creature foe))
 	  (let ((hoard (random-whole +adversary-hoard-maximum+)))
             (make-adv-richer adv hoard)
-	    (join-history events
-                          (make-history
-                           (make-event 'adv-gained 'gold-pieces
-                                       :by hoard)))
+	    (record-event history
+                          (make-event 'adv-gained
+                                      'gold-pieces
+                                      :by hoard))
 	    (push-text message
 		       (format nil "~2&You now get his hoard of ~D GP's" hoard)))
 	  (progn
-	    (join-history events
+	    (join-history history
 			  (make-history
 			   (outfit-with 'plate adv)
 			   (outfit-with 'sword adv)
@@ -2741,34 +2744,37 @@ castle."
 				 "an intelligence potion"
 				 "a dexterity potion")))
 	    (when (adv-without-item-p adv 'lamp)
-	      (record-event events (outfit-with 'lamp adv))
+	      (record-event history (outfit-with 'lamp adv))
 	      (push-text message
 			 (format nil "~&A lamp")))))
-      (values events message))))
+      (values castle message))))
 
 (defun adv-broke-weapon-on-foe-p (events)
   "Did the adventurer's weapon break on the foe?"
   (find-event 'adv-broke-weapon events))
 
-(defun foe-slain-p (events)
-  (latest-event-p 'foe-slain events))
+(defun foe-slain-p (castle)
+  (and
+   (zerop (foe-hit-points (latest-foe castle)))
+   (latest-event-p 'foe-slain
+                   (cas-history castle))))
 
-(defun adv-strikes-foe (adv foe)
-  (let ((events (make-history))
-        (message (make-text))
-        (foe-alive (foe-alive-p foe)))
-    (when foe-alive
-      (join-history events (damage-foe foe (adv-wv adv))))
-    (when (and (find (foe-creature foe) '(gargoyle dragon))
-               (zerop (random 8)))
-      (push-text message
-                 (format nil "~&Oh no! Your ~A broke"
-                         (text-of-weapon (adv-weapon adv))))
-      (join-history events (break-adv-weapon adv)))
-    (when foe-alive
-      (unless (foe-alive-p foe)
-        (record-event events (make-event 'foe-slain (foe-creature foe)))))
-    (values events message)))
+(defun adv-strikes-foe (castle)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
+                   (foe latest-foe)) castle
+      (let ((message (make-text)))
+        (when (foe-alive-p foe)
+          (join-history history (damage-foe foe (adv-wv adv))))
+        (when (and (find (foe-creature foe) '(gargoyle dragon))
+                   (zerop (random 8)))
+          (join-history history (break-adv-weapon adv))
+          (push-text message
+                     (format nil "~&Oh no! Your ~A broke"
+                             (text-of-weapon (adv-weapon adv)))))
+        (unless (foe-alive-p foe)
+          (record-event history (make-event 'foe-slain (foe-creature foe))))
+        (values castle message))))
 
 (defparameter *adv-attacks-outcomes*
   (list
@@ -2782,26 +2788,28 @@ castle."
 
 (defun make-adv-strike (adv)
   (get-outcome
-   (if (< (adv-dx adv) (+ (random 20) (if (adv-bl adv) 1 0)))
+   (if (< (adv-dx adv)
+          (+ (random 20)
+             (if (adv-bl adv) 1 0)))
       'adv-strike-missed
       'adv-strike-hit)
    *adv-attacks-outcomes*))
   
 (defun adv-attacks (castle)
   "What happens when the adventure attacks a creature."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+    (let ((message (make-text)))
       (cond
         ((not (armed-p adv))
-         (record-event events (make-event 'adv-tried 'unarmed-attack))
+         (record-event history (make-event 'adv-tried 'unarmed-attack))
          (push-text message
                     (wiz-format-error nil
                                       "Pounding on ~A won't hurt it"
                                       (foe-name foe))))
         ((bound-p adv)
-         (record-event events (make-event 'adv-tried 'attack-with-hands-bound))
+         (record-event history (make-event 'adv-tried 'attack-with-hands-bound))
          (push-text message
                     (wiz-format-error nil
                                       "You can't beat it to death with a book!!")))
@@ -2813,11 +2821,11 @@ castle."
               (push-text message (format nil outcome-text foe))
               (multiple-value-bind (strike-effects strike-message)
                   (funcall outcome-effect adv foe)
-                (join-history events strike-effects)
+                (join-history history strike-effects)
                 (push-text message strike-message)))
              (t
               (push-text message outcome-text))))))
-      (values events message))))
+      (values castle message))))
 
 (defun make-foe-struggle-with-web (foe)
   (assert (foe-enwebbed-p foe))
@@ -2859,14 +2867,14 @@ castle."
 
 (defun foe-attacks (castle)
   "What happens when an adversary attacks."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+    (let ((message (make-text)))
       (if (foe-enwebbed-p foe)
           (multiple-value-bind (struggle-events struggle-text)
               (make-foe-struggle-with-web foe)
-            (join-history events struggle-events)
+            (join-history history struggle-events)
             (push-text message struggle-text))
           (destructuring-bind (outcome-name outcome-effect outcome-text)
               (make-foe-strike adv)
@@ -2875,35 +2883,35 @@ castle."
                                "~2&The ~A attacks"
                                (foe-name foe)))
             (cond ((eq outcome-name 'foe-strike-hit)
-                   (join-history events
+                   (join-history history
                                  (funcall outcome-effect adv
                                           (foe-strike-damage foe)))
                    (push-text message outcome-text)
-                   (when (latest-event-p 'adv-armor-destroyed events)
+                   (when (latest-event-p 'adv-armor-destroyed history)
                      (push-text message
                                 (format nil #'message-adv-armor-destroyed castle))))
                   (t (push-text message outcome-text)))))
       ;; FIXME [wc 2013-01-29]: maybe use TAGBODY instead of (WHEN
       ;; ...) (UNLESS ...)
-      (values events message))))
+      (values castle message))))
 
 (defun adv-retreats (castle)
   "Adventurer retreats from a fight."
-  (with-accessors ((adv cas-adventurer)) castle
-    (let ((events (make-history))
-          (message (make-text)))
-      (multiple-value-bind (foe-attack-events foe-attack-message)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)) castle
+    (let ((message (make-text)))
+      (multiple-value-bind (_ foe-attack-message)
           (foe-attacks castle)
-        (join-history events foe-attack-events)
+        (declare (ignore _))
         (wiz-format *wiz-out* foe-attack-message))
       (wiz-format *wiz-out* "~&You have escaped")
       (let ((direction (wiz-read-direction
                         "~&Do you go north, south, east, or west "
                         (format nil "~&Don't press your luck ~A"
                                 (adv-race adv)))))
-        (record-event events (make-event 'adv-retreated direction))
-        (join-history events (move-adv castle direction))
-        (values events message)))))
+        (record-event history (make-event 'adv-retreated direction))
+        (move-adv castle direction)
+        (values castle message)))))
 
 (defun make-message-end-game (adv end turns)
   "What does the game report when the game ends."
@@ -2971,12 +2979,11 @@ castle."
                    (wiz-format-error *wiz-err*
                                       "Choose one of the listed options")))))))
 
-(defun fight-end-p (events)
+(defun fight-end-p (castle)
   "Return true if fight is over"
-  (if (null events)
-      nil
-      (find (name-of-event (latest-event events))
-            '(adv-slain foe-slain adv-entered-room adv-bribed))))
+  (with-accessors ((history cas-history)) castle
+    (find (name-of-event (latest-event history))
+          '(adv-slain foe-slain adv-entered-room adv-bribed))))
 
 ;; 2310 if(c(1,4)>t(1))or(bl=1)or(dx<fna(9)+fna(9))then2690
 
@@ -2992,13 +2999,13 @@ castle."
 
 (defun adv-meets-adversary (castle)
   "The adventurer fights an creature in the castle."
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (foe latest-foe)
                    (here cas-adv-here)) castle
     (push (make-adversary (get-castle-creature castle here))
           (cas-adversaries castle))
-    (let ((events (make-history))
-          (message (make-text))
+    (let ((message (make-text))
           (fight-form (if (adv-initiative-p adv)
                           (get-adv-fight-action adv foe)
                           'foe-attacks)))
@@ -3008,7 +3015,7 @@ castle."
            (multiple-value-bind (action-events action-message)
                (funcall fight-form castle)
              (unless (castle-p action-events)
-               (join-history events action-events))
+               (join-history history action-events))
              (when action-message
                (wiz-format *wiz-out* action-message)))
            (ecase fight-form
@@ -3016,7 +3023,7 @@ castle."
               (when (foe-alive-p foe)
                 (setf fight-form 'foe-attacks)))
              (adv-bribes
-              (unless (latest-event-p 'adv-bribes events)
+              (unless (latest-event-p 'adv-bribes history)
                 (setf fight-form 'foe-attacks)))
              (adv-casts-spell
               (when (foe-alive-p foe)
@@ -3026,13 +3033,14 @@ castle."
              (foe-attacks
               (when (adv-alive-p adv)
                 (setf fight-form (get-adv-fight-action adv foe)))))
-         until (fight-end-p events))
-      (when (latest-event-p 'foe-slain events)
+         until (fight-end-p castle))
+      (when (latest-event-p 'foe-slain history)
         (multiple-value-bind (victory-events victory-message)
             (adv-slays-adversary castle)
-          (join-history events victory-events)
+          (unless (castle-p victory-events)
+            (join-history history victory-events))
           (push-text message victory-message)))
-      (values events message))))
+      (values castle message))))
 
 
 ;;;; vendor
@@ -4105,7 +4113,8 @@ into the orb."
               (monster     'adv-meets-adversary)
               (t           'adv-finds-room)))
            castle)
-        (join-history events find-creature-events)
+        (unless (castle-p find-creature-events)
+          (join-history events find-creature-events))
         (push-text message find-creature-message))
       (values events message))))
 
@@ -4685,7 +4694,7 @@ passed in must not also have an adventurer already in it."
 
 (let ((foe (make-adversary 'dragon)))
   (assert (not (foe-enwebbed-p foe)))
-  (tangle-adversary foe)
+  (incf (foe-enwebbed foe))
   (assert (foe-enwebbed-p foe)))
 
 (let ((*a* (make-test-adv :sorceress)))
