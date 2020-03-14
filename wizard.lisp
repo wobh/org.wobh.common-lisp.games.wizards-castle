@@ -2706,8 +2706,6 @@ castle."
     (let ((message (make-text)))
       (push-text message (format nil "~2&~A lies dead at your feet"
                                  (text-of-foe foe)))
-      (clear-castle-room castle here)
-      (join-history history (cas-adv-map-here castle))
       (when (and (adv-hungry-p castle) (monster-p (foe-creature foe)))
         (record-event history
                       (make-event 'adv-ate (foe-creature foe)))
@@ -2747,6 +2745,8 @@ castle."
 	      (record-event history (outfit-with 'lamp adv))
 	      (push-text message
 			 (format nil "~&A lamp")))))
+            (clear-castle-room castle here)
+            (join-history history (cas-adv-map-here castle))
       (values castle message))))
 
 (defun adv-broke-weapon-on-foe-p (events)
@@ -4093,13 +4093,11 @@ into the orb."
 
 (defun adv-finds-creature (castle)
   "What happens when the adventurer encounters a creature?"
-  (with-accessors ((adv cas-adventurer)
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)
                    (here cas-adv-here)
                    (creature cas-creature-here)) castle
-    (let ((events (make-history))
-          (message (make-text)))
-      (unless (adv-room-mapped-p adv here creature)
-        (join-history events (cas-adv-map-here castle)))
+    (let ((message (make-text)))
       (multiple-value-bind (find-creature-events find-creature-message)
           (funcall
            (symbol-function
@@ -4114,9 +4112,11 @@ into the orb."
               (t           'adv-finds-room)))
            castle)
         (unless (castle-p find-creature-events)
-          (join-history events find-creature-events))
+          (join-history history find-creature-events))
+        (unless (adv-room-mapped-p adv here creature)
+          (join-history history (cas-adv-map-here castle)))
         (push-text message find-creature-message))
-      (values events message))))
+      (values castle message))))
 
 ;; is the "your choice" prompt ever used with numerical input?
 
@@ -4298,7 +4298,8 @@ into the orb."
        do
          (multiple-value-bind (events message)
              (apply (first wiz-form) castle (rest wiz-form))
-           (join-history history events)
+           (unless (castle-p events)
+             (join-history history events))
            (when message
              (wiz-format *wiz-out* message)))
          (cond ((eq (first wiz-form) 'adv-enters-room)
