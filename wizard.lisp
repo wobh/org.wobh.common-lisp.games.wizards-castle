@@ -1382,8 +1382,8 @@ limits."
   (if creature-ref
       (equal (icon-of-creature creature-ref)
              (get-adv-map-icon adv room-ref))
-      (equal (icon-of-unmapped)
-             (get-adv-map-icon adv room-ref))))
+      (not (equal (icon-of-unmapped)
+                  (get-adv-map-icon adv room-ref)))))
 
 (defun adv-map-room (adv room-ref creature)
   "Tags a room as mapped."
