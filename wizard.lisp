@@ -2710,7 +2710,7 @@ castle."
         (record-event history
                       (make-event 'adv-ate (foe-creature foe)))
         (push-text message
-                   (format nil "~&You spend an hour eating ~A~A"
+                   (format nil "~2&You spend an hour eating ~A~A"
                            (text-of-foe foe) (random-meal))))
       (when (runestaff-here-p castle)
         (record-event history
