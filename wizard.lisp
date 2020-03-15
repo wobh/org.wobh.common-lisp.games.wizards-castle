@@ -2780,10 +2780,10 @@ castle."
   (list
    (list 'adv-strike-missed  nil (format nil "~&  Drat! Missed"))
    (list 'adv-strike-hit 'adv-strikes-foe
-         (lambda (stream foe)
+         (lambda (stream castle)
            (format stream
                    "~&  You hit the lousy ~A"
-                   (foe-name foe)))))
+                   (foe-name (latest-foe castle))))))
   "Possibilities when the adventurer strikes at a foe.")
 
 (defun make-adv-strike (adv)
@@ -2818,10 +2818,11 @@ castle."
              (make-adv-strike adv)
            (cond
              ((eq outcome-name 'adv-strike-hit)
-              (push-text message (format nil outcome-text foe))
+              (push-text message (format nil outcome-text castle))
               (multiple-value-bind (strike-effects strike-message)
-                  (funcall outcome-effect adv foe)
-                (join-history history strike-effects)
+                  (funcall outcome-effect castle)
+                (unless (castle-p strike-effects)
+                  (join-history history strike-effects))
                 (push-text message strike-message)))
              (t
               (push-text message outcome-text))))))
