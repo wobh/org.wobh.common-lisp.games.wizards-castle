@@ -4034,16 +4034,16 @@ into the orb."
 
 (defun adv-uses-runestaff (castle &optional coords)
   "What happens when an adventurer uses the runestaff?"
-    (with-accessors ((adv cas-adventurer)) castle
-      (let ((events (make-history))
-            (message (make-text)))
+  (with-accessors ((history cas-history)
+                   (adv cas-adventurer)) castle
+      (let ((message (make-text)))
         (cond ((adv-without-item-p adv 'runestaff)
                (multiple-value-bind (without-item-events without-item-message)
                    (adv-tried-without-item castle 'runestaff)
-                 (join-history events without-item-events)
+                 (join-history history without-item-events)
                  (push-text message without-item-message)))
               (t
-               (record-events events (make-event 'adv-used 'runestaff))
+               (record-events history (make-event 'adv-used 'runestaff))
                (destructuring-bind (outcome-name outcome-effect outcome-text)
                    (make-outcome 'adv-teleports #'make-adv-teleport 'nil)
                  (when outcome-effect
