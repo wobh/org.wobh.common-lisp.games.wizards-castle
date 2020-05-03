@@ -4051,12 +4051,12 @@ into the orb."
                          (when outcome-name
                            (funcall outcome-effect
                                     (or coords (read-castle-coordinates)))))
-                   (join-history events outcome-effect))
+                   (join-history history outcome-effect))
                  (when outcome-text
                    (setf outcome-text
                          (funcall outcome-text))
                    (push-text message outcome-text)))))
-        (values events message))))
+        (values castle message))))
 
 
 ;;; Lines 1670 - 1780 print status, room eval
