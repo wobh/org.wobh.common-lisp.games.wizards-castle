@@ -3318,12 +3318,11 @@ castle."
 
 (defun adv-tried-without-item (castle item)
   "What happens when the adventurer tries to use something they don't have?"
-  (destructuring-bind (outcome-name outcome-text)
+  (destructuring-bind (outcome-name . outcome-text)
       (assoc item *without-item-outcomes*)
-    (record-event (cas-history castle)
-                  (make-event 'adv-tried :no outcome-name))
-    (when outcome-text
-      (wiz-format-error nil outcome-text castle))))
+    (values (make-history (make-event 'adv-tried :no outcome-name))
+            (when outcome-text
+              (wiz-format-error nil outcome-text castle)))))
 
 (defparameter *wrong-room-outcomes*
   (list
@@ -3346,13 +3345,13 @@ castle."
 
 (defun adv-tried-wrong-room (castle action coords &rest args)
   "What happens when the adventurer does something in the wrong room?"
-  (destructuring-bind (outcome-name outcome-text)
+  (destructuring-bind (outcome-name . outcome-text)
       (assoc action *wrong-room-outcomes*)
-    (record-event (cas-history castle)
-                  (make-event 'adv-tried outcome-name coords
-                              (get-castle-creature castle coords)))
-    (when outcome-text
-      (wiz-format-error nil outcome-text castle (first args)))))
+    (values (make-history
+             (make-event 'adv-tried outcome-name coords
+                         (get-castle-creature castle coords)))
+            (when outcome-text
+              (wiz-format-error nil outcome-text castle (first args))))))
 
 (defun adv-tried-blind (castle action)
   "Return events and message when the adventurer tries something when blind."
@@ -3475,19 +3474,19 @@ castle."
 
 (defun adv-uses-lamp (castle &optional direction)
   "What happens when the adventurer tries to use the lamp."
-  (with-accessors ((adv cas-adventurer)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+  (with-accessors ((adv cas-adventurer)
+                   (history cas-history)) castle
+    (let ((message (make-text)))
       (cond
         ((blind-p (cas-adventurer castle))
          (multiple-value-bind (blind-events blind-message)
              (adv-tried-blind castle 'use-lamp)
-           (join-history events blind-events)
+           (join-history history blind-events)
            (push-text message blind-message)))
         ((adv-without-item-p adv 'lamp)
          (multiple-value-bind (without-item-events without-item-message)
              (adv-tried-without-item castle 'lamp)
-           (join-history events without-item-events)
+           (join-history history without-item-events)
            (push-text message without-item-message)))
         (t
          (let ((direction
@@ -3496,7 +3495,7 @@ castle."
                      "~&Where do you shine the lamp (N,S,E, or W) "))))
                ;; No error or message if error comes from read-direction
            (cond ((eq direction 'input-error)
-                  (record-events events
+                  (record-events history
                                  (make-event 'player-error 'bad-lamp-direction))
                   (push-text message
                              (wiz-format-error nil
@@ -3505,7 +3504,7 @@ castle."
                   (let* ((there (cas-adv-near castle direction))
                          (creature (get-castle-creature castle there)))
                     (cas-adv-map-near castle direction)
-                    (record-events events
+                    (record-events history
                                    (make-event 'adv-used 'lamp there)
                                    (make-event 'adv-mapped creature :at there))
                     (push-text message
@@ -3515,7 +3514,7 @@ castle."
                                          (wiz-coords there))
                                  (format text "~2&There you will find ~A"
                                          (text-of-creature creature))))))))))
-      (values events message))))
+      (values castle message))))
 
 
 ;;;; Pool
@@ -3572,14 +3571,14 @@ castle."
 (defun adv-drinks-pool (castle)
   "Return events and message from drinking from a magic pool."
   (with-accessors ((adv cas-adventurer)
-                   (here cas-adv-here)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+                   (here cas-adv-here)
+                   (history cas-history)) castle
+    (let ((message (make-text)))
       (cond
         ((wrong-room-p castle here 'pool)
          (multiple-value-bind (wrong-room-events wrong-room-message)
              (adv-tried-wrong-room castle 'drink here)
-           (join-history events wrong-room-events)
+           (join-history history wrong-room-events)
            (push-text message wrong-room-message)))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
@@ -3591,10 +3590,10 @@ castle."
                          (t (funcall outcome-effect
                                      adv
                                      (random-whole +pool-effect-maximum+)))))
-             (record-event events
+             (record-event history
                            (make-event 'adv-drank 'pool
                                        :and (name-of-event (latest-event outcome-effect))))
-             (join-history events outcome-effect))
+             (join-history history outcome-effect))
            (when outcome-text
              (setf outcome-text
                    (cond ((member outcome-name '(change-race change-sex))
@@ -3606,7 +3605,7 @@ castle."
                         (format nil
                                 "You take a drink and ~A"
                                 outcome-text))))))
-        (values events message))))
+        (values castle message))))
 
 
 ;;;; Crystal Orb
@@ -3739,13 +3738,20 @@ there. This info could be mapped.")
   "Return events and message of what happens when the adventurer gazes
 into the orb."
   (with-accessors ((adv cas-adventurer)
-                   (here cas-adv-here)) castle
+                   (here cas-adv-here)
+                   (history cas-history)) castle
     (let ((message (make-text)))
       (cond
         ((blind-p (cas-adventurer castle))
-         (adv-tried-blind castle 'use-crystal-orb))
+         (multiple-value-bind (blind-events blind-message)
+             (adv-tried-blind castle 'use-crystal-orb)
+           (join-history history blind-events)
+           (push-text message blind-message)))
         ((wrong-room-p castle here 'crystal-orb)
-         (adv-tried-wrong-room castle 'gaze here))
+         (multiple-value-bind (without-item-events without-item-message)
+             (adv-tried-wrong-room castle 'gaze here)
+           (join-history history without-item-events)
+           (push-text message without-item-message)))
         (t
          (destructuring-bind (outcome-name outcome-effect outcome-text)
              (random-elt *gaze-crystal-orb-outcomes*)
