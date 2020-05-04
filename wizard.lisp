@@ -2907,10 +2907,10 @@ castle."
                         "~&Do you go north, south, east, or west "
                         (format nil "~&Don't press your luck ~A"
                                 (adv-race adv)))))
-        (join-history history
-                      (make-history
-                       (make-event 'adv-retreated direction)
-                       (move-adv castle direction)))
+        (record-event history
+                      (make-event 'adv-retreated direction))
+        (join-history history 
+                      (move-adv castle direction))
         (values castle message)))))
 
 (defun make-message-end-game (adv end turns)
