@@ -910,9 +910,8 @@ order and values."
     minotaur gargoyle chimera balrog dragon)
   "List of the monster creature types in the castle.")
 
-(defun monster-p (creature)
-  "Is this creature a monster?"
-  (find creature *monsters*))
+(deftype monster ()
+  `(member ,@*monsters*))
 
 (defun random-monster ()
   "Return a random monster."
@@ -955,11 +954,10 @@ order and values."
 (defparameter *treasures*
   '(ruby-red norn-stone pale-pearl opal-eye
     green-gem blue-flame palantir silmaril)
-  "List of the treasure creature types in the castle.")
+  "List of the treasures in the castle.")
 
-(defun treasure-p (creature)
-  "Is the creature a treasure."
-  (find creature *treasures*))
+(deftype treasure ()
+  `(member ,@*treasures*))
 
 (defun random-treasure ()
   "Return a random treasure."
@@ -967,7 +965,7 @@ order and values."
 
 (defun value-of-treasure (treasure)
   "Return treasure index number."
-  (assert (treasure-p treasure))
+  (declare (type treasure treasure))
   (position treasure *treasures*))
 
 (defun sort-treasure-list (treasure-list)
@@ -978,13 +976,11 @@ order and values."
 
 (defun type-of-creature (creature)
   "Return the type of creature given."
-  (cond
-    ((monster-p creature)
-     'monster)
-    ((treasure-p creature)
-     'treasure)
-    (t
-     creature)))
+  ;; FIXME: convert to typecase
+  (typecase creature
+    (monster   'monster)
+    (treasure  'treasure)
+    (otherwise creature)))
 
 (defparameter *meals*
   '("wich" " stew" " soup" " burger"
@@ -1119,7 +1115,7 @@ order and values."
           (string (second ranking))
           (number (position ranking ranking-data)))
         ranking)))
-  
+
 (defun text-of-ranking (ranking-ref)
   (get-ranking-data ranking-ref *rankings* 'string))
 
@@ -1340,15 +1336,15 @@ limits."
 ;; | 7 | "the silmaril"   |                     |
 
 (defun gain-treasure (adv treasure)
-  (assert (treasure-p treasure))
+  (declare (type treasure treasure))
   (pushnew treasure (adv-tr adv)))
 
 (defun lose-treasure (adv treasure)
-  (assert (treasure-p treasure))
+  (declare (type treasure treasure))
   (setf (adv-tr adv) (remove treasure (adv-tr adv))))
 
 (defun has-treasure-p (adv treasure)
-  (assert (treasure-p treasure))
+  (declare (type treasure treasure))
   (find treasure (adv-tr adv)))
 
 (defun adv-treasures (adv)
@@ -2706,7 +2702,8 @@ castle."
     (let ((message (make-text)))
       (push-text message (format nil "~2&~A lies dead at your feet"
                                  (text-of-foe foe)))
-      (when (and (adv-hungry-p castle) (monster-p (foe-creature foe)))
+      (when (and (adv-hungry-p castle)
+                 (typep (foe-creature foe) 'monster))
         (record-event history
                       (make-event 'adv-ate (foe-creature foe)))
         (push-text message
@@ -2717,7 +2714,7 @@ castle."
                       (make-event 'adv-found 'runestuff))
         (outfit-with 'runestaff adv)
         (push-text message "~2&Great Zot! You've found the Runestaff"))
-      (if (monster-p (foe-creature foe))
+      (if (typep (foe-creature foe) 'monster)
 	  (let ((hoard (random-whole +adversary-hoard-maximum+)))
             (make-adv-richer adv hoard)
 	    (record-event history
