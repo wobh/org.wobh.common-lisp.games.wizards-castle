@@ -2257,40 +2257,44 @@ castle."
 
 ;;; Adventurer events
 
-(defun send-adv (coords)
+(defun send-adv (castle coords)
   "Send an adventurer to location at coords"
   ;; (record-events (cas-history castle)
-  (make-history (make-event 'adv-entered-room coords)))
+  (record-event (cas-history castle)
+                (make-event 'adv-entered-room coords))
+  castle)
 
 (defun move-adv (castle vector-ref)
   "Move adventurer in direction."
   (with-accessors ((here cas-adv-here)) castle
-    (send-adv (add-castle-vectors (cas-rooms castle)
+    (send-adv castle
+              (add-castle-vectors (cas-rooms castle)
                                   here
                                   (vector-of-direction vector-ref)))))
 
 (defun make-adv-fall (castle)
-  (let ((events (make-history (make-event 'adv-fell))))
-    (join-history events (move-adv castle 'down))))
+  (record-event (cas-history castle)
+                (make-event 'adv-fell))
+  (move-adv castle 'down))
+
+(defun make-adv-teleport (castle coords)
+  (record-event (cas-history castle)
+                (make-event 'adv-teleported))
+  (send-adv castle coords))
 
 (defun make-adv-warp (castle)
-  (let ((coords (random-array-subscripts (cas-rooms castle)))
-        (events (make-history (make-event 'adv-warped))))
-    (join-history events (send-adv coords))))
-
-(defun make-adv-teleport (coords)
-  (let ((events (make-history (make-event 'adv-teleported))))
-    (join-history events (send-adv coords))))
+  (record-event (cas-history castle)
+                (make-event 'adv-warped))
+  (send-adv castle
+            (random-array-subscripts (cas-rooms castle))))
 
 (defun make-adv-stagger (castle turns)
   (join-history (cas-history castle)
-                ;; (apply #'make-history ...
                 (loop
                   repeat turns
                   collect (make-event 'adv-staggered)))
-  (join-history (cas-history castle)
-                (move-adv castle
-                          (random-elt '(north east west south)))))
+  (move-adv castle
+            (random-elt '(north east west south))))
 
 (defconstant +trap-gas-disorientation-time+ 20)
 
@@ -2370,14 +2374,14 @@ castle."
 (defun adv-finds-gold-pieces (castle)
   "What happens when an adventurer finds gold."
   (with-accessors ((adv  cas-adventurer)
-                   (here cas-adv-here)) castle
+                   (here cas-adv-here)
+                   (history cas-history)) castle
     (assert (eq (get-castle-creature castle here) 'gold-pieces))
-    (let ((gps (random-whole +gold-in-rooms-maximum+))
-          (events (make-history)))
+    (let ((gps (random-whole +gold-in-rooms-maximum+)))
       (clear-castle-room castle here)
-      (join-history events (make-adv-richer adv gps))
-      (join-history events (cas-adv-map-here castle))
-      (values events
+      (join-history history (make-adv-richer adv gps))
+      (join-history history (cas-adv-map-here castle))
+      (values castle
               (make-message-report-inv nil castle 'gold-pieces)))))
 
 (defconstant +flares-in-rooms-maximum+ 5)
@@ -2385,26 +2389,26 @@ castle."
 (defun adv-finds-flares (castle)
   "What happens when an adventurer finds flares."
   (with-accessors ((adv  cas-adventurer)
-                   (here cas-adv-here)) castle
+                   (here cas-adv-here)
+                   (history cas-history)) castle
     (assert (eq (get-castle-creature castle here) 'flares))
-    (let* ((flares (random-whole +flares-in-rooms-maximum+))
-           (events (make-history)))
+    (let* ((flares (random-whole +flares-in-rooms-maximum+)))
       (clear-castle-room castle here)
-      (join-history events (give-adv-flares adv flares))
-      (join-history events (cas-adv-map-here castle))
-      (values events
+      (join-history history (give-adv-flares adv flares))
+      (join-history history (cas-adv-map-here castle))
+      (values castle
               (make-message-report-inv nil castle 'flares)))))
 
 (defun adv-finds-treasure (castle)
   "What happens when an adventurer finds treasure."
   (with-accessors ((adv  cas-adventurer)
-                   (here cas-adv-here)) castle
-    (let* ((treasure (get-castle-creature castle here))
-           (events (list (make-event 'adv-found treasure))))
+                   (here cas-adv-here)
+                   (history cas-history)) castle
+    (let* ((treasure (get-castle-creature castle here)))
       (clear-castle-room castle here)
-      (join-history events (give-adv-treasure adv treasure))
-      (join-history events (cas-adv-map-here castle))
-      (values events "~&Its now yours"))))
+      (join-history history (give-adv-treasure adv treasure))
+      (join-history history (cas-adv-map-here castle))
+      (values castle "~&Its now yours"))))
 
 ;;; --- FIXME [wc 2012-12-11]
 ;;; streamline these with a macro
@@ -2418,27 +2422,27 @@ castle."
   "What happens when the adventurer finds the orb-of-zot."
   (with-accessors ((adv  cas-adventurer)
                    (here cas-adv-here)
-                   (went cas-adv-last-went)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+                   (went cas-adv-last-went)
+                   (history cas-history)) castle
+    (let ((message (make-text)))
       (cond
-        ((equal (events-since 'adv-used (cas-history castle))
+        ((equal (events-since 'adv-used history)
                 (make-history
                  (make-event 'adv-used 'runestaff)
                  (make-event 'adv-entered-room here)))
          (outfit-with 'orb-of-zot adv)
          (setf (cas-loc-orb castle) nil)
          (clear-castle-room castle here)
-         (record-event events (make-event 'adv-found 'orb-of-zot))
-         (join-history events (cas-adv-map-here castle))
+         (record-event history (make-event 'adv-found 'orb-of-zot))
+         (join-history history (cas-adv-map-here castle))
          (push-text message
                     (format nil "Great unmitigated Zot!~
                                  ~&You just found the Orb of Zot~
                                  ~&The Runestaff is gone")))
         (t
-         (record-events events (make-event 'adv-warped))
-         (join-history events (move-adv castle went))))
-      (values events message))))
+         (record-events history (make-event 'adv-warped))
+         (move-adv castle went)))
+      (values castle message))))
 
 (defun adv-finds-warp (castle)
   "What happens when the adventurer finds a warp?"
@@ -2909,8 +2913,7 @@ castle."
                                 (adv-race adv)))))
         (record-event history
                       (make-event 'adv-retreated direction))
-        (join-history history 
-                      (move-adv castle direction))
+        (move-adv castle direction)
         (values castle message)))))
 
 (defun make-message-end-game (adv end turns)
@@ -3393,17 +3396,17 @@ castle."
 (defun adv-uses-map (castle)
   "Show the player the map the adventurer has been making."
   (with-accessors ((adv cas-adventurer) 
-                   (here cas-adv-here)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+                   (here cas-adv-here)
+                   (history cas-history)) castle
+    (let ((message (make-text)))
       (cond ((blind-p adv)
              (multiple-value-bind (blind-events blind-message)
                  (adv-tried-blind castle 'view-map)
-               (join-history events blind-events)
+               (join-history history blind-events)
                (push-text message blind-message)))
             (t
              (let ((level (first here)))
-               (record-events events
+               (record-events history
                               (make-event 'adv-viewed-map level))
                (push-text message
                           (with-output-to-string (level-map)
@@ -3411,7 +3414,7 @@ castle."
                                     (make-level-map castle level))
                             (format level-map
                                     #'you-are-at (cas-adv-here castle)))))))
-      (values events message))))
+      (values castle message))))
 
 (defun get-near-coords (castle coords)
   "Return a list of all coordinates near COORD."
@@ -3431,24 +3434,24 @@ castle."
   "What happens when the adventurer uses a flare."
   (with-accessors ((adv cas-adventurer)
                    (here cas-adv-here)
-                   (rooms cas-rooms)) castle
-    (let ((events (make-history))
-          (message (make-text)))
+                   (rooms cas-rooms)
+                   (history cas-history)) castle
+    (let ((message (make-text)))
       (cond
         ((blind-p adv)
          (multiple-value-bind (blind-events blind-message)
              (adv-tried-blind castle 'use-flare)
-           (join-history events blind-events)
+           (join-history history blind-events)
            (push-text message blind-message)))
         ((adv-without-item-p adv 'flares)
          (multiple-value-bind (without-item-events without-item-message)
              (adv-tried-without-item castle 'flares)
-           (join-history events without-item-events)
+           (join-history history without-item-events)
            (push-text message without-item-message)))
         (t
          (decf-inv (adv-fl adv))
          (let ((near-coords (get-near-coords castle here)))
-           (record-events events
+           (record-events history
                           (make-event 'adv-used 'flare :coords near-coords))
            (loop
               for near in near-coords
@@ -3462,7 +3465,7 @@ castle."
                                    collect
                                      (get-castle-creature-icon castle near)))
                         (format text #'you-are-at (cas-adv-here castle)))))))
-      (values events message))))
+      (values castle message))))
 
 
 
@@ -3818,7 +3821,6 @@ into the orb."
                                   (make-event 'adv-opened 'book
                                               :reads 'dexterity-manual))))
                  (lambda (stream castle)
-                   (break "~S" (cas-history castle))
                    (make-adv-nimbler (cas-adventurer castle)
                                       +adv-rank-max+)
                    (when (latest-event-p (make-event 'adv-opened 'book :reads 'dexterity-manual)
@@ -3883,11 +3885,9 @@ into the orb."
     (list
      (make-outcome 'bomb-trap
                    (lambda (castle)
-                     (join-history (cas-history castle)
-                                   (make-history
-                                    (make-event 'adv-opened 'chest
-                                                :and '(trap-sprang bomb))))
-                     #'adv-springs-bomb-trap)
+                     (when (latest-event-p (make-event 'adv-opened 'chest)
+                                           (cas-history castle))
+                       #'adv-springs-bomb-trap))
                    (lambda (stream castle)
                      (when (latest-event-p (make-event 'trap-sprang 'bomb)
                                            (cas-history castle))
@@ -3895,11 +3895,9 @@ into the orb."
                                "~&KABOOM! It explodes"))))
      (make-outcome 'gas-trap
                    (lambda (castle)
-                     (join-history (cas-history castle)
-                                   (make-history
-                                    (make-event 'adv-opened 'chest
-                                                :and '(trap-sprang gas))))
-                     #'adv-springs-gas-trap)
+                     (when (latest-event-p (make-event 'adv-opened 'chest)
+                                           (cas-history castle))
+                       #'adv-springs-gas-trap))
                    (lambda (stream castle)
                      (when (latest-event-p (make-event 'trap-sprang 'gas)
                                            (cas-history castle))
@@ -3926,7 +3924,9 @@ into the orb."
 (defun adv-opens-chest (castle)
   "Return events and messages when adventurer opens a chest."
   (with-accessors ((adv cas-adventurer)
-                   (here cas-adv-here)) castle
+                   (here cas-adv-here)
+                   (history cas-history)) castle
+    (record-event history (make-event 'adv-opened 'chest))
     (let ((message (make-text)))
       (destructuring-bind (outcome-name outcome-effect outcome-text)
           (get-outcome (random-elt '(bomb-trap gas-trap
@@ -3976,7 +3976,6 @@ into the orb."
                    (here cas-adv-here)
                    (history cas-history)) castle
     (let ((room-type (cas-creature-here castle))
-          (events (make-history))
           (message (make-text)))
       (flet ((handle-wrong-room (room-type)
                (multiple-value-bind (wrong-room-events wrong-room-message)
@@ -3984,12 +3983,12 @@ into the orb."
                                          'use-stairs
                                          here
                                          room-type)
-                 (join-history events
+                 (join-history history
                                wrong-room-events)
                  (push-text message wrong-room-message))))
         (cond ((and (equal direction 'north)
                     (equal room-type 'entrance))
-               (record-events events
+               (record-events history
                               (make-event 'adv-walked direction)
                               (if (adv-of adv)
                                   (make-event 'adv-left-castle 'with-orb)
@@ -4001,23 +4000,24 @@ into the orb."
                     (wrong-room-p castle here 'stairs-down))
                (handle-wrong-room 'stairs-down))
               (t
-               (record-event events (make-event 'adv-walked direction))
-               (join-history events (move-adv castle direction)))))
-      (values events message))))
+               (record-event history (make-event 'adv-walked direction))
+               (move-adv castle direction))))
+      (values castle message))))
 
 (defun read-castle-coordinates ()
-  (let* ((min (if (eq *cas-coords* 'zot) 1 0))
-         (max (if (eq *cas-coords* 'zot) 8 7))
+  (let* ((zot-coords (eql *cas-coords* :zot))
+         (min (if zot-coords 1 0))
+         (max (if zot-coords 8 7))
          ;; [wc 2013-01-31] FIXME: castle size dependant code, prompts
          ;; really only need to be generated once, etc
          (error-text (format nil "Try a number from ~D to ~D" min max))
          (prompts (list (format nil "~A-coord (~D=far west  ~D=far east ) "
-                                (if (eq *cas-coords* 'zot) "Y" "X") min max)
+                                (if zot-coords "Y" "X") min max)
                         (format nil "~A-coord (~D=far north ~D=far south) "
-                                (if (eq *cas-coords* 'zot) "X" "Y") min max)
+                                (if zot-coords "X" "Y") min max)
                         (format nil "Level   (~D=top       ~D=bottom   ) "
                                 min max))))
-    (when (eq *cas-coords* 'zot)
+    (when zot-coords
       (rotatef (nth 0 prompts) (nth 1 prompts)))
     (let ((coords
            (loop
@@ -4031,7 +4031,7 @@ into the orb."
                                                    error-text))))))))
       ;; (when (eq *cas-coords* 'zot)
       ;;        (rotatef (nth 1 coords) (nth 2 coords)))
-      (if (eq *cas-coords* 'zot)
+      (if zot-coords
           (unwiz-coords coords)
           (reverse coords)))))
 
@@ -4047,18 +4047,8 @@ into the orb."
                  (push-text message without-item-message)))
               (t
                (record-events history (make-event 'adv-used 'runestaff))
-               (destructuring-bind (outcome-name outcome-effect outcome-text)
-                   (make-outcome 'adv-teleports #'make-adv-teleport 'nil)
-                 (when outcome-effect
-                   (setf outcome-effect
-                         (when outcome-name
-                           (funcall outcome-effect
-                                    (or coords (read-castle-coordinates)))))
-                   (join-history history outcome-effect))
-                 (when outcome-text
-                   (setf outcome-text
-                         (funcall outcome-text))
-                   (push-text message outcome-text)))))
+               (make-adv-teleport castle
+                                  (or coords (read-castle-coordinates)))))
         (values castle message))))
 
 
@@ -4087,15 +4077,15 @@ into the orb."
   "What happens when the adventurer enters a room?"
   (with-accessors ((adv cas-adventurer)
                    (here cas-adv-here)
-                   (creature cas-creature-here)) castle
-    (let ((events (make-history))
-          (message (make-message-adv-enters-room adv here creature)))
+                   (creature cas-creature-here)
+                   (history cas-history)) castle
+    (let ((message (make-message-adv-enters-room adv here creature)))
       (when (cas-room-cursed-p castle here)
-        (join-history events (gain-curse castle))
+        (join-history history (gain-curse castle))
         (when *curse-notify*
           (push-text message *curse-notify*)))
-      (record-event events (make-event 'adv-found creature))
-      (values events message))))
+      (record-event history (make-event 'adv-found creature))
+      (values castle message))))
 
 (defun adv-finds-creature (castle)
   "What happens when the adventurer encounters a creature?"
@@ -4131,23 +4121,22 @@ into the orb."
 
 (defun adv-enters-castle (castle adv)
   "An adventurer enters the castle."
-  (assert (typep adv    'adventurer))
-  (assert (typep castle 'castle))
-  (assert (null  (cas-history castle)))
-  (assert (null  (cas-adventurer castle)))
-  (setf (cas-adventurer castle) adv)
-  (let ((events (make-history))
-        (message (make-text)))
-    (record-events events
-                   (make-event 'adv-ate 'last-meal)
-                   (make-event 'adv-entered-castle))
-    (join-history events
-                  (send-adv *entrance*))
-    (push-text message
-               (format nil
-                       "~&~|~2&Ok ~A, you enter the castle and begin."
-                       (adv-race (cas-adventurer castle))))
-    (values events message)))
+  (declare (type castle castle)
+           (type adventurer adv))
+  (assert (null (cas-history castle)))
+  (assert (null (cas-adventurer castle)))
+  (with-accessors ((history cas-history)) castle
+    (setf (cas-adventurer castle) adv)
+    (let ((message (make-text)))
+      (record-events history
+                     (make-event 'adv-ate 'last-meal)
+                     (make-event 'adv-entered-castle))
+      (send-adv castle *entrance*)
+      (push-text message
+                 (format nil
+                         "~&~|~2&Ok ~A, you enter the castle and begin."
+                         (adv-race (cas-adventurer castle))))
+      (values castle message))))
 
 
 ;;;; Atmospherics
@@ -4238,20 +4227,17 @@ into the orb."
 
 (defun quit-game (&optional castle)
   "The player quits."
-  (assert (typep castle 'castle)) ;FIXME: MAIN-EVAL passes a castle
-                                   ;object here, but it doesn't
-                                   ;otherwise get used.
-  (let* ((events (make-history))
-         (message (make-text)))
-    (record-event events
-                  (if (wiz-y-or-n-p "Do you really want to quit ")
-                      (make-event 'player-quit-game)
-                      (make-event 'player-error 'quit-canceled)))
-    (unless (latest-event-p 'player-quit-game events)
-      (push-text message
-                 (wiz-format-error nil
-                                   "Then don't say that you do")))
-    (values events message)))
+  (with-accessors ((history cas-history)) castle
+    (let* ((message (make-text)))
+      (record-event history
+                    (if (wiz-y-or-n-p "Do you really want to quit ")
+                        (make-event 'player-quit-game)
+                        (make-event 'player-error 'quit-canceled)))
+      (unless (latest-event-p 'player-quit-game history)
+        (push-text message
+                   (wiz-format-error nil
+                                     "Then don't say that you do")))
+      (values castle message))))
 
 (defun player-error (castle error-type &rest args)
   "Return event and messages when there's an input error."
@@ -4307,12 +4293,13 @@ into the orb."
            (unless (castle-p events)
              (join-history history events))
            (when message
-             (wiz-format *wiz-out* message)))
-         (cond ((eq (first wiz-form) 'adv-enters-room)
-                (setf wiz-form (make-wiz-form 'adv-finds-creature)))
-               ((latest-event-p 'adv-entered-room history)
-                (setf wiz-form (make-wiz-form 'adv-enters-room)))
-               (t (setf wiz-form nil)))
+             (wiz-format *wiz-out* message))
+           (setf wiz-form
+                 (cond ((eq (first wiz-form) 'adv-enters-room)
+                        (make-wiz-form 'adv-finds-creature))
+                       ((latest-event-p 'adv-entered-room history)
+                        (make-wiz-form 'adv-enters-room))
+                       (t nil))))
        until (null wiz-form)))
   (unless (end-game-p castle)
     (begin-turn castle)))
