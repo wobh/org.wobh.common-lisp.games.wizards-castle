@@ -3375,21 +3375,23 @@ castle."
 
 (defun make-level-map (castle level)
   "Make a level map."
-  (with-accessors ((here cas-adv-here)) castle
-    (let ((icon-map
-           (loop
-              for y from 0 to 7
-              collect
-                (loop
-                   for x from 0 to 7
-                   collect
-                     (make-map-icon-room castle (list level y x))))))
-      (when (eq level (first here))
-        (destructuring-bind (y x) (rest here)
-          (setf (elt (elt icon-map y) x)
-                (make-map-icon-adv castle here))))
-    (with-output-to-string (level-map)
-      (format level-map "~2&~{~:}" "~&~{~A~}" icon-map)))))
+  (loop
+     for y from 0 to 7
+     collect
+       (loop
+          for x from 0 to 7
+          collect
+            (make-map-icon-room castle (list level y x)))
+     into icon-map
+     finally
+       (return
+         (with-output-to-string (level-map)
+           (with-accessors ((here cas-adv-here)) castle
+             (when (eq level (first here))
+               (destructuring-bind (y x) (rest here)
+                 (setf (elt (elt icon-map y) x)
+                       (make-map-icon-adv castle here)))))
+           (format level-map "~2&~{~:}" "~&~{~A~}" icon-map)))))
 
 ;;; FIXME: castle size dependant code
 
