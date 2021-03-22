@@ -2426,10 +2426,8 @@ castle."
                    (history cas-history)) castle
     (let ((message (make-text)))
       (cond
-        ((equal (events-since 'adv-used history)
-                (make-history
-                 (make-event 'adv-used 'runestaff)
-                 (make-event 'adv-entered-room here)))
+        ((oldest-event-p (make-event 'adv-used 'runestaff)
+			 (events-since 'adv-used history))
          (outfit-with 'orb-of-zot adv)
          (setf (cas-loc-orb castle) nil)
          (clear-castle-room castle here)
