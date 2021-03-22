@@ -1671,7 +1671,7 @@ limits."
     (let ((ot (if (eq (adv-rc adv) 'hobbit) 12 8)))
       (wiz-format *wiz-out*
                   "~&~|~
-                   ~&Ok ~A, you have these statistics:~
+                   ~2&Ok ~A, you have these statistics:~
                    ~&strength= ~D intelligence= ~D dexterity= ~D~
                    ~&and ~D other points to allocate as you wish.~
                    ~&"
@@ -1679,7 +1679,7 @@ limits."
       (loop
          for (ranking ranking-text) in *rankings*
 	 for prompt = (format nil
-			      "~2&cHow many points do you add to ~A "
+			      "~2&How many points do you add to ~A "
                               ranking-text)
          while (< 0 ot)
          do
@@ -1760,7 +1760,7 @@ limits."
 (defun buy-lamp (adv)
   "The adventurer may buy a lamp."
   (when (< 19 (adv-gp adv))
-    (when (wiz-y-or-n-p "~&~|~&Do you want to buy a lamp for 20 GP's ")
+    (when (wiz-y-or-n-p "~&~|~2&Do you want to buy a lamp for 20 GP's ")
       (buy-equipment 'lamp 20 adv))
     (adv-lf adv)))
 
@@ -2317,7 +2317,7 @@ castle."
 (defun message-adv-armor-destroyed (stream castle)
   (when (latest-event-p (make-event 'adv-armor-destroyed)
                         (cas-history castle))
-    (format stream "~&Your armor is destroyed - good luck")))
+    (format stream "~2&Your armor is destroyed - good luck")))
 
 (defconstant +vendor-potion-efficacy-maximum+ 6)
 
@@ -2771,7 +2771,7 @@ castle."
                    (zerop (random 8)))
           (join-history history (break-adv-weapon adv))
           (push-text message
-                     (format nil "~&Oh no! Your ~A broke"
+                     (format nil "~2&Oh no! Your ~A broke"
                              (text-of-weapon (adv-weapon adv)))))
         (unless (foe-alive-p foe)
           (record-event history (make-event 'foe-slain (foe-creature foe))))
