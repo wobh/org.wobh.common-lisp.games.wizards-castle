@@ -805,7 +805,8 @@ returns INPUT-ERROR."
 
 (defun map-manifold-vectors (function manifold &rest vectors)
   "Map function over manifold vectors, modulus dimensions of the manifold."
-  (mapcar #'mod (apply #'mapcar function vectors)
+  (mapcar #'mod
+	  (apply #'mapcar function vectors)
           (array-dimensions manifold)))
 
 ;;; The original coordinate system reversed what I would call the X
