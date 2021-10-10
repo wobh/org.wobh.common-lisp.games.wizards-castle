@@ -2152,35 +2152,41 @@ castle."
   (let* ((castle (make-castle))
          (height (castle-height (cas-rooms castle)))
          (silent (not setup-verbosity))
-         (lvl-mt (loop for level from 0 below height
-                       collect (shuffle (list-empty-room-indices castle level)))))
-    (unless silent (wiz-format *wiz-out* "~2&Please be patient - "))
-    ;; Place entrance (2)
-    (with-accessors ((rooms cas-rooms)
-                     (orb cas-loc-orb)
-                     (runestaff cas-loc-runestaff)
-                     (curses cas-curses)) castle
-      (setf (get-castle-creature castle *entrance*) 'entrance)
-      (setf (elt lvl-mt 0)
-            (remove (castle-coords-index castle *entrance*) (elt lvl-mt 0)))
-    (unless silent (wiz-format *wiz-out* "in"))
-      (flet ((random-lvl-room (level)
-               (pop (elt lvl-mt level)))
-             (random-cas-room ()
-               (pop (elt lvl-mt (random (length lvl-mt))))))
-        ;; Place stairs.
-        ;; 2 stairs down (4) on floors 1 - 7 (0 - 6)
-        ;; 2 stairs up (3) on floors 2 - 8 (1 - 7)
-        ;; (place-stairs-in-castle castle)
-        (loop
-           for lvl-dn from 0 below (1- height)
-           for lvl-up from 1 below height
-           do
+         (lvl-mt (loop
+		    for level from 0 below height
+                    collect (shuffle (list-empty-room-indices castle level))))
+	 (msgtxt (make-string-input-stream "initializing castle")))
+    (flet ((random-lvl-room (level)
+             (pop (elt lvl-mt level)))
+           (random-cas-room ()
+             (pop (elt lvl-mt (random (length lvl-mt)))))
+	   (print-progress ()
+	     (unless silent
+	       (wiz-format *wiz-out* "~C" (read-char-no-hang msgtxt)))))
+      (unless silent (wiz-format *wiz-out* "~2&Please be patient - "))
+      ;; Place entrance (2)
+      (with-accessors ((rooms cas-rooms)
+                       (orb cas-loc-orb)
+                       (runestaff cas-loc-runestaff)
+                       (curses cas-curses)) castle
+	(setf (get-castle-creature castle *entrance*) 'entrance)
+	(print-progress)
+	(setf (elt lvl-mt 0)
+              (remove (castle-coords-index castle *entrance*) (elt lvl-mt 0)))
+	(print-progress)
+	;; Place stairs.
+	;; 2 stairs down (4) on floors 1 - 7 (0 - 6)
+	;; 2 stairs up (3) on floors 2 - 8 (1 - 7)
+	;; (place-stairs-in-castle castle)
+	(loop
+          for lvl-dn from 0 below (1- height)
+          for lvl-up from 1 below height
+          do
              (loop
-                repeat 2
-                do
+               repeat 2
+               do
                   (let* ((dn (random-lvl-room lvl-dn))
-                         (up (castle-coords-index
+			 (up (castle-coords-index
                               castle
                               (add-castle-vectors
                                rooms
@@ -2190,70 +2196,70 @@ castle."
                     (setf (get-castle-creature castle up) 'stairs-up)
                     (setf (elt lvl-mt lvl-up)
                           (remove up (elt lvl-mt lvl-up))))))
-        (unless silent (wiz-format *wiz-out* "i"))
-        ;; Place monsters (13 - 24).
-        ;; 1 each monster on all floors
-        (loop
-           for level from 0 below height
-           for char across "tializin"
-           do
+	(print-progress)
+	;; Place monsters (13 - 24).
+	;; 1 each monster on all floors
+	(loop
+          for level from 0 below height
+          do
              (loop
-                for monster in *monsters*
-                do
+               for monster in *monsters*
+               do
                   (setf (get-castle-creature castle (random-lvl-room level))
-                        monster))
-           ;; (place-creatures-on-level castle level *monsters*)
-             (unless silent (wiz-format *wiz-out* "~C" char)))
-        ;; Place vendor and items.
-        ;; 3 each item on all floors (5 - 12)
-        ;; 1 vendor on all floors (25)
-        (loop
-           for level from 0 below height
-           do
+			monster))
+             ;; (place-creatures-on-level castle level *monsters*)
+	     (print-progress))
+	;; Place vendor and items.
+	;; 3 each item on all floors (5 - 12)
+	;; 1 vendor on all floors (25)
+	(loop
+          for level from 0 below height
+          do
              (loop
-                repeat 3
-                do
+               repeat 3
+               do
                   (loop
-                     for room in *rooms*
-                     do
+                    for room in *rooms*
+                    do
                        (setf (get-castle-creature castle (random-lvl-room level))
                              room))
                   (setf (get-castle-creature castle (random-lvl-room level))
-                        'vendor))
-           finally
-             (unless silent (wiz-format *wiz-out* "g")))
-        ;; (place-creatures-on-level castle level *rooms* :population 3)
-        ;; Place unique things.
-        (let ((cas-mt (shuffle (list-empty-room-indices castle))))
+			'vendor))
+          finally
+	     (print-progress))
+	;; (place-creatures-on-level castle level *rooms* :population 3)
+	;; Place unique things.
+	(let ((cas-mt (shuffle (list-empty-room-indices castle))))
           ;; Place treasures.
           ;; 1 treasure in 8 random rooms
           (loop
-             for treasure in *treasures*
-             do
+            for treasure in *treasures*
+            do
                (setf (get-castle-creature castle (pop cas-mt)) treasure))
           ;; Place curses. 1 curse in 3 random empty rooms.
           (loop
-             for curse in curses 
-             for char across " ca"
-             do
-               (setf (third curse)
+            for curse in curses
+            do
+	       (setf (third curse)
                      (castle-index-coords castle (random-elt cas-mt)))
-             ;; Multiple curses can be in the same room.
-               (unless silent (wiz-format *wiz-out* "~C" char))
-             finally
-               (unless silent (wiz-format *wiz-out* "s")))
+	       ;; Multiple curses can be in the same room.
+	       (print-progress)
+            finally
+	       (print-progress))
           ;; Place runestaff with 1 random monster (13 - 24).
           (let ((loc-rune (pop cas-mt)))
             (setf (get-castle-creature castle loc-rune) (random-monster)
                   runestaff (array-index-row-major (cas-rooms castle)
                                                    loc-rune)))
           ;; Place orb in room that seems like a warp (9)
+	  (print-progress)
           (let ((loc-orb (pop cas-mt)))
             (setf (get-castle-creature castle loc-orb) 'warp
                   orb (array-index-row-major (cas-rooms castle) loc-orb)))
-          (unless silent (wiz-format *wiz-out* "tle"))))
-      (unless silent (wiz-format *wiz-out* "~%"))
-      castle)))
+	  (print-progress)
+	  (print-progress))
+	(unless silent (wiz-format *wiz-out* "~%"))
+	castle))))
 
 
 ;;; Adventurer events
