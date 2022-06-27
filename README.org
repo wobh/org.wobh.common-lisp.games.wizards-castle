@@ -1,20 +1,13 @@
 # -*- mode:org;coding:utf-8 -*- 
-#+TITLE:     The Wizard's Castle for Common Lisp README
-#+AUTHOR:    William Clifford
-#+EMAIL:     wobh@yahoo.com
-#+DATE:      2012-12-13 Thu
-#+DESCRIPTION: Common Lisp implementation of Joseph Power's classic game.
-#+KEYWORDS:
-#+LANGUAGE:  en
-#+OPTIONS:   H:6 num:nil toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
-#+OPTIONS:   author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
-#+EXPORT_SELECT_TAGS: export
-#+EXPORT_EXCLUDE_TAGS: noexport
-#+LINK_UP:   
-#+LINK_HOME: 
-#+XSLT:
+#+title: The Wizard's Castle for Common Lisp README
+#+date: <2012-12-13 Thu>
+#+author: William Clifford
+#+email: wobh@yahoo.com
+#+language:  en
+#+select_tags: export
+#+exclude_tags: noexport
+#+description: Common Lisp implementation of Joseph Power's classic game.
+#+keywords:
 
 * Introduction
 
@@ -47,22 +40,20 @@ following goals:
 I have consulted the original article, as well as source code for the
 other editions of the game.
 
-* How to play
+* Instructions
 
-Currently, this game runs in a Common Lisp REPL. Run the REPL, load
-the package and run the =PLAY= function.
+To use:
 
-#+BEGIN_EXAMPLE
-CL-USER> (load "wizard.lisp")
-WIZARD
-CL-USER> (wizard:play)
-#+END_EXAMPLE
+1. Clone repository
+2. Run ~make install~ this will install it into
+   ~${XDG_DATA_HOME}/common-lisp/source/org.wobh.common-lisp.games.wizards-castle~
+3. in REPL ~(require "asdf")~ (as needed)
+4. ~(require :org.wobh.common-lisp.games.wizards-castle)~
+5. ~(wizard:play)~
 
 If you wish to experiment, or for play-testing:
 
 #+BEGIN_EXAMPLE
-CL-USER> (load "wizard.lisp")
-WIZARD
 CL-USER> (in-package #:wizard)
 WIZARD>
 #+END_EXAMPLE
@@ -226,6 +217,19 @@ the following:
   (main :adventurer *a* :castle *z* :last-castle T))
 #+END_EXAMPLE
 
+* [0/3] Future work
+** TODO setup package ~wizards-castle-test~
+
+Extract the tests from the main file to their own package.
+
+** TODO setup package ~wizards-castle-user~
+
+Extract playtesting features from the main file to their own package.
+
+** TODO setup parameter ~*texts*~ and support ~get-text~ features
+
+Make it possible to customize game messaging.
+
 * References
 
 - Power, Joseph R.; Wizard's Castle; Recreational Computing; 1980, July-August pgs 10-17
@@ -238,4 +242,9 @@ the following:
 
 - Interview with Joseph Power: http://www.armchairarcade.com/neo/node/1381 
 
-  
+* COMMENT org settings
+#+options: ':nil *:t -:t ::t <:t H:6 \n:nil ^:t arch:headline
+#+options: author:t broken-links:nil c:nil creator:nil
+#+options: d:(not "LOGBOOK") date:t e:t email:nil f:t inline:t num:nil
+#+options: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
+#+options: timestamp:t title:t toc:nil todo:t |:t

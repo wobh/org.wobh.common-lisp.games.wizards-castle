@@ -69,9 +69,9 @@
 ;;;; Interview with Joseph Power:
 ;;;; http://www.armchairarcade.com/neo/node/1381 
 
-(defpackage #:wizards-castle
-  (:nicknames #:wizard #:zot)
-  (:use #:cl)
+(defpackage #:org.wobh.common-lisp.games.wizards-castle
+  (:use #:common-lisp)
+  (:nicknames #:wizards-castle #:wizard #:zot)
   (:export #:play #:play-ohare #:play-stetson)
   (:export #:*help-text-dos* #:*intro-text-dos*)
   (:export #:setup-adventurer #:setup-castle) ; FIXME: reconsider exporting these
@@ -295,8 +295,8 @@
 
 (defmacro with-player-input
     ((var prompt &key
-          (readf #'wiz-read-char) (istream *standard-input*)
-          (writef #'wiz-format)   (ostream *standard-output*))
+          (readf '#'wiz-read-char) (istream '*standard-input*)
+          (writef '#'wiz-format)   (ostream '*standard-output*))
      &body body)
   "Read input to var and do something with it or set var to nil if a
 different input is needed."
@@ -806,7 +806,7 @@ returns INPUT-ERROR."
 (defun map-manifold-vectors (function manifold &rest vectors)
   "Map function over manifold vectors, modulus dimensions of the manifold."
   (mapcar #'mod
-	  (apply #'mapcar function vectors)
+          (apply #'mapcar function vectors)
           (array-dimensions manifold)))
 
 ;;; The original coordinate system reversed what I would call the X
@@ -911,8 +911,12 @@ order and values."
     minotaur gargoyle chimera balrog dragon)
   "List of the monster creature types in the castle.")
 
+(defun monster-p (maybe-monster)
+  (member maybe-monster
+          *monsters*))
+
 (deftype monster ()
-  `(member ,@*monsters*))
+  `(satisfies monster-p))
 
 (defun random-monster ()
   "Return a random monster."
@@ -957,8 +961,12 @@ order and values."
     green-gem blue-flame palantir silmaril)
   "List of the treasures in the castle.")
 
+(defun treasure-p (maybe-treasure)
+  (member maybe-treasure
+          *treasures*))
+
 (deftype treasure ()
-  `(member ,@*treasures*))
+  `(satisfies treasure-p))
 
 (defun random-treasure ()
   "Return a random treasure."
@@ -1679,20 +1687,20 @@ limits."
                   race st iq dx ot)
       (loop
          for (ranking ranking-text) in *rankings*
-	 for prompt = (format nil
-			      "~2&How many points do you add to ~A "
+         for prompt = (format nil
+                              "~2&How many points do you add to ~A "
                               ranking-text)
          while (< 0 ot)
          do
-	   (with-player-input (choice prompt :readf #'wiz-read-n)
-	     (if (typep choice (list 'integer 0 ot))
-		 (progn
-		   (decf-inv ot choice)
-		   (funcall (fdefinition (list 'setf ranking))
-			    (incf-adv-rank choice
-					   (funcall ranking adv))
-			    adv))
-		 (setf choice (wiz-format-error *wiz-err* "")))))
+           (with-player-input (choice prompt :readf #'wiz-read-n)
+             (if (typep choice (list 'integer 0 ot))
+                 (progn
+                   (decf-inv ot choice)
+                   (funcall (fdefinition (list 'setf ranking))
+                            (incf-adv-rank choice
+                                           (funcall ranking adv))
+                            adv))
+                 (setf choice (wiz-format-error *wiz-err* "")))))
       (values adv ot))))
 
 (defparameter *catalog-fmt* "~{~A<~A>~^ ~}"
@@ -2153,32 +2161,33 @@ castle."
          (height (castle-height (cas-rooms castle)))
          (silent (not setup-verbosity))
          (lvl-mt (loop
-		    for level from 0 below height
+                    for level from 0 below height
                     collect (shuffle (list-empty-room-indices castle level))))
-	 (msgtxt (make-string-input-stream "initializing castle")))
+         (msgtxt (make-string-input-stream "initializing castle")))
     (flet ((random-lvl-room (level)
              (pop (elt lvl-mt level)))
-           (random-cas-room ()
-             (pop (elt lvl-mt (random (length lvl-mt)))))
-	   (print-progress ()
-	     (unless silent
-	       (wiz-format *wiz-out* "~C" (read-char-no-hang msgtxt)))))
+           ;; unused
+           ;; (random-cas-room ()
+           ;;   (pop (elt lvl-mt (random (length lvl-mt)))))
+           (print-progress ()
+             (unless silent
+               (wiz-format *wiz-out* "~C" (read-char-no-hang msgtxt)))))
       (unless silent (wiz-format *wiz-out* "~2&Please be patient - "))
       ;; Place entrance (2)
       (with-accessors ((rooms cas-rooms)
                        (orb cas-loc-orb)
                        (runestaff cas-loc-runestaff)
                        (curses cas-curses)) castle
-	(setf (get-castle-creature castle *entrance*) 'entrance)
-	(print-progress)
-	(setf (elt lvl-mt 0)
+        (setf (get-castle-creature castle *entrance*) 'entrance)
+        (print-progress)
+        (setf (elt lvl-mt 0)
               (remove (castle-coords-index castle *entrance*) (elt lvl-mt 0)))
-	(print-progress)
-	;; Place stairs.
-	;; 2 stairs down (4) on floors 1 - 7 (0 - 6)
-	;; 2 stairs up (3) on floors 2 - 8 (1 - 7)
-	;; (place-stairs-in-castle castle)
-	(loop
+        (print-progress)
+        ;; Place stairs.
+        ;; 2 stairs down (4) on floors 1 - 7 (0 - 6)
+        ;; 2 stairs up (3) on floors 2 - 8 (1 - 7)
+        ;; (place-stairs-in-castle castle)
+        (loop
           for lvl-dn from 0 below (1- height)
           for lvl-up from 1 below height
           do
@@ -2186,7 +2195,7 @@ castle."
                repeat 2
                do
                   (let* ((dn (random-lvl-room lvl-dn))
-			 (up (castle-coords-index
+                         (up (castle-coords-index
                               castle
                               (add-castle-vectors
                                rooms
@@ -2196,23 +2205,23 @@ castle."
                     (setf (get-castle-creature castle up) 'stairs-up)
                     (setf (elt lvl-mt lvl-up)
                           (remove up (elt lvl-mt lvl-up))))))
-	(print-progress)
-	;; Place monsters (13 - 24).
-	;; 1 each monster on all floors
-	(loop
+        (print-progress)
+        ;; Place monsters (13 - 24).
+        ;; 1 each monster on all floors
+        (loop
           for level from 0 below height
           do
              (loop
                for monster in *monsters*
                do
                   (setf (get-castle-creature castle (random-lvl-room level))
-			monster))
+                        monster))
              ;; (place-creatures-on-level castle level *monsters*)
-	     (print-progress))
-	;; Place vendor and items.
-	;; 3 each item on all floors (5 - 12)
-	;; 1 vendor on all floors (25)
-	(loop
+             (print-progress))
+        ;; Place vendor and items.
+        ;; 3 each item on all floors (5 - 12)
+        ;; 1 vendor on all floors (25)
+        (loop
           for level from 0 below height
           do
              (loop
@@ -2224,12 +2233,12 @@ castle."
                        (setf (get-castle-creature castle (random-lvl-room level))
                              room))
                   (setf (get-castle-creature castle (random-lvl-room level))
-			'vendor))
+                        'vendor))
           finally
-	     (print-progress))
-	;; (place-creatures-on-level castle level *rooms* :population 3)
-	;; Place unique things.
-	(let ((cas-mt (shuffle (list-empty-room-indices castle))))
+             (print-progress))
+        ;; (place-creatures-on-level castle level *rooms* :population 3)
+        ;; Place unique things.
+        (let ((cas-mt (shuffle (list-empty-room-indices castle))))
           ;; Place treasures.
           ;; 1 treasure in 8 random rooms
           (loop
@@ -2240,26 +2249,26 @@ castle."
           (loop
             for curse in curses
             do
-	       (setf (third curse)
+               (setf (third curse)
                      (castle-index-coords castle (random-elt cas-mt)))
-	       ;; Multiple curses can be in the same room.
-	       (print-progress)
+               ;; Multiple curses can be in the same room.
+               (print-progress)
             finally
-	       (print-progress))
+               (print-progress))
           ;; Place runestaff with 1 random monster (13 - 24).
           (let ((loc-rune (pop cas-mt)))
             (setf (get-castle-creature castle loc-rune) (random-monster)
                   runestaff (array-index-row-major (cas-rooms castle)
                                                    loc-rune)))
           ;; Place orb in room that seems like a warp (9)
-	  (print-progress)
+          (print-progress)
           (let ((loc-orb (pop cas-mt)))
             (setf (get-castle-creature castle loc-orb) 'warp
                   orb (array-index-row-major (cas-rooms castle) loc-orb)))
-	  (print-progress)
-	  (print-progress))
-	(unless silent (wiz-format *wiz-out* "~%"))
-	castle))))
+          (print-progress)
+          (print-progress))
+        (unless silent (wiz-format *wiz-out* "~%"))
+        castle))))
 
 
 ;;; Adventurer events
@@ -2332,13 +2341,13 @@ castle."
   (when (stringp potion)
     (setf potion (intern (string-upcase potion) "WIZARDS-CASTLE")))
   (let ((events (make-history))
-	(delta (random-whole +vendor-potion-efficacy-maximum+)))
+        (delta (random-whole +vendor-potion-efficacy-maximum+)))
     (record-event events (make-event 'adv-drank-potion potion))
     (join-history events
-		  (ecase potion
-		    (strength (make-adv-stronger adv delta))
-		    (dexterity (make-adv-nimbler adv delta))
-		    (intelligence (make-adv-smarter adv delta))))))
+                  (ecase potion
+                    (strength (make-adv-stronger adv delta))
+                    (dexterity (make-adv-nimbler adv delta))
+                    (intelligence (make-adv-smarter adv delta))))))
 
 
 ;;;; Outcomes
@@ -2434,7 +2443,7 @@ castle."
     (let ((message (make-text)))
       (cond
         ((oldest-event-p (make-event 'adv-used 'runestaff)
-			 (events-since 'adv-used history))
+                         (events-since 'adv-used history))
          (outfit-with 'orb-of-zot adv)
          (setf (cas-loc-orb castle) nil)
          (clear-castle-room castle here)
@@ -2724,33 +2733,33 @@ castle."
         (outfit-with 'runestaff adv)
         (push-text message "~2&Great Zot! You've found the Runestaff"))
       (if (typep (foe-creature foe) 'monster)
-	  (let ((hoard (random-whole +adversary-hoard-maximum+)))
+          (let ((hoard (random-whole +adversary-hoard-maximum+)))
             (make-adv-richer adv hoard)
-	    (record-event history
+            (record-event history
                           (make-event 'adv-gained
                                       'gold-pieces
                                       :by hoard))
-	    (push-text message
-		       (format nil "~2&You now get his hoard of ~D GP's" hoard)))
-	  (progn
-	    (join-history history
-			  (make-history
-			   (outfit-with 'plate adv)
-			   (outfit-with 'sword adv)
-			   (adv-drinks-potion adv 'strength)
-			   (adv-drinks-potion adv 'intelligence)
-			   (adv-drinks-potion adv 'dexterity)))
-	    (push-text message
-		       (format nil "~2&You get all his wares:~{~&A~}"
-			       '("plate armor"
-				 "a sword"
-				 "a strength potion"
-				 "an intelligence potion"
-				 "a dexterity potion")))
-	    (when (adv-without-item-p adv 'lamp)
-	      (record-event history (outfit-with 'lamp adv))
-	      (push-text message
-			 (format nil "~&A lamp")))))
+            (push-text message
+                       (format nil "~2&You now get his hoard of ~D GP's" hoard)))
+          (progn
+            (join-history history
+                          (make-history
+                           (outfit-with 'plate adv)
+                           (outfit-with 'sword adv)
+                           (adv-drinks-potion adv 'strength)
+                           (adv-drinks-potion adv 'intelligence)
+                           (adv-drinks-potion adv 'dexterity)))
+            (push-text message
+                       (format nil "~2&You get all his wares:~{~&A~}"
+                               '("plate armor"
+                                 "a sword"
+                                 "a strength potion"
+                                 "an intelligence potion"
+                                 "a dexterity potion")))
+            (when (adv-without-item-p adv 'lamp)
+              (record-event history (outfit-with 'lamp adv))
+              (push-text message
+                         (format nil "~&A lamp")))))
             (clear-castle-room castle here)
             (join-history history (cas-adv-map-here castle))
       (values castle message))))
@@ -3205,7 +3214,7 @@ castle."
                             name price))
                (record-event events (make-event 'adv-bought 'potion name price))
                (join-history events (make-adv-poorer adv price))
-	       (join-history events (adv-drinks-potion adv name))
+               (join-history events (adv-drinks-potion adv name))
                (wiz-format *wiz-out* 
                            "~2&Your ~A is now ~D"
                            name
@@ -4217,7 +4226,7 @@ into the orb."
                                    (get-outcome 'adv-sees *minor-event-outcomes*)
                                    *minor-event-outcomes*)
                                   *minor-event-outcomes*)))
-	    (format message
+            (format message
                     "~2&You ~@?"
                     (text-of-outcome (random-elt minor-events)))))
         (when healed-sight
@@ -4532,8 +4541,7 @@ passed in must not also have an adventurer already in it."
     (when map-all-rooms
       (map-all-rooms :adv *a* :castle *z*))
     (when (and *a* enter-castle)
-      (join-history (cas-history *z*)
-                    (adv-enters-castle *z* *a*)))
+      (adv-enters-castle *z* *a*))
     (values *a* *z*)))
 
 
