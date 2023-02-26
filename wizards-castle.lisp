@@ -77,7 +77,9 @@
   (:export #:setup-adventurer #:setup-castle) ; FIXME: reconsider exporting these
   (:export #:play-test #:make-test-adv #:setup-test)
   (:export #:*r* #:*a* #:*z*)
-  (:documentation "Joseph Power's _Wizard's Castle_"))
+  (:documentation "ORG.WOBH.COMMON-LISP.GAMES.WIZARDS-CASTLE
+
+Joseph Power's _Wizard's Castle_"))
 
 (in-package #:wizards-castle)
 
