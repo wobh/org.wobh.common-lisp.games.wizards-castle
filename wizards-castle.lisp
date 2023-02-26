@@ -6,7 +6,7 @@
 ;;;; Wizard's Castle
 
 ;;;; Copyright (C) 1980 Joseph Power
-;;;; Last revised - 4/12/80 11:10 PM"
+;;;; Last revised - 4/12/80 11:10 PM
 
 ;;;; Adapted to Common Lisp by William Clifford
 
@@ -1706,6 +1706,12 @@ limits."
 (defparameter *catalog-fmt* "~{~A<~A>~^ ~}"
   "Format control string used for printing catalogs.")
 
+;; 380 Z$="ARMOR":GOSUB3390:...
+;; 460 Z$="WEAPONS":GOSUB3390
+;; 1920 ...Z$="ARMOR":GOSUB3390:...
+;; 2030 ...Z$="WEAPON":GOSUB3390...
+;; 3390 PRINT"HERE IS A LIST OF ";Z$;" YOU CAN BUY (WITH COST IN <>)":PRINT:RETURN
+
 (defun make-prompt-catalog (stuff item-printer catalog-data)
   (make-prompt-adv-choice
    (with-output-to-string (catalog)
@@ -1752,7 +1758,7 @@ limits."
   "The adventurer may buy a weapon."
   (with-accessors ((race adv-race) (gp adv-gp)) adv
     (let* ((catalog '((nothing 0) (dagger 10) (mace 20) (sword 30)))
-           (prompt (make-prompt-catalog "weapon" #'text-of-weapon catalog)))
+           (prompt (make-prompt-catalog "weapons" #'text-of-weapon catalog)))
       (wiz-format *wiz-out*  "~&~|~2&Ok, bold ~A, you have ~D GP's left"
                   race gp)
       (with-player-input (choice prompt)
@@ -3178,6 +3184,9 @@ castle."
         (join-history
          events
          (with-player-input
+	     ;; NOTE: spelling of "weapon" in vendor catalog is from
+	     ;; Power (Power 1980:2030), and uncorrected in O'Hare,
+	     ;; and Stetson
              (weapon (make-prompt-catalog "weapon" #'text-of-weapon catalog))
            (case weapon
              (#\S (if (find 'sword catalog :key 'first)
