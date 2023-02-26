@@ -81,7 +81,7 @@
 
 Joseph Power's _Wizard's Castle_"))
 
-(in-package #:wizards-castle)
+(in-package #:org.wobh.common-lisp.games.wizards-castle)
 
 
 ;;;; Randomess functions
