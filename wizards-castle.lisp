@@ -1430,7 +1430,7 @@ limits."
               (random-whole +curse-leech-theft-maximum+))))
 
 (defparameter *forgetfulness* :random
-  "What kind of forgetfulness curse ")
+  "What kind of forgetfulness curse: either :random or :mapped.")
 
 (defun curse-forget (adv &optional (forget-type *forgetfulness*))
   "What happens when the curse of forgefulness affects the adventurer."
