@@ -52,50 +52,41 @@ To use:
 4. =(require "org.wobh.common-lisp.games.wizards-castle")=
 5. =(wizards-castle:play)=
 
-If you wish to experiment, or for play-testing:
+* Using the ~wizards-castle~ package
 
-#+BEGIN_EXAMPLE
-CL-USER> (in-package #:wizard)
-WIZARD>
-#+END_EXAMPLE
+NOTE: ~zot~ and ~wizard~ are nicknames of the package, and you may see
+that instead of ~wizards-castle~ in these examples.
 
-Right now, running a test game is just like running a regular game
-with a few shortcuts to skip the castle and adventurer setup phases.
+If you just want to play the game use of the these functions:
 
-#+BEGIN_EXAMPLE
-WIZARD> (setup-test)
-[... output elided ...]
-WIZARD (play-test)
-#+END_EXAMPLE
+** Function ~wizards-castle:play~
 
-See the section "Testing symbols and functions" for more information
-about these functions.
+*** Syntax:
 
-NOTE: ~zot~ is one of the nicknames of the package, and you may see
-that instead of ~wizard~ in these examples.
+: Function: wizards-castle:play *rest args &key &allow-other-keys -> castle
 
-* Exported symbols, functions and their options
+*** Arguments and Values:
 
-** ~play~
+Parameters and values will go undocumented. If you want to customize
+the game, it'll be better to use the ~wizards-castle-user~ package.
+
+*** Description:
 
 ~play~ plays the game with defaults to the game as originally
 coded. The following keyword options to ~play~ are available:
 
-*** ~:adventurer (or adventurer-object nil)~
+** Function ~wizards-castle:play-ohare~
 
-Provide an adventurer object to the play functions. This bypasses the
-adventurer setup phase. Use the ~make-adventurer~ function to create a
-custom adventurer. The ~make-test-adv~ function will create a few
-pre-made adventurer characters.
+*** Syntax:
 
-*** ~:castle (or castle-object nil)~
+: Function: wizards-castle:play-ohare *rest args &key &allow-other-keys -> castle
 
-Provide a castle object for the main adventure. This bypasses the
-castle setup phase. If the castle object already has a
-~cas-adventurer~ object defined, the game will use that, if not, the
-game will proceed with the adventurer setup.
+*** Arguments and Values:
 
-** ~play-ohare~
+Parameters and values will go undocumented. If you want to customize
+the game, it'll be better to use the ~wizards-castle-user~ package.
+
+*** Description:
 
 Play the Commodore PET game as adapted by John O'Hare.
 
@@ -104,75 +95,111 @@ The curse notice text is bound to ~*curse-notice-ohare*~.
 I have not yet figured out how to format the output for the shorter
 line length in this edition.
 
-** ~play-stetson~
+** Function ~wizards-castle:play-stetson~
+
+*** Syntax:
+
+: Function: wizards-castle:play-stetson *rest args &key &allow-other-keys -> castle
+
+*** Arguments and Values:
+
+Parameters and values will go undocumented. If you want to customize
+the game, it'll be better to use the ~wizards-castle-user~ package.
+
+*** Description:
 
 Play the MSDOS game as adapted by J.T. Stetson.
 
-** New features
+* Using the ~wizards-castle-user~ package
 
-*** ~*forgetfulness* (or symbol nil)~
+NOTE: ~zot-user~ and ~wizard-user~ are nicknames of the package, and you may see
+that instead of ~wizards-castle-user~ in these examples.
 
-By default, to conform to original code, ~*forgetfulness*~ is set to
-~:random~ which unmaps a random room in the castle, regardless of
-whether it was mapped or not. Set ~*forgetfulness*~ to ~:mapped~
-and it will forget a room that has already been mapped.
+If you wish to experiment, play-testing, or try new features you can
+switch to the interactive ~wizards-castle-user~ package in the REPL:
 
-*** ~*gaze-mapper* (or symbol nil)~
+#+BEGIN_EXAMPLE
+CL-USER> (in-package #:wizards-castle-user)
+WIZARDS-CASTLE-USER>
+#+END_EXAMPLE
 
-Gazing into orbs can give information about other rooms in the castle,
-but this information isn't reflected in the map, because what the orbs
-say isn't always true.
+Right now, running a test game is just like running a regular game
+with a few shortcuts to skip the castle and adventurer setup phases.
 
-Setting ~*gaze-mapper*~ to ~:naive~ will cause let the
-adventurer to map the rooms that the orbs inform about, even if the
-information is untrue, even if .
+#+BEGIN_EXAMPLE
+WIZARDS-CASTLE-USER> (setup-test)
+#S(ADVENTURER ...)
+#S(CASTLE ...)
+WIZARDS-CASTLE-USER> (play-test)
+#+END_EXAMPLE
 
-Setting ~*gaze-mapper*~ to ~:ask~ will cause the game to ask the
-player if it should map the creature at the coordinates specified.
+** ~*r*~ (Variable)
 
-*** ~*wiz-format*~
+*** Value Type:
 
-The format string used by ~wiz-format~. By default, this is set to
-~*all-caps*~. You can set it to ~*mixed-case*~ when you want less
-obnoxious output strings.
+a random state.
 
-*** ~*wiz-coords*~
+*** Initial Value:
 
-Common Lisp's array subscripts have to be translated into the system
-used for the orginal game. By default this is set to ~:wizard~ and so
-coordinate will be translated. When set to ~:array~ the game uses
-array coordinates.
+implementation dependent--Derived from ~(make-random-state t)~.
 
-** Testing symbols and functions
-
-*** ~*r*~
+*** Description:
 
 A special variable holding a reusable random-state. Used by the
 testing environment to recreate castle objects and replay
-games. Default value is a new random state from ~(make-random-state
-t)~.
+games. Used in ~setup-test~ and ~play-test~.
 
-*** ~*a*~
+** ~*a*~ (Variable)
 
-An adventurer object for testing. Default value, ~nil~. Use
-~make-test-adv~ to create a test adventurer.
+*** Value Type:
 
-*** ~*z*~
+An adventurer object.
 
-A castle object for testing. Default value, ~nil~. Instead of making
-deep copies of the testing environment's castle object, the testing
-environment reuses the random state ~*r*~ to regenerate it.
+*** Initial Value:
 
+~nil~
 
-*** ~make-test-adv (symbol)~
+*** Description:
 
-Make a test adventurer object from a predefined set. Accepts one
-keyword symbol argument.
+An adventurer object for testing. It's provides a default value for
+~play-test~ and ~test-eval~.
 
-**** ~adv-name~
+Use ~setup-test~ to set this value.
+
+** ~*z*~ (Variable)
+
+*** Value type:
+
+a castle.
+
+*** Initial Value:
+
+~nil~
+
+*** Description:
+
+A castle object for testing. Instead of making deep copies of the
+testing environment's castle object, the testing environment reuses
+the random state ~*r*~ to regenerate it.
+
+Use ~setup-test~ to set this value.
+
+** ~make-test-adv~ (Function)
+
+*** Syntax:
+
+: -- Function: make-test-env adv-name -> adventurer
+
+*** Arguments and Values:
+
+**** ~adv-name~ (Keyword)
 
 The set of predefined adventurers is roughly as follows:
 
+- ~:basic~       :: A human with randomly selected sex: average
+                    abilities and equipment; poor but at least owns a
+                    lamp. This is the character I would always make in
+                    the character setup phase.
 - ~:blind-adept~ :: A female human fighter: highly capable and
                     skilled, well armed and armored, but poor, blind.
 - ~:bookworm~    :: A male hobbit: smart and fast (skilled in
@@ -191,45 +218,384 @@ The set of predefined adventurers is roughly as follows:
 - ~:tourist~     :: A human male: moderate iq, but weak and clumsy;
                     unarmed, unarmored, no equipment; extremely rich,
                     but has hole in his wallet (leech).
-- ~:basic~       :: A human with randomly selected sex: average
-                    abilities and equipment; poor but at least owns a
-                    lamp. This is the character I would always make in
-                    the character setup phase.
 
 See the source code for their exact specifications.
-*** ~setup-test~
+
+**** ~adventurer~
+
+An ~adventurer~ object.
+
+*** Description:
+
+Make a test adventurer object from a predefined set.
+
+** ~setup-test~ (Function)
+
+*** Syntax:
+
+: -- Function: setup-test &key adv-name map-all-rooms enter-castle -> adventurer, castle
+
+*** Arguments and Values:
+
+**** ~adv-name~ (Keyword)
+
+A keyword for ~make-test-adv~, default ~:basic~.
+
+See cooresponding parameter in ~make-test-adv~.
+
+**** ~:map-all-rooms~ (Boolean)
+
+Causes all the rooms in the test castle to be mapped.
+
+**** ~:enter-castle~ (Boolean)
+
+Enters the adventurer into the castle. This is what you want if you
+wish to work with ~test-eval~.
+
+**** ~adventurer~
+
+the ~adventurer~ object assigned to ~*a*~.
+
+**** ~castle~
+
+the ~castle~ object assigned to ~*z*~.
+
+*** Description:
 
 Sets up ~*a*~ and ~*z*~ using a copy of ~*r*~ for the random state in
-making ~*z*~ and ~make-test-adv~ for ~*a*~. After this is run, ~*a*~
-and ~*z*~ may be passed or ~main~ or used in ~test~ for playing.
+making ~*z*~ and ~make-test-adv~ for ~*a*~.
 
-*** ~map-all-rooms~
+*** Side Effects
 
-Maps all the rooms in a given castle. Of course, ~cas-adventurer~ must
-be defined.
+The values of ~*a*~ and ~*z*~ are modified.
 
-*** ~play-test~
+** ~castle-position~ (Function)
+*** Syntax:
+
+: -- Function : castle-find item &key castle -> index
+
+*** Arguments and Values:
+
+**** ~item~ (Symbol)
+
+a symbol representing a creature in the castle.
+
+Some symbols are imported, some are not.
+
+**** ~:castle~ (Castle)
+
+a ~castle~ default ~*z*~.
+
+**** ~:room-ref-type~ (Keyword)
+
+a room ref type either ~:index~ or ~:subscripts~. Default is ~:subscripts~.
+
+(TODO, support ~:cas-coords~)
+
+**** ~room-ref~ (or Integer List)
+
+either the array row major index or a list of subscripts
+
+*** Description:
+
+Returns coordinates or index where nearest ~item~ can be found.
+
+** ~castle-subscripts~ (Function)
+*** Syntax:
+
+: -- Function : castle-find item &key castle -> index
+
+*** Arguments and Values:
+
+**** ~item~ (Symbol)
+
+a symbol representing a creature in the castle.
+
+Some symbols are imported, some are not.
+
+**** ~:castle~ (Castle)
+
+a ~castle~ default ~*z*~.
+
+**** ~:room-ref-type~ (Keyword)
+
+a room ref type either ~:index~ or ~:subscripts~. Default is ~:subscripts~.
+
+(TODO, support ~:cas-coords~)
+
+**** ~room-ref~ (or Integer List)
+
+either the array row major index or a list of subscripts
+
+*** Description:
+
+Returns coordinates or index where nearest ~item~ can be found.
+
+** ~castle-scry~ (Function)
+*** Syntax:
+
+: -- Function : castle-scry room-ref &key castle -> message
+
+*** Arguments and Values:
+
+**** ~room-ref~ (or Integer List)
+
+either a row-major-index or a list of valid array subscripts for the
+~cas-rooms~ of the ~castle~.
+
+**** ~:castle~ (Castle)
+
+a castle. Defaults to ~*z*~.
+
+*** Description:
+
+This is mainly useful for getting the "castle coordinates" of an item
+for reference in a test game.
+
+** ~castle-room-swap~ (Function)
+
+*** Syntax:
+
+: -- Function: castle-room-swap room-ref-this room-ref-that &key castle -> castle
+
+*** Arguments and Values:
+
+**** ~room-ref-this~ (or Integer List)
+
+either a row-major-index or a list of valid array subscripts for the
+~cas-rooms~ of the ~castle~.
+
+**** ~room-ref-that~ (or Integer List)
+
+either a row-major-index or a list of valid array subscripts for the
+~cas-rooms~ of the ~castle~.
+
+**** ~:castle~ (Castle)
+
+a castle. Defaults to ~*z*~.
+
+
+
+*** Description:
+
+Swap the contents of two rooms in the ~castle~.
+
+** ~how-convenient~ (Function)
+
+*** Syntax:
+
+: -- Function: how-convenient item &key castle -> castle
+
+*** Arguments and Values:
+
+**** ~item~ (Symbol)
+
+a symbol of a room type or contents in ~castle
+
+**** ~:castle~ (Castle)
+
+a castle. Defaults to ~*z*~.
+
+*** Description:
+
+Moves the item to the first room east of the entrance. Helpful for
+moving curse-countering treasures for testing.
+
+** ~play-test~ (Function)
+
+*** Syntax:
+
+#+begin_example
+ -- Function: play-test &key adventurer castle
+          last-castle forget-type curse-notify gaze-map
+          cas-coords sleep-of-death random-state -> castle
+#+end_example
+
+*** Arguments and Values:
+
+**** ~:adventurer~ (or adventurer-object null)
+
+Provide an adventurer object to the play functions. This bypasses the
+adventurer setup phase. Use the ~make-adventurer~ function to create a
+custom adventurer. The ~make-test-adv~ function will create a few
+pre-made adventurer characters.
+
+**** ~:castle~ (or castle-object null)
+
+Provide a castle object for the main adventure. This bypasses the
+castle setup phase. If the castle object already has a
+~cas-adventurer~ object defined, the game will use that, if not, the
+game will proceed with the adventurer setup.
+
+**** ~:last-castle~ (Boolean)
+
+**** ~:forget-type~ (Keyword)
+
+either ~:random~ or ~:mapped~. Default ~:random~
+
+**** ~:curse-notify~ (or String null)
+
+message printed when the adventurer gains a curse.
+
+**** ~:gaze-map~ (or Keyword null)
+
+How to handle clairvoyant visions from Crystal Orbs.
+
+- ~nil~ :: do nothing
+- ~:naive~ :: map whatever the vision says
+- ~:ask~ :: ask user whether to map
+- ~:smart~ :: check if already mapped, before mapping
+- ~:skeptic~ :: check if already mapped, and ask if not
+
+**** ~:cas-coords~ (Keyword)
+
+What format should castle coordinates be presented in. Default ~:zot~.
+
+- ~:zot~ :: original
+- ~:array~ :: array subscripts
+
+**** ~:sleep-of-death~ (Integer)
+
+number of seconds to pause after adventurer dies. Default 1 (in the
+game it defaults to 7).
+
+**** ~:random-state~ (Random State)
+
+random state to use during game. Defaults to ~*z*~.
+
+*** Description:
 
 Play a testing game with a resuable random-state. The equivalent of
 the following:
 
 #+BEGIN_EXAMPLE
 (let ((*random-state* (make-random-state *r*)))
-  (main :adventurer *a* :castle *z* :last-castle t))
+  (play :adventurer *a* :castle *z* :last-castle t))
 #+END_EXAMPLE
 
-* [0/3] Future work
-** TODO setup package ~wizards-castle-test~
+** ~test-eval~ (Function)
+
+*** Syntax:
+
+: Function: test-eval wiz-form &key castle history -> message, latest-events
+
+*** Arguments and Values:
+
+**** ~wiz-form~ (List)
+**** ~:castle~ (Castle)
+
+a castle. Defaults to ~*z*~.
+
+**** ~:history~ (List)
+
+**** ~message~ (String)
+
+a string
+
+**** ~latest-events~
+
+*** Description:
+
+Evaluate a "wiz-form" to test it's effects on a castle. It returns
+message from ~begin-turn~ and latest events in castle history.
+
+To see the current implementation of ~make-wiz-form~ and other,
+related functions, see comments in "wizards-castle.lisp" file. These
+functions are subject to change.
+
+** New features
+
+*** ~*forgetfulness* (or symbol NIL)~
+
+By default, to conform to original code, ~*forgetfulness*~ is set to
+~:random~ which unmaps a random room in the castle, regardless of
+whether it was mapped or not. Set ~*forgetfulness*~ to ~:mapped~
+and it will forget a room that has already been mapped.
+
+*** ~*gaze-mapper* (or symbol NIL)~
+
+Gazing into orbs can give information about other rooms in the castle,
+but this information isn't reflected in the map, because what the orbs
+say isn't always true.
+
+Setting ~*gaze-mapper*~ to ~:naive~ will cause let the
+adventurer to map the rooms that the orbs inform about, even if the
+information is untrue.
+
+Setting ~*gaze-mapper*~ to ~:ask~ will cause the game to ask the
+player if it should map the creature at the coordinates specified.
+
+*** ~*wiz-format*~
+
+The format string used by ~wiz-format~. By default, this is set to
+~*all-caps*~. You can set it to ~*mixed-case*~ when you want less
+obnoxious output strings.
+
+*** ~*wiz-coords*~
+
+Common Lisp's array subscripts have to be translated into the system
+used for the orginal game. By default this is set to ~:wizard~ and so
+coordinate will be translated. When set to ~:array~ the game uses
+array coordinates.
+
+* Using the ~wizards-castle-test~ package
+
+The test package is simply Lisp assertions and loads with the rest of
+the system. If the system loads without errors then all the tests
+passed.
+
+* [2/5] Future work
+** DONE setup package ~wizards-castle-test~
 
 Extract the tests from the main file to their own package.
 
-** TODO setup package ~wizards-castle-user~
+** DONE setup package ~wizards-castle-user~
 
 Extract playtesting features from the main file to their own package.
 
 ** TODO setup parameter ~*texts*~ and support ~get-text~ features
 
 Make it possible to customize game messaging.
+
+** TODO setup a restart in ~main~ to support saving and restoring games
+
+I know this isn't in keeping with the spirit of Rogue-like games or
+this ancestor, but it would be convenient for play testers and
+"advanced" users.
+
+With SBCL:
+
+#+begin_src sh
+  $ sbcl --load "wizards-castle.lisp" \
+         --load "wizards-castle-user.lisp" \
+         --eval '(progn (zot-user:setup-test :adv-name :basic) (zot-user:play-test))'
+#+end_src
+
+When the user presses =Ctrl C= there can be an abort restart which
+calls ~(sb-ext:save-lisp-and-die "zot-save-{datetime}.sbcl-core")~
+
+Then the session could be resumed with:
+
+#+begin_src sh
+  $ sbcl --core "zot-save-{datetime}.sbcl-core"
+#+end_src
+
+And maybe? the save will be resumed at the debugger and you can resume
+playing with the ~continue~ restart.
+
+I haven't had much luck with trying this manually.
+
+Another likely problem is the core file is only guaranteed to work
+with the same SBCL version that created it.
+
+Restarts would have to be defined on a per-implementation basis and
+using them should be documented.
+
+** TODO refactor to use keywords (maybe?)
+
+This would significantly reduce how many symbols have to be exported
+from the game package, but would cause a bunch of keywords to be
+defined.
 
 * References
 

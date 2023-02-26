@@ -2,7 +2,7 @@
 
 system_name = org.wobh.common-lisp.games.wizards-castle
 system_path = ${XDG_DATA_HOME}/common-lisp/source
-system_files = org.wobh.common-lisp.games.wizards-castle.asd wizards-castle.lisp # wizards-castle-test.lisp wizards-castle-user.lisp
+system_files = org.wobh.common-lisp.games.wizards-castle.asd wizards-castle.lisp wizards-castle-user.lisp wizards-castle-test.lisp
 
 # see https://asdf.common-lisp.dev/asdf.html#Configuring-ASDF-to-find-your-systems
 installdir = $(system_path)/$(system_name)

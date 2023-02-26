@@ -5,7 +5,5 @@
   :version "0.0.1"
   :author "William Clifford <will@wobh.org>"
   :components ((:file "wizards-castle")
-	       ;; TODO: setup these files
-	       ;; (:file "starmaze-test")
-	       ;; (:file "starmaze-user")
-	       ))
+	       (:file "wizards-castle-user")
+	       (:file "wizards-castle-test")))
