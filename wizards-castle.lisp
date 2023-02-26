@@ -1,4 +1,4 @@
-;;;; -*- mode:lisp;coding:utf-8 -*-
+;;;; -*- mode: lisp; coding: utf-8 -*-
 ;;;; FILE: wizard.lisp
 
 ;;;; DESCRIPTION:
@@ -67,7 +67,7 @@
 ;;;; http://home.comcast.net/~derelict/winwiz.html
 
 ;;;; Interview with Joseph Power:
-;;;; http://www.armchairarcade.com/neo/node/1381 
+;;;; http://www.armchairarcade.com/neo/node/1381
 
 (defpackage #:org.wobh.common-lisp.games.wizards-castle
   (:use #:common-lisp)
@@ -219,7 +219,7 @@
 
 ;;;; TODO mimic display output?
 
-;;;  - http://oldcomputers.net/ 
+;;;  - http://oldcomputers.net/
 ;;;  - http://www.old-computers.com
 ;;;  - http://www.computer-museum.nl
 
@@ -372,7 +372,7 @@ returns INPUT-ERROR."
     adv-mapped adv-viewed-map
     adv-walked adv-teleported
     adv-used adv-tried adv-opened adv-drank
-    adv-warped adv-fell adv-staggered 
+    adv-warped adv-fell adv-staggered
     adv-attacked adv-wounded adv-cast-spell adv-bribed adv-retreated
     foe-attacked foe-wounded foe-bound foe-slain foe-bribed foe-unbound
     adv-strike-hit adv-strike-missed
@@ -396,7 +396,7 @@ returns INPUT-ERROR."
 
 (defun event-p (obj)
   "Verify that the object is an event."
-  (find 
+  (find
    (typecase obj
      (list   (first obj))
      (t obj))
@@ -475,7 +475,7 @@ returns INPUT-ERROR."
   "Combine histories into the old history.")
 
 (defun count-events (history)
-  "Count the number of turns in history." 
+  "Count the number of turns in history."
   (count-if #'event-p history :key 'first))
 
 (defun events-since (event-check history)
@@ -549,7 +549,7 @@ returns INPUT-ERROR."
    *turn-events*))
 
 (defun count-turns (history)
-  "Count the number of turns in history." 
+  "Count the number of turns in history."
   (count-if #'turn-p history :key 'first))
 
 
@@ -665,7 +665,7 @@ returns INPUT-ERROR."
 
 ;;;; Zot's creatures
 
-;;; the documentation strings are from (Power 1980), pg 13 
+;;; the documentation strings are from (Power 1980), pg 13
 
 ;;; FIXME: perhaps some of the parameters should be constants?
 
@@ -1404,7 +1404,7 @@ limits."
 
 (defun adv-cursed-p (adv &optional curse-name)
   "Return nil or a list of curses."
-  (if curse-name 
+  (if curse-name
       (find curse-name (adv-cr adv))
       (adv-cr adv)))
 
@@ -2146,7 +2146,7 @@ castle."
 ;;     (loop
 ;;        repeat population
 ;;        do
-;;       (loop 
+;;       (loop
 ;;          for creature in creatures
 ;;          do
 ;;            (setf (get-castle-room-index castle
@@ -2605,7 +2605,7 @@ castle."
    (make-outcome 'adv-death 'make-adv-dead "yours")
    (make-outcome 'foe-death 'make-foe-dead "his"))
   "Outcomes of the death spell.")
-  
+
 (defconstant +magic-user-iq-minimum+ 15)
 (defconstant +death-spell-iq-factor-range+ 4)
 
@@ -2809,7 +2809,7 @@ castle."
       'adv-strike-missed
       'adv-strike-hit)
    *adv-attacks-outcomes*))
-  
+
 (defun adv-attacks (castle)
   "What happens when the adventure attacks a creature."
   (with-accessors ((history cas-history)
@@ -2851,7 +2851,7 @@ castle."
       (decf bound)
       (cond ((< 0 bound)
              (record-event events (make-event 'foe-unbound))
-             (push-text message 
+             (push-text message
                         (format nil
                                 "~&The ~A is stuck and can't attack"
                                 (foe-name foe))))
@@ -3203,7 +3203,7 @@ castle."
 (defun buy-potions-from-vendor (adv)
   "The adventurer may buy potions from a castle vendor."
   (let ((price 1000)
-        (events (make-history))) 
+        (events (make-history)))
     (with-accessors ((gp adv-gp)) adv
       (when (<= price gp)
         (loop
@@ -3215,7 +3215,7 @@ castle."
                (record-event events (make-event 'adv-bought 'potion name price))
                (join-history events (make-adv-poorer adv price))
                (join-history events (adv-drinks-potion adv name))
-               (wiz-format *wiz-out* 
+               (wiz-format *wiz-out*
                            "~2&Your ~A is now ~D"
                            name
                            (funcall attr adv)))
@@ -3237,7 +3237,7 @@ castle."
       (join-history events (sell-treasures-to-vendor adv))
       (cond ((< gp 1000)
              (values events
-                     (wiz-format *wiz-out* 
+                     (wiz-format *wiz-out*
                                  "~2&You're too poor to trade, ~A"
                                  race)))
             (t
@@ -3411,7 +3411,7 @@ castle."
 
 (defun adv-uses-map (castle)
   "Show the player the map the adventurer has been making."
-  (with-accessors ((adv cas-adventurer) 
+  (with-accessors ((adv cas-adventurer)
                    (here cas-adv-here)
                    (history cas-history)) castle
     (let ((message (make-text)))
@@ -4433,7 +4433,7 @@ passed in must not also have an adventurer already in it."
         (*wiz-help* *help-text-dos*))
     (launch)
     (apply #'main args)))
-          
+
 ;;; TODO: figure out lisp getopts.
 
 
