@@ -1,4 +1,4 @@
-# -*- mode:org;coding:utf-8 -*- 
+# -*- mode: org; coding: utf-8 -*-
 #+title: The Wizard's Castle for Common Lisp README
 #+date: <2012-12-13 Thu>
 #+author: William Clifford
@@ -8,6 +8,7 @@
 #+exclude_tags: noexport
 #+description: Common Lisp implementation of Joseph Power's classic game.
 #+keywords:
+#+startup: overview
 
 * Introduction
 
@@ -45,11 +46,11 @@ other editions of the game.
 To use:
 
 1. Clone repository
-2. Run ~make install~ this will install it into
+2. Run =make install= this will install it into
    ~${XDG_DATA_HOME}/common-lisp/source/org.wobh.common-lisp.games.wizards-castle~
-3. in REPL ~(require "asdf")~ (as needed)
-4. ~(require :org.wobh.common-lisp.games.wizards-castle)~
-5. ~(wizard:play)~
+3. in REPL =(require "asdf")= (as needed)
+4. =(require "org.wobh.common-lisp.games.wizards-castle")=
+5. =(wizards-castle:play)=
 
 If you wish to experiment, or for play-testing:
 
@@ -70,151 +71,151 @@ WIZARD (play-test)
 See the section "Testing symbols and functions" for more information
 about these functions.
 
-NOTE: =ZOT= is one of the nicknames of the package, and you may see
-that instead of =WIZARD= in these examples.
+NOTE: ~zot~ is one of the nicknames of the package, and you may see
+that instead of ~wizard~ in these examples.
 
 * Exported symbols, functions and their options
 
-** =PLAY=
+** ~play~
 
-=PLAY= plays the game with defaults to the game as originally
-coded. The following keyword options to =PLAY= are available:
+~play~ plays the game with defaults to the game as originally
+coded. The following keyword options to ~play~ are available:
 
-*** =:ADVENTURER (or adventurer-object Nil)=
+*** ~:adventurer (or adventurer-object nil)~
 
 Provide an adventurer object to the play functions. This bypasses the
-adventurer setup phase. Use the =MAKE-ADVENTURER= function to create a
-custom adventurer. The =MAKE-TEST-ADV= function will create a few
+adventurer setup phase. Use the ~make-adventurer~ function to create a
+custom adventurer. The ~make-test-adv~ function will create a few
 pre-made adventurer characters.
 
-*** =:CASTLE (or castle-object Nil)=
+*** ~:castle (or castle-object nil)~
 
 Provide a castle object for the main adventure. This bypasses the
 castle setup phase. If the castle object already has a
-=CAS-ADVENTURER= object defined, the game will use that, if not, the
+~cas-adventurer~ object defined, the game will use that, if not, the
 game will proceed with the adventurer setup.
 
-** =PLAY-OHARE=
+** ~play-ohare~
 
 Play the Commodore PET game as adapted by John O'Hare.
 
-The curse notice text is bound to =*CURSE-NOTICE-OHARE*=.
+The curse notice text is bound to ~*curse-notice-ohare*~.
 
 I have not yet figured out how to format the output for the shorter
 line length in this edition.
 
-** =PLAY-STETSON=
+** ~play-stetson~
 
 Play the MSDOS game as adapted by J.T. Stetson.
 
 ** New features
-   
-*** =*FORGETFULNESS* (or symbol Nil)=
 
-By default, to conform to original code, =*FORGETFULNESS*= is set to
-=:RANDOM= which unmaps a random room in the castle, regardless of
-whether it was mapped or not. Set =*FORGETFULNESS*= to =:MAPPED=
+*** ~*forgetfulness* (or symbol nil)~
+
+By default, to conform to original code, ~*forgetfulness*~ is set to
+~:random~ which unmaps a random room in the castle, regardless of
+whether it was mapped or not. Set ~*forgetfulness*~ to ~:mapped~
 and it will forget a room that has already been mapped.
 
-*** =*GAZE-MAPPER* (or symbol Nil)=
+*** ~*gaze-mapper* (or symbol nil)~
 
 Gazing into orbs can give information about other rooms in the castle,
 but this information isn't reflected in the map, because what the orbs
-say isn't always true. 
+say isn't always true.
 
-Setting =*GAZE-MAPPER*= to =:NAIVE= will cause let the
+Setting ~*gaze-mapper*~ to ~:naive~ will cause let the
 adventurer to map the rooms that the orbs inform about, even if the
 information is untrue, even if .
 
-Setting =*GAZE-MAPPER*= to =:ASK= will cause the game to ask the
+Setting ~*gaze-mapper*~ to ~:ask~ will cause the game to ask the
 player if it should map the creature at the coordinates specified.
 
-*** =*WIZ-FORMAT*=
+*** ~*wiz-format*~
 
-The format string used by =WIZ-FORMAT=. By default, this is set to
-=*ALL-CAPS*=. You can set it to =*MIXED-CASE*= when you want less
+The format string used by ~wiz-format~. By default, this is set to
+~*all-caps*~. You can set it to ~*mixed-case*~ when you want less
 obnoxious output strings.
 
-*** =*WIZ-COORDS*=
+*** ~*wiz-coords*~
 
 Common Lisp's array subscripts have to be translated into the system
-used for the orginal game. By default this is set to =:WIZARD= and so
-coordinate will be translated. When set to =:ARRAY= the game uses
+used for the orginal game. By default this is set to ~:wizard~ and so
+coordinate will be translated. When set to ~:array~ the game uses
 array coordinates.
 
 ** Testing symbols and functions
 
-*** =*R*=
+*** ~*r*~
 
 A special variable holding a reusable random-state. Used by the
 testing environment to recreate castle objects and replay
-games. Default value is a new random state from =(MAKE-RANDOM-STATE
-T)=.
+games. Default value is a new random state from ~(make-random-state
+t)~.
 
-*** =*A*=
+*** ~*a*~
 
-An adventurer object for testing. Default value, =Nil=. Use
-=MAKE-TEST-ADV= to create a test adventurer.
+An adventurer object for testing. Default value, ~nil~. Use
+~make-test-adv~ to create a test adventurer.
 
-*** =*Z*=
+*** ~*z*~
 
-A castle object for testing. Default value, =Nil=. Instead of making
+A castle object for testing. Default value, ~nil~. Instead of making
 deep copies of the testing environment's castle object, the testing
-environment reuses the random state =*R*= to regenerate it.
+environment reuses the random state ~*r*~ to regenerate it.
 
 
-*** =MAKE-TEST-ADV (symbol)=
+*** ~make-test-adv (symbol)~
 
 Make a test adventurer object from a predefined set. Accepts one
 keyword symbol argument.
 
-**** =ADV-NAME=
+**** ~adv-name~
 
 The set of predefined adventurers is roughly as follows:
 
-- =:BLIND-ADEPT= :: A female human fighter: highly capable and
+- ~:blind-adept~ :: A female human fighter: highly capable and
                     skilled, well armed and armored, but poor, blind.
-- =:BOOKWORM=    :: A male hobbit: smart and fast (skilled in
+- ~:bookworm~    :: A male hobbit: smart and fast (skilled in
                     running-away), but weak; poor, unarmed and
                     unarmored; has a book stuck to his hands.
-- =:VALKYRIE=    :: A female dwarf: strong, somewhat graceful and more
+- ~:valkyrie~    :: A female dwarf: strong, somewhat graceful and more
                     brave than smart; well armored but less well
                     armed, poor and poorly equipped.
-- =:BARBARIAN=   :: A male human: strong, agile, but dumb and
+- ~:barbarian~   :: A male human: strong, agile, but dumb and
                     forgetful; well-armed, but poorly armored; poor
                     and poorly equipped.
-- =:SORCERESS=   :: A female elf: highly intelligent, somewhat
+- ~:sorceress~   :: A female elf: highly intelligent, somewhat
                     graceful but weak; no money, poorly armed and
                     armored; has many flares, and the runestaff but
                     lazy and lethargic.
-- =:TOURIST=     :: A human male: moderate iq, but weak and clumsy;
+- ~:tourist~     :: A human male: moderate iq, but weak and clumsy;
                     unarmed, unarmored, no equipment; extremely rich,
                     but has hole in his wallet (leech).
-- =:BASIC=       :: A human with randomly selected sex: average
+- ~:basic~       :: A human with randomly selected sex: average
                     abilities and equipment; poor but at least owns a
                     lamp. This is the character I would always make in
                     the character setup phase.
 
 See the source code for their exact specifications.
-*** =SETUP-TEST=
+*** ~setup-test~
 
-Sets up =*A*= and =*Z*= using a copy of =*R*= for the random state in
-making =*Z*= and =MAKE-TEST-ADV= for =*A*=. After this is run, =*A*=
-and =*Z*= may be passed or =MAIN= or used in =TEST= for playing.
+Sets up ~*a*~ and ~*z*~ using a copy of ~*r*~ for the random state in
+making ~*z*~ and ~make-test-adv~ for ~*a*~. After this is run, ~*a*~
+and ~*z*~ may be passed or ~main~ or used in ~test~ for playing.
 
-*** =MAP-ALL-ROOMS=
+*** ~map-all-rooms~
 
-Maps all the rooms in a given castle. Of course, =CAS-ADVENTURER= must
+Maps all the rooms in a given castle. Of course, ~cas-adventurer~ must
 be defined.
 
-*** =PLAY-TEST=
+*** ~play-test~
 
 Play a testing game with a resuable random-state. The equivalent of
 the following:
 
 #+BEGIN_EXAMPLE
 (let ((*random-state* (make-random-state *r*)))
-  (main :adventurer *a* :castle *z* :last-castle T))
+  (main :adventurer *a* :castle *z* :last-castle t))
 #+END_EXAMPLE
 
 * [0/3] Future work
@@ -240,7 +241,7 @@ Make it possible to customize game messaging.
 
 - Licht, Derell; Wizard's Castle; http://home.comcast.net/~derelict/winwiz.html
 
-- Interview with Joseph Power: http://www.armchairarcade.com/neo/node/1381 
+- Interview with Joseph Power: http://www.armchairarcade.com/neo/node/1381
 
 * COMMENT org settings
 #+options: ':nil *:t -:t ::t <:t H:6 \n:nil ^:t arch:headline
