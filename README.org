@@ -49,7 +49,7 @@ To use:
 2. Run =make install= this will install it into
    ~${XDG_DATA_HOME}/common-lisp/source/org.wobh.common-lisp.games.wizards-castle~
 3. in REPL =(require "asdf")= (as needed)
-4. =(require "org.wobh.common-lisp.games.wizards-castle")=
+4. =(asdf:load-system "org.wobh.common-lisp.games.wizards-castle")=
 5. =(wizards-castle:play)=
 
 * Using the ~wizards-castle~ package
