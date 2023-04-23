@@ -540,9 +540,11 @@ array coordinates.
 
 * Using the ~wizards-castle-test~ package
 
-The test package is simply Lisp assertions and loads with the rest of
-the system. If the system loads without errors then all the tests
-passed.
+To run tests: =(asdf:test-system "org.wobh.common-lisp.games.wizards-castle")=
+
+The test package is simply a package of Lisp assertions. Running the
+tests tries to load the test package and if it loads without errors
+all the tests passed.
 
 * [2/5] Future work
 ** DONE setup package ~wizards-castle-test~
