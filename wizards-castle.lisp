@@ -70,8 +70,8 @@
 ;;;; http://www.armchairarcade.com/neo/node/1381
 
 (defpackage #:org.wobh.common-lisp.games.wizards-castle
-  (:use #:common-lisp)
   (:nicknames #:wizards-castle #:wizard #:zot)
+  (:use #:common-lisp)
   (:export #:play #:play-ohare #:play-stetson)
   (:documentation "ORG.WOBH.COMMON-LISP.GAMES.WIZARDS-CASTLE
 

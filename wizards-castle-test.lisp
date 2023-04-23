@@ -1,9 +1,8 @@
 ;; -*- mode: lisp; coding: utf-8 -*-
 
 (defpackage #:org.wobh.common-lisp.games.wizards-castle-test
+  (:nicknames #:wizards-castle-test)
   (:use #:common-lisp)
-  (:local-nicknames (#:wizards-castle
-                     #:org.wobh.common-lisp.games.wizards-castle))
   (:import-from #:wizards-castle
                 #:adv-alive-p
                 #:strength #:intelligence #:dexterity
@@ -54,8 +53,6 @@
                 #:adv-entered-room
                 #:adv-found #:*entrance*
                 #:adv-mapped #:entrance)
-  (:local-nicknames (#:wizards-castle-user
-                     #:org.wobh.common-lisp.games.wizards-castle-user))
   (:import-from #:wizards-castle-user
                 #:make-test-adv)
   (:documentation "ORG.WOBH.COMMON-LISP.GAMES.WIZARDS-CASTLE-TEST

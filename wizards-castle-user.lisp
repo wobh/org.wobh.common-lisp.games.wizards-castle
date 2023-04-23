@@ -1,10 +1,8 @@
 ;; -*- mode: lisp; coding: utf-8 -*-
 
 (defpackage #:org.wobh.common-lisp.games.wizards-castle-user
-  (:use #:common-lisp)
   (:nicknames #:wizards-castle-user #:wizard-user #:zot-user)
-  (:local-nicknames (#:wizards-castle
-                     #:org.wobh.common-lisp.games.wizards-castle))
+  (:use #:common-lisp)
   (:import-from #:wizards-castle
 		;; printing
 		#:*wiz-out*
